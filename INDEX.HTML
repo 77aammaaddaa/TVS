@@ -1,0 +1,1870 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechnoVision - حلول متكاملة لنمو أعمالك</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Custom Tailwind Colors based on brand identity */
+        :root {
+            --color-primary-dark: #2a2a32; /* Dark Gray from logo */
+            --color-primary-accent: #fcbf01; /* Yellow from logo */
+            --color-secondary-dark: #1f2937; /* Slightly lighter than primary-dark for contrast */
+            --color-text-light: #f3f4f6; /* Gray-100 for light text */
+            --color-text-dark: #1f2937; /* Dark text for light backgrounds */
+        }
+
+        /* Override Tailwind defaults for primary colors */
+        .bg-primary-dark { background-color: var(--color-primary-dark); }
+        .text-primary-dark { color: var(--color-primary-dark); }
+        .hover\:bg-primary-dark-hover:hover { background-color: #1a1a1a; } /* Slightly darker hover */
+
+        .bg-primary-accent { background-color: var(--color-primary-accent); }
+        .text-primary-accent { color: var(--color-primary-accent); }
+        .hover\:bg-primary-accent-hover:hover { background-color: #e6b000; } /* Slightly darker yellow hover */
+
+        .border-primary-accent { border-color: var(--color-primary-accent); }
+
+        /* General Body Styling */
+        body {
+            font-family: 'Inter', sans-serif; /* Or Poppins for headings, Open Sans/Lato for body */
+            direction: rtl;
+            text-align: right;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+        }
+
+        /* Custom Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+
+        .animate-fade-in-down { animation: fadeInDown 0.8s ease-out forwards; }
+        .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+        .animate-bounce-in { animation: bounceIn 0.8s ease-out forwards; }
+        .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Hide pages by default, managed by JS */
+        .page-content {
+            display: none;
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        /* Modal specific styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem 2rem;
+            width: 100%;
+            max-width: 32rem; /* max-w-lg */
+            position: relative;
+            animation: fadeInUp 0.3s ease-out forwards;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+        /* Table Styling for Pricing Page */
+        .pricing-table th, .pricing-table td {
+            padding: 0.75rem;
+            text-align: right;
+            border-bottom: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .pricing-table th {
+            background-color: var(--color-primary-dark);
+            color: var(--color-text-light);
+            font-weight: bold;
+        }
+        .pricing-table tr:nth-child(even) {
+            background-color: #f9fafb; /* gray-50 */
+        }
+        .pricing-table tr:hover {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+    </style>
+</head>
+<body class="font-sans text-right" dir="rtl">
+
+    <!-- Navbar -->
+    <nav class="bg-primary-dark text-white p-4 shadow-lg fixed w-full z-50 transition-all duration-300">
+        <div class="container mx-auto flex justify-between items-center flex-wrap">
+            <!-- Company Name and Slogan with Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="navigate('home')">
+                <!-- TVS Logo Placeholder with brand colors -->
+                <img src="https://placehold.co/80x40/2a2a32/fcbf01?text=TVS" alt="TechnoVision Solutions Logo" class="h-10 w-auto rounded-md" />
+                <div class="flex flex-col">
+                    <span class="font-extrabold text-2xl tracking-tight text-primary-accent">TechnoVision</span>
+                    <span class="text-sm font-light opacity-80 hidden md:block">نقود النمو الرقمي لعملائنا بحلول متكاملة.</span>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button
+                class="md:hidden text-white focus:outline-none"
+                id="mobile-menu-button"
+                aria-label="Toggle navigation"
+            >
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path id="menu-icon-open" style="display: block;" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    <path id="menu-icon-close" style="display: none;" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+
+            <!-- Navigation Links -->
+            <div class="w-full md:flex md:items-center md:w-auto mt-4 md:mt-0 hidden" id="navbar-links">
+                <ul class="flex flex-col md:flex-row md:space-x-8 text-lg font-medium">
+                    <li><a href="#" onclick="navigate('home')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">الرئيسية</a></li>
+                    <li><a href="#" onclick="navigate('about')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">من نحن</a></li>
+                    <li><a href="#" onclick="navigate('services')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">خدماتنا</a></li>
+                    <li><a href="#" onclick="navigate('pricing')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">عروض الأسعار والباقات</a></li>
+                    <li><a href="#" onclick="navigate('store')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">المتجر</a></li>
+                    <li><a href="#" onclick="navigate('portfolio')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">معرض الأعمال</a></li>
+                    <li><a href="#" onclick="navigate('ai-content-editing')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">حلول الذكاء الاصطناعي</a></li>
+                    <li><a href="#" onclick="navigate('contact')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">اتصل بنا</a></li>
+                    <li>
+                        <button
+                            onclick="showContactFormModal()"
+                            class="mt-2 md:mt-0 bg-primary-accent text-primary-dark font-bold py-2 px-5 rounded-full shadow-lg hover:bg-primary-accent-hover transition duration-300 transform hover:scale-105"
+                        >
+                            اطلب استشارة مجانية
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div id="main-content-wrapper">
+        <!-- Home Page -->
+        <div id="home-page" class="page-content active pt-20">
+            <!-- Hero Section -->
+            <section class="relative h-[60vh] md:h-[80vh] flex items-center justify-center text-white text-center bg-cover bg-center" style="background-image: url(https://placehold.co/1920x1080/2a2a32/fcbf01?text=TechnoVision+Digital+Growth)">
+                <div class="absolute inset-0 bg-black opacity-60"></div>
+                <div class="relative z-10 p-6 max-w-4xl mx-auto">
+                    <h1 class="text-4xl md:text-6xl font-extrabold leading-tight animate-fade-in-down">
+                        نقود النمو الرقمي لعلامتك التجارية
+                    </h1>
+                    <p class="mt-4 text-lg md:text-2xl font-light opacity-90 animate-fade-in-up">
+                        حلول متكاملة ومدعومة بالذكاء الاصطناعي لنتائج لا مثيل لها.
+                    </p>
+                    <button
+                        onclick="showContactFormModal()"
+                        class="mt-8 bg-primary-accent text-primary-dark font-bold py-3 px-8 rounded-full shadow-lg hover:bg-primary-accent-hover transition duration-300 transform hover:scale-105 animate-bounce-in"
+                    >
+                        اطلب استشارة مجانية
+                    </button>
+                </div>
+            </section>
+
+            <!-- Services Overview -->
+            <section class="py-16 bg-gray-50">
+                <div class="container mx-auto px-4 text-center">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-primary-dark mb-10">خدماتنا الشاملة</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Service Card 1: Digital Marketing -->
+                        <div class="bg-white rounded-lg shadow-lg p-6 transform transition duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary-accent">
+                            <div class="text-primary-accent mb-4 text-5xl">
+                                <i class="fas fa-bullhorn"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">التسويق الرقمي المتكامل</h3>
+                            <p class="text-gray-600">نقدم استراتيجيات وحملات تسويقية شاملة لتعزيز حضورك الرقمي وزيادة مبيعاتك.</p>
+                        </div>
+                        <!-- Service Card 2: Business Development -->
+                        <div class="bg-white rounded-lg shadow-lg p-6 transform transition duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary-dark">
+                            <div class="text-primary-dark mb-4 text-5xl">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">تطوير الأعمال والاستشارات</h3>
+                            <p class="text-gray-600">نساعدك على تحليل السوق، تحديد فرص النمو، ووضع خطط التوسع لعملك.</p>
+                        </div>
+                        <!-- Service Card 3: Accounting & Financial -->
+                        <div class="bg-white rounded-lg shadow-lg p-6 transform transition duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-yellow-600">
+                            <div class="text-yellow-600 mb-4 text-5xl">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">خدمات محاسبية ومالية</h3>
+                            <p class="text-gray-600">نضمن الامتثال المالي ونقدم استشارات لتحسين الأداء المالي لشركتك.</p>
+                        </div>
+                        <!-- Service Card 4: Legal Services -->
+                        <div class="bg-white rounded-lg shadow-lg p-6 transform transition duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-gray-600">
+                            <div class="text-gray-600 mb-4 text-5xl">
+                                <i class="fas fa-gavel"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">استشارات وخدمات قانونية</h3>
+                            <p class="text-gray-600">نوفر الدعم القانوني اللازم لصياغة العقود وتسجيل الشركات والعلامات التجارية.</p>
+                        </div>
+                         <!-- Service Card 5: Technical Solutions -->
+                         <div class="bg-white rounded-lg shadow-lg p-6 transform transition duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-orange-500">
+                            <div class="text-orange-500 mb-4 text-5xl">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">حلول تقنية ودعم فني</h3>
+                            <p class="text-gray-600">نقدم حلول تطوير الويب والتطبيقات، دعم البنية التحتية، وأمن المعلومات.</p>
+                        </div>
+                         <!-- Service Card 6: AI R&D -->
+                         <div class="bg-white rounded-lg shadow-lg p-6 transform transition duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-purple-600">
+                            <div class="text-purple-600 mb-4 text-5xl">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">البحث والتطوير بالذكاء الاصطناعي</h3>
+                            <p class="text-gray-600">نطبق أحدث تقنيات الذكاء الاصطناعي لتحسين خدماتنا وتقديم حلول متقدمة.</p>
+                        </div>
+                    </div>
+                    <button
+                        onclick="navigate('services')"
+                        class="mt-12 bg-primary-dark text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-secondary-dark transition duration-300 transform hover:scale-105"
+                    >
+                        استكشف جميع خدماتنا
+                    </button>
+                </div>
+            </section>
+
+            <!-- Why Choose Us Section -->
+            <section class="py-16 bg-primary-dark text-white">
+                <div class="container mx-auto px-4 text-center">
+                    <h2 class="text-3xl md:text-4xl font-extrabold mb-10">لماذا تختار TechnoVision؟</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <!-- USP 1 -->
+                        <div class="bg-secondary-dark rounded-lg p-6 shadow-xl flex flex-col items-center transform transition duration-300 hover:scale-105">
+                            <div class="text-primary-accent mb-4 text-5xl">
+                                <i class="fas fa-cubes"></i> <!-- Integrated Model icon -->
+                            </div>
+                            <h3 class="text-xl font-bold mb-3">النموذج المتكامل للخدمات</h3>
+                            <p class="text-gray-200">حلول شاملة تتجاوز التسويق لتشمل جوانب حيوية أخرى للأعمال.</p>
+                        </div>
+                        <!-- USP 2 -->
+                        <div class="bg-secondary-dark rounded-lg p-6 shadow-xl flex flex-col items-center transform transition duration-300 hover:scale-105">
+                            <div class="text-primary-accent mb-4 text-5xl">
+                                <i class="fas fa-cogs"></i> <!-- Flexibility icon -->
+                            </div>
+                            <h3 class="text-xl font-bold mb-3">المرونة في تقديم الخدمات</h3>
+                            <p class="text-gray-200">يمكنك تكوين حزم خدمات مخصصة تناسب احتياجاتك وميزانيتك.</p>
+                        </div>
+                        <!-- USP 3 -->
+                        <div class="bg-secondary-dark rounded-lg p-6 shadow-xl flex flex-col items-center transform transition duration-300 hover:scale-105">
+                            <div class="text-primary-accent mb-4 text-5xl">
+                                <i class="fas fa-home"></i> <!-- Remote-first icon -->
+                            </div>
+                            <h3 class="text-xl font-bold mb-3">نموذج العمل عن بعد (Remote-first)</h3>
+                            <p class="text-gray-200">يسمح بالوصول إلى أفضل الكفاءات ويوفر مرونة للعملاء.</p>
+                        </div>
+                        <!-- USP 4 -->
+                        <div class="bg-secondary-dark rounded-lg p-6 shadow-xl flex flex-col items-center transform transition duration-300 hover:scale-105">
+                            <div class="text-primary-accent mb-4 text-5xl">
+                                <i class="fas fa-hand-holding-usd"></i> <!-- ROI focus icon -->
+                            </div>
+                            <h3 class="text-xl font-bold mb-3">التركيز على النتائج والعائد على الاستثمار</h3>
+                            <p class="text-gray-200">نلتزم بتحقيق نقطة التعادل وضمان الربحية لعملائنا.</p>
+                        </div>
+                        <!-- USP 5 -->
+                        <div class="bg-secondary-dark rounded-lg p-6 shadow-xl flex flex-col items-center transform transition duration-300 hover:scale-105">
+                            <div class="text-primary-accent mb-4 text-5xl">
+                                <i class="fas fa-lightbulb"></i> <!-- AI R&D icon -->
+                            </div>
+                            <h3 class="text-xl font-bold mb-3">الاستثمار في البحث والتطوير بالذكاء الاصطناعي</h3>
+                            <p class="text-gray-200">تقديم حلول مبتكرة ومتقدمة تكنولوجياً لتميز أعمالك.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Portfolio Snippet -->
+            <section class="py-16 bg-gray-100">
+                <div class="container mx-auto px-4 text-center">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-primary-dark mb-10">أحدث مشاريعنا</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Case Study Card 1 -->
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl">
+                            <img src="https://placehold.co/600x400/2a2a32/fcbf01?text=مشروع+تسويق+رقمي" alt="مشروع تسويق رقمي X" class="w-full h-48 object-cover"/>
+                            <div class="p-6">
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">حملة تسويقية رقمية لشركة ناشئة</h3>
+                                <p class="text-gray-600 text-sm">زيادة الوعي بالعلامة التجارية بنسبة 150% خلال 3 أشهر.</p>
+                                <button onclick="navigate('portfolio')" class="mt-4 text-primary-dark hover:underline">عرض التفاصيل</button>
+                            </div>
+                        </div>
+                        <!-- Case Study Card 2 -->
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl">
+                            <img src="https://placehold.co/600x400/2a2a32/fcbf01?text=مشروع+هوية+بصرية" alt="مشروع تصميم هوية بصرية Y" class="w-full h-48 object-cover"/>
+                            <div class="p-6">
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">إعادة تصميم هوية بصرية لعلامة تجارية</h3>
+                                <p class="text-gray-600 text-sm">تحسين إدراك العلامة التجارية وزيادة التفاعل على وسائل التواصل.</p>
+                                <button onclick="navigate('portfolio')" class="mt-4 text-primary-dark hover:underline">عرض التفاصيل</button>
+                            </div>
+                        </div>
+                        <!-- Case Study Card 3 -->
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl">
+                            <img src="https://placehold.co/600x400/2a2a32/fcbf01?text=مشروع+تحسين+SEO" alt="مشروع تحسين محركات البحث Z" class="w-full h-48 object-cover"/>
+                            <div class="p-6">
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">تحسين SEO لموقع تجارة إلكترونية</h3>
+                                <p class="text-gray-600 text-sm">زيادة الزيارات العضوية بنسبة 80% وتحسين معدلات التحويل.</p>
+                                <button onclick="navigate('portfolio')" class="mt-4 text-primary-dark hover:underline">عرض التفاصيل</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        onclick="navigate('portfolio')"
+                        class="mt-12 bg-primary-dark text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-secondary-dark transition duration-300 transform hover:scale-105"
+                    >
+                        شاهد جميع قصص نجاحنا
+                    </button>
+                </div>
+            </section>
+
+            <!-- Testimonials -->
+            <section class="py-16 bg-white">
+                <div class="container mx-auto px-4 text-center">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-primary-dark mb-10">ماذا يقول عملاؤنا</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Testimonial Card 1 -->
+                        <div class="bg-gray-50 rounded-lg p-6 shadow-md border-b-4 border-primary-accent">
+                            <p class="text-gray-700 text-lg italic mb-4">"TechnoVision غيّرت قواعد اللعبة بالنسبة لشركتنا. لقد حققوا نتائج تفوق توقعاتنا في وقت قياسي."</p>
+                            <p class="font-bold text-primary-dark">- أحمد السيد</p>
+                            <p class="text-gray-500 text-sm">مدير تسويق، شركة الأفق الجديد</p>
+                        </div>
+                        <!-- Testimonial Card 2 -->
+                        <div class="bg-gray-50 rounded-lg p-6 shadow-md border-b-4 border-primary-accent">
+                            <p class="text-gray-700 text-lg italic mb-4">"الفريق احترافي ومتعاون للغاية. خدماتهم المدعومة بالذكاء الاصطناعي فريدة من نوعها وقوية!"</p>
+                            <p class="font-bold text-primary-dark">- سارة علي</p>
+                            <p class="text-gray-500 text-sm">الرئيس التنفيذي، حلول الابتكار</p>
+                        </div>
+                        <!-- Testimonial Card 3 -->
+                        <div class="bg-gray-50 rounded-lg p-6 shadow-md border-b-4 border-primary-accent">
+                            <p class="text-gray-700 text-lg italic mb-4">"بفضل TechnoVision، تضاعفت زيارات موقعنا وارتفعت مبيعاتنا بشكل ملحوظ. أوصي بهم بشدة."</p>
+                            <p class="font-bold text-primary-dark">- خالد منصور</p>
+                            <p class="text-gray-500 text-sm">صاحب متجر إلكتروني، متجر النخبة</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Final Call to Action Section -->
+            <section class="py-16 bg-primary-dark text-white text-center">
+                <div class="container mx-auto px-4">
+                    <h2 class="text-3xl md:text-4xl font-extrabold mb-6">هل أنت مستعد لدفع نموك الرقمي؟</h2>
+                    <p class="text-lg md:text-xl mb-8 opacity-90">دعنا نساعدك في تحقيق أهدافك الرقمية. اتصل بنا اليوم!</p>
+                    <button
+                        onclick="showContactFormModal()"
+                        class="bg-primary-accent text-primary-dark font-bold py-3 px-8 rounded-full shadow-lg hover:bg-primary-accent-hover transition duration-300 transform hover:scale-105 animate-bounce-in"
+                    >
+                        اطلب استشارة مجانية
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Services Page -->
+        <div id="services-page" class="page-content pt-24 pb-12 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-primary-dark text-center mb-12">خدماتنا الشاملة - طريقك نحو النجاح</h1>
+
+                <!-- Service 1: Digital Marketing Services -->
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-r-8 border-primary-accent animate-fade-in">
+                    <div class="flex flex-col md:flex-row items-center md:space-x-8 text-right">
+                        <div class="md:w-1/4 text-primary-accent text-7xl mb-4 md:mb-0 transform hover:scale-110 transition duration-300">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <div class="md:w-3/4">
+                            <h2 class="text-3xl font-bold text-gray-800 mb-4">خدمات التسويق الرقمي</h2>
+                            <p class="text-gray-700 mb-4">
+                                نقوم بصياغة استراتيجيات تسويقية فعالة وإدارة حملات إعلانية احترافية لزيادة وصولك وتأثيرك في السوق الرقمي المصري.
+                            </p>
+                            <ul class="list-disc list-inside text-gray-600 mb-4 space-y-1">
+                                <li>**صناعة المحتوى:** نصي ومرئي لحسابات التواصل الاجتماعي (فيسبوك، انستجرام، تيك توك) مصمم خصيصًا للجمهور المصري.</li>
+                                <li>**إنشاء وتطوير الويب:** تصميم وتطوير المتاجر الإلكترونية والمواقع الاحترافية المتكاملة مع أنظمة الدفع المصرية.</li>
+                                <li>**إدارة الحملات الإعلانية الممولة:** إدارة حملات إعلانية فعالة على Google Ads, Meta Ads, TikTok Ads باستهداف دقيق للسوق المصري.</li>
+                                <li>**إدارة حسابات التواصل الاجتماعي:** نشر، تفاعل، وردود سريعة باللغة واللهجة المصرية لتعزيز التفاعل.</li>
+                                <li>**تحسين محركات البحث (SEO):** استراتيجيات SEO قوية ومحتوى محسّن لزيادة الظهور في نتائج البحث المحلية والعربية.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Service 2: Business Development Services -->
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-l-8 border-primary-dark animate-fade-in">
+                    <div class="flex flex-col md:flex-row-reverse items-center md:space-x-reverse md:space-x-8 text-right">
+                        <div class="md:w-1/4 text-primary-dark text-7xl mb-4 md:mb-0 transform hover:scale-110 transition duration-300">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <div class="md:w-3/4">
+                            <h2 class="text-3xl font-bold text-gray-800 mb-4">خدمات تطوير الأعمال</h2>
+                            <p class="text-gray-700 mb-4">
+                                نقدم استشارات استراتيجية تساعدك على فهم السوق المصري، تحديد الفرص الجديدة، ووضع خطط نمو فعالة لأعمالك.
+                            </p>
+                            <ul class="list-disc list-inside text-gray-600 mb-4 space-y-1">
+                                <li>**دراسات الجدوى:** تحليل شامل للسوق المصري وتقييم الجدوى الاقتصادية لمشروعك.</li>
+                                <li>**خطط النمو والتوسع:** وضع استراتيجيات واضحة للتوسع داخل مصر أو في المنطقة.</li>
+                                <li>**استشارات استراتيجية:** توجيهات متخصصة لتحسين الأداء وتحديد الميزات التنافسية.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Service 3: Accounting & Financial Services -->
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-r-8 border-primary-accent animate-fade-in">
+                    <div class="flex flex-col md:flex-row items-center md:space-x-8 text-right">
+                        <div class="md:w-1/4 text-primary-accent mb-4 text-5xl">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <div class="md:w-3/4">
+                            <h2 class="text-3xl font-bold text-gray-800 mb-4">خدمات محاسبية ومالية</h2>
+                            <p class="text-gray-700 mb-4">
+                                نساعدك في إدارة الجوانب المالية لشركتك بفعالية، من إعداد التقارير إلى الاستشارات الضريبية، لضمان الامتثال وتحسين الأداء المالي وفقًا للقوانين المصرية.
+                            </p>
+                            <ul class="list-disc list-inside text-gray-600 mb-4 space-y-1">
+                                <li>**إعداد التقارير المالية:** إعداد الميزانيات، قوائم الدخل، والتدفقات النقدية الدورية.</li>
+                                <li>**إدارة الدفاتر المحاسبية:** تنظيم وتوثيق جميع المعاملات المالية لضمان الشفافية والدقة.</li>
+                                <li>**استشارات ضريبية ومالية:** توجيهات حول الامتثال الضريبي والاستفادة القصوى من المزايا المالية في مصر.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Service 4: Legal Services -->
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-l-8 border-primary-dark animate-fade-in">
+                    <div class="flex flex-col md:flex-row-reverse items-center md:space-x-reverse md:space-x-8 text-right">
+                        <div class="md:w-1/4 text-primary-dark text-7xl mb-4 md:mb-0 transform hover:scale-110 transition duration-300">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="md:w-3/4">
+                            <h2 class="text-3xl font-bold text-gray-800 mb-4">خدمات قانونية</h2>
+                            <p class="text-gray-700 mb-4">
+                                نوفر الدعم القانوني لشركتك، بدءاً من صياغة العقود وحتى تسجيل الشركات والعلامات التجارية، لضمان الامتثال وحماية أعمالك في البيئة القانونية المصرية.
+                            </p>
+                            <ul class="list-disc list-inside text-gray-600 mb-4 space-y-1">
+                                <li>**صياغة العقود والاتفاقيات:** إعداد ومراجعة العقود بما يتوافق مع القوانين المصرية.</li>
+                                <li>**استشارات قانونية:** توجيهات للشركات الناشئة والصغيرة والمتوسطة حول الإطار القانوني لعملياتهم.</li>
+                                <li>**تسجيل الشركات والعلامات التجارية:** مساعدتك في إجراءات تسجيل شركتك وعلامتك التجارية في مصر.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Service 5: Technical Solutions -->
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-r-8 border-primary-accent animate-fade-in">
+                    <div class="flex flex-col md:flex-row items-center md:space-x-8 text-right">
+                        <div class="md:w-1/4 text-primary-accent mb-4 text-5xl">
+                            <i class="fas fa-laptop-code"></i>
+                        </div>
+                        <div class="md:w-3/4">
+                            <h2 class="text-3xl font-bold text-gray-800 mb-4">خدمات تقنية</h2>
+                            <p class="text-gray-700 mb-4">
+                                نقدم حلولاً تقنية متقدمة تشمل تطوير الويب والتطبيقات، دعم البنية التحتية، وحلول الأمن السيبراني لضمان كفاءة عملياتك الرقمية.
+                            </p>
+                            <ul class="list-disc list-inside text-gray-600 mb-4 space-y-1">
+                                <li>**دعم فني وحلول بنية تحتية:** دعم شامل لأنظمتك التقنية وتوفير حلول بنية تحتية مستقرة.</li>
+                                <li>**تطوير تطبيقات الويب والجوال:** تصميم وتطوير تطبيقات مخصصة لعملك على منصات الويب والجوال.</li>
+                                <li>**حلول الأمن السيبراني:** حماية بياناتك وأنظمتك من التهديدات السيبرانية.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Service 6: AI R&D Services -->
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-l-8 border-primary-dark animate-fade-in">
+                    <div class="flex flex-col md:flex-row-reverse items-center md:space-x-reverse md:space-x-8 text-right">
+                        <div class="md:w-1/4 text-primary-dark text-7xl mb-4 md:mb-0 transform hover:scale-110 transition duration-300">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="md:w-3/4">
+                            <h2 class="text-3xl font-bold text-gray-800 mb-4">خدمات البحث والتطوير بالذكاء الاصطناعي</h2>
+                            <p class="text-gray-700 mb-4">
+                                قسم متخصص في البحث والتطوير والابتكار باستخدام الذكاء الاصطناعي لتحسين الخدمات وتقديم حلول متقدمة، بما في ذلك تحرير ومراجعة المحتوى.
+                            </p>
+                            <ul class="list-disc list-inside text-gray-600 mb-4 space-y-1">
+                                <li>**تطبيق حلول الذكاء الاصطناعي:** دمج الذكاء الاصطناعي في التسويق وتحليل البيانات لنتائج دقيقة.</li>
+                                <li>**تطوير أدوات مخصصة:** بناء أدوات ذكاء اصطناعي مخصصة تلبي احتياجات عملك الفريدة.</li>
+                                <li>**البحث في أحدث التقنيات:** استكشاف وتطبيق أحدث ابتكارات الذكاء الاصطناعي في الأعمال.</li>
+                            </ul>
+                            <button
+                                onclick="navigate('ai-content-editing')"
+                                class="mt-6 bg-primary-accent text-primary-dark font-bold py-3 px-8 rounded-full shadow-lg hover:bg-primary-accent-hover transition duration-300 transform hover:scale-105"
+                            >
+                                اكتشف المزيد عن حلول الذكاء الاصطناعي
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Call to Action for consultation -->
+                <section class="py-10 bg-primary-dark text-white text-center rounded-lg mt-10 shadow-xl">
+                    <h2 class="text-3xl font-extrabold mb-4">هل أنت مستعد لدفع نموك الرقمي؟</h2>
+                    <p class="text-lg mb-6 opacity-90">تواصل معنا اليوم لمناقشة أهدافك وكيف يمكننا مساعدتك.</p>
+                    <button
+                        onclick="showContactFormModal()"
+                        class="bg-primary-accent text-primary-dark font-bold py-3 px-8 rounded-full shadow-lg hover:bg-primary-accent-hover transition duration-300 transform hover:scale-105"
+                    >
+                        اطلب استشارة مجانية
+                    </button>
+                </section>
+            </div>
+        </div>
+
+        <!-- Pricing and Packages Page (NEW) -->
+        <div id="pricing-page" class="page-content pt-24 pb-12 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-primary-dark text-center mb-12">عروض الأسعار والباقات - المرونة لتحقيق أهدافك</h1>
+
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-r-8 border-primary-accent animate-fade-in">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4 text-right">نموذج التسعير المرن: باقات مصممة لك</h2>
+                    <p class="text-gray-700 leading-relaxed text-right mb-4">
+                        في TechnoVision، نؤمن بأن كل شركة فريدة من نوعها ولها احتياجات وميزانيات مختلفة. لذلك، بدلاً من الباقات الجاهزة، نقدم نموذج تسعير مرن يسمح لك ببناء حزمة الخدمات التي تناسبك تمامًا. نركز على تحقيق نقطة التعادل لعملائنا وضمان عائد استثماري حقيقي.
+                    </p>
+                    <p class="text-gray-700 leading-relaxed text-right mb-6">
+                        تعتمد أسعارنا على التكلفة لكل وظيفة/ساعة عمل، مع إضافة هامش ربح مستهدف لضمان استدامتنا وتقديم أفضل جودة. يمكنك اختيار الخدمات الفردية أو دمجها لتكوين حزمة متكاملة.
+                    </p>
+
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4 text-right">مثال على تقدير التكاليف (غير ملزم)</h3>
+                    <p class="text-gray-600 mb-6 text-right">الجدول التالي يعرض متوسط التكاليف التقديرية لوظائف مختلفة، لمساعدتك في فهم نموذج التسعير الخاص بنا. السعر النهائي سيعتمد على تفاصيل مشروعك والحزمة المخصصة لك.</p>
+
+                    <div class="overflow-x-auto rounded-lg shadow-md">
+                        <table class="w-full whitespace-nowrap pricing-table">
+                            <thead>
+                                <tr>
+                                    <th>الوظيفة</th>
+                                    <th>اللقب</th>
+                                    <th>سعر الساعة (جنيه مصري)</th>
+                                    <th>متوسط وقت المهمة (ساعة)</th>
+                                    <th>متوسط سعر المهمة (جنيه مصري)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>جرافيك ديزاينر</td>
+                                    <td>GD</td>
+                                    <td>25</td>
+                                    <td>1</td>
+                                    <td>25</td>
+                                </tr>
+                                <tr>
+                                    <td>موشن جرافيك / مونتير</td>
+                                    <td>MV</td>
+                                    <td>35</td>
+                                    <td>3</td>
+                                    <td>105</td>
+                                </tr>
+                                <tr>
+                                    <td>اكاونت مانجير / سوشيال ميديا سبيشاليست</td>
+                                    <td>AM / SOCIAL</td>
+                                    <td>25</td>
+                                    <td>1</td>
+                                    <td>25</td>
+                                </tr>
+                                <tr>
+                                    <td>مبرمج ويب</td>
+                                    <td>PWEB</td>
+                                    <td>25</td>
+                                    <td>4</td>
+                                    <td>100</td>
+                                </tr>
+                                <tr>
+                                    <td>كوبايلوت في البحث والتطوير والابتكار (AI R&D)</td>
+                                    <td>AI RESEARCH</td>
+                                    <td>20</td>
+                                    <td>5</td>
+                                    <td>100</td>
+                                </tr>
+                                <tr>
+                                    <td>مودريتور</td>
+                                    <td>GM / PR</td>
+                                    <td>10</td>
+                                    <td>1</td>
+                                    <td>10</td>
+                                </tr>
+                                <tr>
+                                    <td>مصور فيديو وصور</td>
+                                    <td>ph/vid graph</td>
+                                    <td>25</td>
+                                    <td>5</td>
+                                    <td>125</td>
+                                </tr>
+                                <tr>
+                                    <td>ميديا باير / محلل</td>
+                                    <td>media pyr / analy</td>
+                                    <td>25</td>
+                                    <td>4</td>
+                                    <td>100</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-gray-700 leading-relaxed text-right mt-6">
+                        هذه الأرقام هي تقديرية وتستخدم لتوضيح كيف يتم حساب التكاليف. للحصول على عرض سعر دقيق ومخصص لاحتياجات شركتك، ندعوك للتواصل معنا.
+                    </p>
+                </section>
+
+                <!-- Call to Action for Custom Quote -->
+                <section class="py-10 bg-primary-dark text-white text-center rounded-lg mt-10 shadow-xl">
+                    <h2 class="text-3xl font-extrabold mb-4">احصل على عرض سعر مخصص لمشروعك!</h2>
+                    <p class="text-lg mb-6 opacity-90">تواصل معنا اليوم لمناقشة احتياجاتك وسنقوم ببناء حزمة خدمات وعرض أسعار يناسبك تمامًا.</p>
+                    <button
+                        onclick="showContactFormModal()"
+                        class="bg-primary-accent text-primary-dark font-bold py-3 px-8 rounded-full shadow-lg hover:bg-primary-accent-hover transition duration-300 transform hover:scale-105"
+                    >
+                        اطلب عرض سعر الآن
+                    </button>
+                </section>
+            </div>
+        </div>
+
+
+        <!-- Portfolio / Case Studies Page -->
+        <div id="portfolio-page" class="page-content pt-24 pb-12 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-primary-dark text-center mb-12">قصص نجاحنا - أمثلة حية للنمو</h1>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="case-studies-grid">
+                    <!-- Case study cards will be dynamically inserted here by JS -->
+                </div>
+
+                <!-- Case Study Modal -->
+                <div id="case-study-modal" class="modal-overlay" style="display: none;">
+                    <div class="modal-content w-full max-w-2xl max-h-[90vh]">
+                        <button
+                            onclick="hideCaseStudyModal()"
+                            class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-3xl font-semibold leading-none focus:outline-none"
+                            aria-label="Close"
+                        >
+                            &times;
+                        </button>
+                        <h2 class="text-3xl font-extrabold text-primary-dark mb-4 text-center" id="modal-case-study-client"></h2>
+                        <p class="text-gray-600 text-center text-lg mb-6" id="modal-case-study-industry"></p>
+
+                        <img id="modal-case-study-image" src="" alt="صورة المشروع" class="w-full h-64 object-cover rounded-md mb-6"/>
+
+                        <div class="space-y-4 text-right">
+                            <div>
+                                <h3 class="text-xl font-semibold text-primary-dark mb-2">التحدي:</h3>
+                                <p class="text-gray-700" id="modal-case-study-challenge"></p>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold text-primary-dark mb-2">الحل المقدم:</h3>
+                                <p class="text-gray-700" id="modal-case-study-solution"></p>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold text-primary-dark mb-2">النتائج القابلة للقياس:</h3>
+                                <p class="text-gray-700" id="modal-case-study-results"></p>
+                            </div>
+                        </div>
+                        <!-- AI-Powered Case Study Summary Feature -->
+                        <div class="mt-8 pt-4 border-t border-gray-200">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">✨ ملخص وتحليلات بالذكاء الاصطناعي</h3>
+                            <button
+                                onclick="generateCaseStudySummary()"
+                                id="generate-summary-button"
+                                class="w-full bg-primary-dark text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-secondary-dark transition duration-300 transform hover:scale-105"
+                            >
+                                توليد ملخص النقاط الرئيسية ✨
+                            </button>
+                            <div id="ai-summary-output" class="mt-4 bg-gray-50 p-4 rounded-md text-gray-800 hidden">
+                                <p id="ai-summary-text" class="leading-relaxed"></p>
+                                <div id="ai-summary-loading" class="text-center text-primary-dark mt-2 hidden">
+                                    <i class="fas fa-spinner fa-spin"></i> جاري التوليد...
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-8 text-center">
+                            <button
+                                onclick="hideCaseStudyModal(); showContactFormModal();"
+                                class="bg-primary-dark text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-secondary-dark transition duration-300 transform hover:scale-105"
+                            >
+                                اطلب استشارة مجانية لمشروعك
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Us Page -->
+        <div id="about-page" class="page-content pt-24 pb-12 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-primary-dark text-center mb-12">من نحن - قصتنا، رؤيتنا، وفريقنا المصري</h1>
+
+                <!-- Our Story -->
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-r-8 border-primary-accent animate-fade-in">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4 text-right">قصتنا</h2>
+                    <p class="text-gray-700 leading-relaxed text-right">
+                        تأسست شركة TechnoVision على أرض مصر لتقديم حلول متكاملة للشركات الناشئة والصغيرة والمتوسطة (SMEs) في السوق المصري العريق. هدفنا الأساسي هو تمكين هذه الشركات من تحقيق النمو المستدام والتحول الرقمي الشامل، متجاوزين مجرد خدمات التسويق الإلكتروني لنشمل تطوير الأعمال، الخدمات المحاسبية والقانونية، والحلول التقنية المبتكرة، مع التركيز على التكامل الفعال بين جميع أقسام المؤسسة لضمان أقصى فعالية.
+                    </p>
+                    <p class="text-gray-700 leading-relaxed text-right mt-4">
+                        منذ بدايتنا، التزمنا بمساعدة الشركات المصرية من جميع الأحجام على تحقيق أقصى إمكاناتها الرقمية، من خلال استراتيجيات مخصصة ونتائج قابلة للقياس، وبنموذج عمل عن بعد يضمن المرونة والوصول لأفضل الكفاءات المصرية والعالمية.
+                    </p>
+                </section>
+
+                <!-- Vision, Mission, Values -->
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-l-8 border-primary-dark animate-fade-in">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-right">رؤيتنا، رسالتنا، وقيمنا الأصيلة</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-right">
+                        <div>
+                            <h3 class="text-xl font-semibold text-primary-dark mb-2 flex items-center justify-end">
+                                <i class="fas fa-eye text-2xl ml-2"></i> رؤيتنا
+                            </h3>
+                            <p class="text-gray-700">أن نكون الشريك الاستراتيجي المفضل للشركات الناشئة والصغيرة والمتوسطة في مصر والمنطقة، وأن نساهم بقوة في بناء اقتصاد رقمي مصري مزدهر من خلال تقديم خدمات استشارية وتنفيذية رائدة ومتكاملة.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-primary-dark mb-2 flex items-center justify-end">
+                                <i class="fas fa-bullseye text-2xl ml-2"></i> رسالتنا
+                            </h3>
+                            <p class="text-gray-700">تمكين الشركات المصرية الصغيرة والمتوسطة من تحقيق أقصى استفادة من التواجد الرقمي والتكامل المؤسسي من خلال حلول مبتكرة وفعالة في التسويق، تطوير الأعمال، المحاسبة، الجوانب القانونية، والتقنية، بما يضمن نمو أعمالهم وزيادة تنافسيتهم في السوق.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-primary-dark mb-2 flex items-center justify-end">
+                                <i class="fas fa-heart text-2xl ml-2"></i> قيمنا
+                             </h3>
+                            <ul class="list-disc list-inside text-gray-700 space-y-1">
+                                <li>الابتكار والشغف</li>
+                                <li>الشفافية والثقة</li>
+                                <li>التركيز على النتائج</li>
+                                <li>التعاون والتطوير المستمر</li>
+                                <li>التكامل والشمولية</li>
+                                <li>العمل عن بعد بفاعلية</li>
+                                <li><span class="font-bold">الأصالة المصرية والجودة العالمية</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Our Team -->
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-r-8 border-primary-accent animate-fade-in">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">فريق عمل TechnoVision - خبراء مصريون في خدمتكم</h2>
+                    <p class="text-gray-700 text-center mb-10">
+                        فريق من الخبراء المصريين الملتزمين والشغوفين، يجمعون بين الخبرة البشرية العميقة والقدرات المتقدمة للذكاء الاصطناعي لتحقيق أهدافك بأفضل شكل.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <!-- Team Member 1 -->
+                        <div class="flex flex-col items-center text-center">
+                            <img src="https://placehold.co/150x150/fcbf01/2a2a32?text=أحمد" alt="أحمد حسام" class="w-36 h-36 rounded-full object-cover mb-4 shadow-lg border-4 border-primary-accent"/>
+                            <h3 class="text-xl font-bold text-gray-800">أحمد حسام</h3>
+                            <p class="text-primary-dark font-semibold">الرئيس التنفيذي</p>
+                            <p class="text-gray-600 text-sm mt-2">خبير استراتيجيات النمو الرقمي ودمج الذكاء الاصطناعي في السوق المصري.</p>
+                        </div>
+                        <!-- Team Member 2 -->
+                        <div class="flex flex-col items-center text-center">
+                            <img src="https://placehold.co/150x150/2a2a32/fcbf01?text=مريم" alt="مريم سعيد" class="w-36 h-36 rounded-full object-cover mb-4 shadow-lg border-4 border-primary-dark"/>
+                            <h3 class="text-xl font-bold text-gray-800">مريم سعيد</h3>
+                            <p class="text-primary-accent font-semibold">مديرة التسويق الرقمي</p>
+                            <p class="text-gray-600 text-sm mt-2">متخصصة في بناء الحملات الناجحة وقيادة فرق العمل التسويقية.</p>
+                        </div>
+                        <!-- Team Member 3 -->
+                        <div class="flex flex-col items-center text-center">
+                            <img src="https://placehold.co/150x150/fcbf01/2a2a32?text=محمود" alt="محمود علي" class="w-36 h-36 rounded-full object-cover mb-4 shadow-lg border-4 border-primary-accent"/>
+                            <h3 class="text-xl font-bold text-gray-800">محمود علي</h3>
+                            <p class="text-primary-dark font-semibold">مدير المحتوى والذكاء الاصطناعي</p>
+                            <p class="text-gray-600 text-sm mt-2">خبير في توليد وتحسين المحتوى المدعوم بالذكاء الاصطناعي باللغة العربية.</p>
+                        </div>
+                        <!-- Team Member 4 -->
+                        <div class="flex flex-col items-center text-center">
+                            <img src="https://placehold.co/150x150/2a2a32/fcbf01?text=فاطمة" alt="فاطمة الزهراء" class="w-36 h-36 rounded-full object-cover mb-4 shadow-lg border-4 border-primary-dark"/>
+                            <h3 class="text-xl font-bold text-gray-800">فاطمة الزهراء</h3>
+                            <p class="text-primary-accent font-semibold">مديرة تطوير الأعمال</p>
+                            <p class="text-gray-600 text-sm mt-2">متخصصة في تحليل السوق وتطوير استراتيجيات التوسع للمشاريع المصرية.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Call to Action -->
+                <section class="py-10 bg-primary-dark text-white text-center rounded-lg mt-10 shadow-xl">
+                    <h2 class="text-3xl font-extrabold mb-4">هل لديك مشروع في ذهنك؟</h2>
+                    <p class="text-lg mb-6 opacity-90">دع فريقنا المصري المحترف يساعدك على تحويل رؤيتك إلى واقع ملموس.</p>
+                    <button
+                        onclick="showContactFormModal()"
+                        class="bg-primary-accent text-primary-dark font-bold py-3 px-8 rounded-full shadow-lg hover:bg-primary-accent-hover transition duration-300 transform hover:scale-105"
+                    >
+                        تواصل معنا اليوم
+                    </button>
+                </section>
+            </div>
+        </div>
+
+        <!-- AI Content Editing Services Page -->
+        <div id="ai-content-editing-page" class="page-content pt-24 pb-12 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-primary-dark text-center mb-12">حلول الذكاء الاصطناعي: الابتكار في صميم خدماتنا</h1>
+
+                <!-- AI Overview -->
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-r-8 border-primary-accent animate-fade-in">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4 text-right">كيف ندمج الذكاء الاصطناعي في خدماتنا؟</h2>
+                    <p class="text-gray-700 leading-relaxed text-right mb-4">
+                        في TechnoVision، نؤمن بأن الذكاء الاصطناعي ليس مجرد أداة، بل هو ركيزة أساسية لتقديم حلول مبتكرة وفعالة. قسم البحث والتطوير بالذكاء الاصطناعي (AI R&D) لدينا يكرس جهوده لتطوير وتطبيق أحدث التقنيات لتعزيز كل جانب من جوانك أعمال عملائنا في السوق المصري والعربي.
+                    </p>
+                    <p class="text-gray-700 leading-relaxed text-right mb-4">
+                        نستخدم الذكاء الاصطناعي في:
+                    </p>
+                    <ul class="list-disc list-inside text-gray-600 mb-4 space-y-2 text-right">
+                        <li>**تحليل البيانات المتقدم:** الكشف عن الأنماط والرؤى الخفية لتقديم استراتيجيات تسويقية وتجارية أكثر دقة وفاعلية في السوق المحلي.</li>
+                        <li>**إنتاج المحتوى وتحسينه:** المساعدة في توليد أفكار المحتوى، تحسين النصوص، وضمان جودتها باللغة العربية الفصحى واللهجة المصرية (كما في خدمة التحرير).</li>
+                        <li>**تخصيص الحملات التسويقية:** استهداف الجمهور بدقة أعلى وتقديم تجارب مخصصة تزيد من معدلات التحويل.</li>
+                        <li>**تحسين العمليات التشغيلية:** أتمتة المهام المتكررة في الأقسام المختلفة (مثل المحاسبة والدعم الفني) لزيادة الكفاءة وتقليل التكاليف.</li>
+                    </ul>
+                </section>
+
+                <!-- AI Content Editing & Review Services - Detailed -->
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-l-8 border-primary-dark animate-fade-in">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4 text-right">تحرير ومراجعة المحتوى بالذكاء الاصطناعي</h2>
+                    <p class="text-gray-700 leading-relaxed text-right mb-4">
+                        خدمة فريدة تضمن جودة المحتوى الناتج عن الذكاء الاصطناعي، مع لمسة إنسانية احترافية. نقوم بمراجعة وتحرير النصوص لضمان تدفقها الطبيعي، خلوها من الأخطاء اللغوية والنحوية، مطابقتها لنبرة علامتك التجارية، والتأكد من أنها تبدو وكأنها مكتوبة بواسطة إنسان خبير.
+                    </p>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">لماذا هذه الخدمة مهمة؟</h3>
+                    <p class="text-gray-700 leading-relaxed text-right mb-4">
+                        على الرغم من أن الذكاء الاصطناعي يمكنه توليد كميات هائلة من المحتوى بسرعة، إلا أنه غالبًا ما يفتقر إلى اللمسة البشرية، الإبداع، والدقة السياقية التي تميز المحتوى عالي الجودة. TechnoVision تحل هذه التحديات من خلال دمج قوة الذكاء الاصطناعي لدينا (للكشف والتحليل السريع) مع خبرة محررينا البشريين (للتعديل الدقيق والتخصيص الإبداعي).
+                    </p>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">مزايا فريدة لخدمتنا:</h3>
+                    <ul class="list-disc list-inside text-gray-600 mb-4 space-y-2 text-right">
+                        <li>**كشف الأنماط الآلية:** تحديد الجمل والعبارات التي تظهر عادة في المحتوى الذي يكتبه الذكاء الاصطناعي لضمان الأصالة.</li>
+                        <li>**تقييم "إنسانية" المحتوى:** إعطاء درجة توضح مدى قرب المحتوى من الكتابة البشرية والطبيعية.</li>
+                        <li>**تحليل نبرة الصوت والعاطفة:** التأكد من أن المحتوى ينقل المشاعر والنبرة المطلوبة بدقة، ويتناسب مع الجمهور المستهدف.</li>
+                    </ul>
+                </section>
+
+                <!-- AI Content Idea Generator Feature -->
+                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-r-8 border-primary-accent animate-fade-in">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4 text-center">✨ مولد أفكار المحتوى بالذكاء الاصطناعي</h2>
+                    <p class="text-gray-700 mb-4 text-center">أدخل موضوعًا واحصل على أفكار محتوى مبتكرة تساعدك على البدء في كتابة المحتوى الجذاب والموجه للجمهور المصري!</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="content-topic" class="block text-gray-700 text-sm font-bold mb-2">موضوع المحتوى:</label>
+                            <textarea
+                                id="content-topic"
+                                rows="3"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                                placeholder="مثال: استراتيجيات التسويق الرقمي للشركات المصرية الصغيرة"
+                            ></textarea>
+                        </div>
+                        <button
+                            onclick="generateContentIdeas()"
+                            id="generate-ideas-button"
+                            class="w-full bg-primary-dark text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-secondary-dark transition duration-300 transform hover:scale-105"
+                        >
+                            توليد الأفكار ✨
+                        </button>
+                        <div id="ai-content-ideas-output" class="mt-4 bg-gray-50 p-4 rounded-md text-gray-800 hidden">
+                            <p id="ai-ideas-text" class="leading-relaxed"></p>
+                            <div id="ai-ideas-loading" class="text-center text-primary-dark mt-2 hidden">
+                                <i class="fas fa-spinner fa-spin"></i> جاري التوليد...
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pricing or Quote -->
+                <section class="py-10 bg-primary-dark text-white text-center rounded-lg mt-10 shadow-xl">
+                    <h2 class="text-3xl font-extrabold mb-4">هل أنت مستعد للاستفادة من قوة الذكاء الاصطناعي؟</h2>
+                    <p class="text-lg mb-6 opacity-90">تواصل معنا لمناقشة كيف يمكن لحلولنا المدعومة بالذكاء الاصطناعي أن تدفع نموك.</p>
+                    <button
+                        onclick="showContactFormModal()"
+                        class="bg-primary-accent text-primary-dark font-bold py-3 px-8 rounded-full shadow-lg hover:bg-primary-accent-hover transition duration-300 transform hover:scale-105"
+                    >
+                        اطلب استشارة مجانية
+                    </button>
+                </section>
+            </div>
+        </div>
+
+        <!-- Contact Us Page -->
+        <div id="contact-page" class="page-content pt-24 pb-12 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-primary-dark text-center mb-12">اتصل بنا - لنبدأ رحلة نجاحك الرقمي في مصر</h1>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 bg-white rounded-lg shadow-xl p-6 md:p-10">
+                    <!-- Contact Form -->
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-right">أرسل لنا رسالة</h2>
+                        <form id="contact-form" class="space-y-6">
+                            <div>
+                                <label for="contact-name" class="block text-gray-700 text-sm font-bold mb-2 text-right">الاسم الكامل</label>
+                                <input
+                                    type="text"
+                                    id="contact-name"
+                                    name="name"
+                                    class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label for="contact-email" class="block text-gray-700 text-sm font-bold mb-2 text-right">البريد الإلكتروني</label>
+                                <input
+                                    type="email"
+                                    id="contact-email"
+                                    name="email"
+                                    class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label for="contact-phone" class="block text-gray-700 text-sm font-bold mb-2 text-right">رقم الهاتف (اختياري)</label>
+                                <input
+                                    type="tel"
+                                    id="contact-phone"
+                                    name="phone"
+                                    class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                                />
+                            </div>
+                            <div>
+                                <label for="contact-message" class="block text-gray-700 text-sm font-bold mb-2 text-right">رسالتك</label>
+                                <textarea
+                                    id="contact-message"
+                                    name="message"
+                                    rows="6"
+                                    class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                                    required
+                                ></textarea>
+                            </div>
+                            <button
+                                type="submit"
+                                id="contact-submit-button"
+                                class="w-full bg-primary-dark hover:bg-secondary-dark text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-300 transform hover:scale-105"
+                            >
+                                إرسال الرسالة
+                            </button>
+                            <p id="contact-submit-message" class="text-center mt-4"></p>
+                        </form>
+                    </div>
+
+                    <!-- Direct Contact Details & Map -->
+                    <div class="flex flex-col justify-between">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-right">تفاصيل الاتصال</h2>
+                            <p class="text-gray-700 flex items-center mb-4 text-right justify-end">
+                                info@technovision.com <svg class="w-6 h-6 mr-3 text-primary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            </p>
+                            <p class="text-gray-700 flex items-center mb-4 text-right justify-end">
+                                +20 10 1234 5678 <svg class="w-6 h-6 mr-3 text-primary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            </p>
+                            <p class="text-gray-700 flex items-start mb-6 text-right justify-end">
+                                جمهورية مصر العربية، القاهرة، [عنوان تفصيلي لـ TechnoVision إذا وجد مقر فعلي مستقبلي] <svg class="w-6 h-6 mr-3 text-primary-dark flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0L6.343 16.657m10.607-10.607a4 4 0 11-5.656 0 4 4 0 015.656 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h2m0-6V5a2 2 0 012-2h2a2 2 0 012 2v14"></path></svg>
+                            </p>
+
+                            <!-- Interactive Map Placeholder -->
+                            <div class="h-64 bg-gray-200 rounded-md overflow-hidden shadow-inner flex items-center justify-center">
+                                <iframe
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3453.8643197607755!2d31.23351981506543!3d30.04441998188168!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x145831969a7b6c59%3A0xcb1b2f6b3d1b2a1a!2z2YXYqtmK2YXZitipINmF2K_ZhNin2YHYp9mC!5e0!3m2!1sar!2seg!4v1678888888888!5m2!1sar!2seg"
+                                    width="100%"
+                                    height="100%"
+                                    style="border: 0;"
+                                    allowfullscreen=""
+                                    loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    title="موقعنا على الخريطة في القاهرة"
+                                ></iframe>
+                            </div>
+                        </div>
+                        <!-- Social Media Links -->
+                        <div class="mt-8 text-center md:text-left">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">تابعنا على وسائل التواصل الاجتماعي</h3>
+                            <div class="flex justify-center md:justify-start space-x-6">
+                                <a href="#" class="text-gray-600 hover:text-primary-dark transition duration-300" aria-label="Facebook">
+                                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 0H5a5 5 0 00-5 5v14a5 5 0 005 5h14a5 5 0 005-5V5a5 5 0 00-5-5zm-2 7h-2v3h2v3h-2v7h-3v-7H9V7h3V5c0-1.657 1.343-3 3-3h2v3z"></path></svg>
+                                </a>
+                                <a href="#" class="text-gray-600 hover:text-primary-dark transition duration-300" aria-label="Twitter">
+                                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 4.041c-.722.322-1.5.541-2.316.643.834-.5 1.475-1.29 1.776-2.235-.783.465-1.658.806-2.585.992-.74-.789-1.79-1.284-2.955-1.284-2.23 0-4.045 1.815-4.045 4.045 0 .317.035.626.103.923C9.092 9.202 5.097 7.007 2.378 3.753c-.35.602-.547 1.299-.547 2.046 0 1.402.714 2.64 1.797 3.364-.66-.021-1.284-.203-1.823-.504v.05c0 1.968 1.402 3.606 3.264 3.982-.34.093-.7.143-1.07.143-.263 0-.52-.026-.77-.074.518 1.622 2.016 2.793 3.79 2.825-1.392 1.09-3.14 1.737-5.048 1.737-.329 0-.655-.021-.973-.057C2.923 19.34 5.098 20 7.375 20c8.854 0 13.682-7.334 13.682-13.682 0-.208-.005-.415-.014-.621.94-.679 1.758-1.53 2.404-2.497z"></path></svg>
+                                </a>
+                                <a href="#" class="text-gray-600 hover:text-primary-dark transition duration-300" aria-label="LinkedIn">
+                                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.23 0H1.77C.79 0 0 .77 0 1.77v20.46c0 .98.79 1.77 1.77 1.77h20.46c.98 0 1.77-.79 1.77-1.77V1.77C24 .79 23.21 0 22.23 0zM7.17 20.44H3.59V9.67h3.58v10.77zM5.38 8.1c-1.2 0-2.17-.97-2.17-2.17 0-1.2.97-2.17 2.17-2.17 1.2 0 2.17.97 2.17 2.17 0 1.2-.97 2.17-2.17 2.17zM20.44 20.44h-3.58v-5.6c0-1.34-.02-3.07-1.87-3.07-1.87 0-2.16 1.46-2.16 2.97v5.7H9.25V9.67h3.42v1.57h.05c.47-.89 1.62-1.83 3.36-1.83 3.59 0 4.25 2.36 4.25 5.43v6.39z"></path></svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Form Modal -->
+    <div id="contact-form-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button
+                onclick="hideContactFormModal()"
+                class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-3xl font-semibold leading-none focus:outline-none"
+                aria-label="Close"
+            >
+                &times;
+            </button>
+            <h2 class="text-3xl font-extrabold text-primary-dark mb-6 text-center">اطلب استشارة مجانية</h2>
+            <form id="modal-contact-form" class="space-y-4">
+                <div>
+                    <label for="modal-name" class="block text-gray-700 text-sm font-bold mb-2">الاسم الكامل</label>
+                    <input
+                        type="text"
+                        id="modal-name"
+                        name="name"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="modal-email" class="block text-gray-700 text-sm font-bold mb-2">البريد الإلكتروني</label>
+                    <input
+                        type="email"
+                        id="modal-email"
+                        name="email"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="modal-phone" class="block text-gray-700 text-sm font-bold mb-2">رقم الهاتف (اختياري)</label>
+                    <input
+                        type="tel"
+                        id="modal-phone"
+                        name="phone"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                    />
+                </div>
+                <div>
+                    <label for="modal-message" class="block text-gray-700 text-sm font-bold mb-2">رسالتك</label>
+                    <textarea
+                        id="modal-message"
+                        name="message"
+                        rows="4"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                        required
+                    ></textarea>
+                </div>
+                <button
+                    type="submit"
+                    id="modal-submit-button"
+                    class="w-full bg-primary-dark hover:bg-secondary-dark text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-300 transform hover:scale-105"
+                >
+                    إرسال الطلب
+                </button>
+                <p id="modal-submit-message" class="text-center mt-4"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-primary-dark text-gray-300 py-10 px-4 mt-12">
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Company Info -->
+            <div>
+                <h3 class="text-xl font-bold text-primary-accent mb-4">TechnoVision</h3>
+                <p class="text-sm">نقود النمو الرقمي لعملائنا باستراتيجيات مبتكرة ومدعومة بالذكاء الاصطناعي.</p>
+                <p class="text-sm mt-2">&copy; <span id="current-year"></span> TechnoVision. جميع الحقوق محفوظة.</p>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h3 class="text-xl font-bold text-primary-accent mb-4">روابط سريعة</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" onclick="navigate('home')" class="hover:text-primary-accent transition duration-300">الرئيسية</a></li>
+                    <li><a href="#" onclick="navigate('about')" class="hover:text-primary-accent transition duration-300">من نحن</a></li>
+                    <li><a href="#" onclick="navigate('services')" class="hover:text-primary-accent transition duration-300">خدماتنا</a></li>
+                    <li><a href="#" onclick="navigate('pricing')" class="hover:text-primary-accent transition duration-300">عروض الأسعار والباقات</a></li>
+                    <li><a href="#" onclick="navigate('store')" class="hover:text-primary-accent transition duration-300">المتجر</a></li>
+                    <li><a href="#" onclick="navigate('portfolio')" class="hover:text-primary-accent transition duration-300">معرض الأعمال</a></li>
+                    <li><a href="#" onclick="navigate('contact')" class="hover:text-primary-accent transition duration-300">اتصل بنا</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact Info & Social Media -->
+            <div>
+                <h3 class="text-xl font-bold text-primary-accent mb-4">اتصل بنا</h3>
+                <p class="flex items-center mb-2">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    info@technovision.com
+                </p>
+                <p class="flex items-center mb-2">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                    +20 10 1234 5678
+                </p>
+                <div class="flex space-x-4 mt-4">
+                    <!-- Social Media Icons (placeholders) -->
+                    <a href="#" class="hover:text-primary-accent transition duration-300" aria-label="Facebook">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 0H5a5 5 0 00-5 5v14a5 5 0 005 5h14a5 5 0 005-5V5a5 5 0 00-5-5zm-2 7h-2v3h2v3h-2v7h-3v-7H9V7h3V5c0-1.657 1.343-3 3-3h2v3z"></path></svg>
+                    </a>
+                    <a href="#" class="hover:text-primary-accent transition duration-300" aria-label="Twitter">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 4.041c-.722.322-1.5.541-2.316.643.834-.5 1.475-1.29 1.776-2.235-.783.465-1.658.806-2.585.992-.74-.789-1.79-1.284-2.955-1.284-2.23 0-4.045 1.815-4.045 4.045 0 .317.035.626.103.923C9.092 9.202 5.097 7.007 2.378 3.753c-.35.602-.547 1.299-.547 2.046 0 1.402.714 2.64 1.797 3.364-.66-.021-1.284-.203-1.823-.504v.05c0 1.968 1.402 3.606 3.264 3.982-.34.093-.7.143-1.07.143-.263 0-.52-.026-.77-.074.518 1.622 2.016 2.793 3.79 2.825-1.392 1.09-3.14 1.737-5.048 1.737-.329 0-.655-.021-.973-.057C2.923 19.34 5.098 20 7.375 20c8.854 0 13.682-7.334 13.682-13.682 0-.208-.005-.415-.014-.621.94-.679 1.758-1.53 2.404-2.497z"></path></svg>
+                    </a>
+                    <a href="#" class="hover:text-primary-accent transition duration-300" aria-label="LinkedIn">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.23 0H1.77C.79 0 0 .77 0 1.77v20.46c0 .98.79 1.77 1.77 1.77h20.46c.98 0 1.77-.79 1.77-1.77V1.77C24 .79 23.21 0 22.23 0zM7.17 20.44H3.59V9.67h3.58v10.77zM5.38 8.1c-1.2 0-2.17-.97-2.17-2.17 0-1.2.97-2.17 2.17-2.17 1.2 0 2.17.97 2.17 2.17 0 1.2-.97 2.17-2.17 2.17zM20.44 20.44h-3.58v-5.6c0-1.34-.02-3.07-1.87-3.07-1.87 0-2.16 1.46-2.16 2.97v5.7H9.25V9.67h3.42v1.57h.05c.47-.89 1.62-1.83 3.36-1.83 3.59 0 4.25 2.36 4.25 5.43v6.39z"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Contact Form Modal -->
+    <div id="contact-form-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button
+                onclick="hideContactFormModal()"
+                class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-3xl font-semibold leading-none focus:outline-none"
+                aria-label="Close"
+            >
+                &times;
+            </button>
+            <h2 class="text-3xl font-extrabold text-primary-dark mb-6 text-center">اطلب استشارة مجانية</h2>
+            <form id="modal-contact-form" class="space-y-4">
+                <div>
+                    <label for="modal-name" class="block text-gray-700 text-sm font-bold mb-2">الاسم الكامل</label>
+                    <input
+                        type="text"
+                        id="modal-name"
+                        name="name"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="modal-email" class="block text-gray-700 text-sm font-bold mb-2">البريد الإلكتروني</label>
+                    <input
+                        type="email"
+                        id="modal-email"
+                        name="email"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="modal-phone" class="block text-gray-700 text-sm font-bold mb-2">رقم الهاتف (اختياري)</label>
+                    <input
+                        type="tel"
+                        id="modal-phone"
+                        name="phone"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                    />
+                </div>
+                <div>
+                    <label for="modal-message" class="block text-gray-700 text-sm font-bold mb-2">رسالتك</label>
+                    <textarea
+                        id="modal-message"
+                        name="message"
+                        rows="4"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
+                        required
+                    ></textarea>
+                </div>
+                <button
+                    type="submit"
+                    id="modal-submit-button"
+                    class="w-full bg-primary-dark hover:bg-secondary-dark text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-300 transform hover:scale-105"
+                >
+                    إرسال الطلب
+                </button>
+                <p id="modal-submit-message" class="text-center mt-4"></p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 'home';
+        // Added 'store', 'cart', 'checkout', 'order-confirmation' to the list of pages
+        const pages = ['home', 'about', 'services', 'pricing', 'store', 'cart', 'checkout', 'order-confirmation', 'portfolio', 'ai-content-editing', 'contact'];
+        
+        // Case Studies Data (unchanged, but now uses brand colors in placeholders)
+        const caseStudiesData = [
+            {
+                id: 1,
+                client: "شركة الأفق الجديد",
+                industry: "التجارة الإلكترونية",
+                challenge: "زيادة الوعي بالعلامة التجارية ومبيعات المنتجات الجديدة في السوق المصري التنافسي.",
+                solution: "حملة تسويق رقمي متكاملة (SEO, SMM, PPC) مع التركيز على المحتوى الجذاب وإعلانات الفيديو الموجهة للجمهور المصري، بالإضافة إلى حملات بريد إلكتروني مخصصة.",
+                results: "زيادة حركة المرور العضوية بنسبة 150%، وزيادة المبيعات بنسبة 70% خلال 6 أشهر، مما عزز مكانة العميل في السوق.",
+                image: "https://placehold.co/600x400/2a2a32/fcbf01?text=حملة+التجارة+الإلكترونية+مصرية" // Updated to brand colors
+            },
+            {
+                id: 2,
+                client: "حلول الابتكار المصرية",
+                industry: "الخدمات التقنية",
+                challenge: "تطوير هوية بصرية جديدة وموقع ويب عصري يعكس قيم الشركة التكنولوجية المبتكرة.",
+                solution: "إعادة تصميم العلامة التجارية بالكامل بالتعاون مع مصممين مصريين، وتطوير موقع ويب متجاوب مع التركيز على تجربة المستخدم السلسة والتصميم الجذاب.",
+                results: "تحسين إدراك العلامة التجارية بنسبة 40%، وزيادة التفاعل على الموقع بنسبة 30%، مما جذب المزيد من العملاء المحتملين في القطاع التقني.",
+                image: "https://placehold.co/600x400/fcbf01/2a2a32?text=هوية+وويب+تقني+مصري" // Updated to brand colors
+            },
+            {
+                id: 3,
+                client: "متجر النخبة للمنتجات المصرية",
+                industry: "التجزئة",
+                challenge: "تحسين ترتيب المنتجات في محركات البحث وزيادة معدل التحويل للمتجر الإلكتروني.",
+                solution: "استراتيجية SEO شاملة تستهدف الكلمات المفتاحية المحلية، وتحسين صفحات المنتجات، وتنفيذ حملات بريد إلكتروني مستهدفة لزيادة المبيعات والولاء.",
+                results: "زيادة الزيارات العضوية بنسبة 80%، وارتفاع معدل التحويل بنسبة 25%، مما أدى إلى نمو ملحوظ في إيرادات المتجر.",
+                image: "https://placehold.co/600x400/2a2a32/fcbf01?text=تحسين+مبيعات+التجزئة+مصر" // Updated to brand colors
+            },
+            {
+                id: 4,
+                client: "المؤسسة التعليمية المتقدمة",
+                industry: "التعليم",
+                challenge: "جذب الطلاب الجدد وتعزيز التسجيل في البرامج التعليمية المعتمدة.",
+                solution: "تسويق شامل عبر وسائل التواصل الاجتماعي مع التركيز على حملات الفيديو التوعوية، وإعلانات PPC مستهدفة، وإنشاء محتوى تعليمي جذاب يبرز مزايا المؤسسة.",
+                results: "زيادة الاستفسارات بنسبة 60%، وتحقيق 40% زيادة في التسجيلات النهائية للعام الدراسي الجديد.",
+                image: "https://placehold.co/600x400/fcbf01/2a2a32?text=تسويق+تعليمي+مصر" // Updated to brand colors
+            },
+        ];
+
+        // Functions for E-commerce (Services Store, Cart, Checkout, Order Confirmation)
+        // Products Data (Services)
+        const products = [
+            {
+                id: 1,
+                name: "حزمة التسويق الأساسية",
+                description: "إدارة 2 منصات تواصل اجتماعي + 10 منشورات شهرياً، مثالية للشركات الناشئة.",
+                price: 3000,
+                category: "تسويق",
+                image: "https://placehold.co/400x250/2a2a32/fcbf01?text=تسويق+أساسي"
+            },
+            {
+                id: 2,
+                name: "حزمة التسويق المتقدمة",
+                description: "إدارة 4 منصات تواصل + 20 منشور + تحليلات أداء وتقارير مفصلة، للنمو السريع.",
+                price: 6000,
+                category: "تسويق",
+                image: "https://placehold.co/400x250/fcbf01/2a2a32?text=تسويق+متقدم"
+            },
+            {
+                id: 3,
+                name: "تصميم متجر إلكتروني احترافي",
+                description: "تصميم وتطوير متجر إلكتروني متكامل وجذاب، متوافق مع كافة الأجهزة.",
+                price: 15000,
+                category: "تطوير",
+                image: "https://placehold.co/400x250/2a2a32/fcbf01?text=تصميم+متجر"
+            },
+            {
+                id: 4,
+                name: "حزمة الذكاء الاصطناعي لتحرير المحتوى",
+                description: "تحرير وتدقيق محتوى مدعوم بالذكاء الاصطناعي، لتحسين جودة ودقة النصوص.",
+                price: 5000,
+                category: "ذكاء اصطناعي",
+                image: "https://placehold.co/400x250/fcbf01/2a2a32?text=AI+محتوى"
+            },
+            {
+                id: 5,
+                name: "استشارة تطوير أعمال (ساعة واحدة)",
+                description: "جلسة استشارية فردية لمناقشة استراتيجيات النمو والتوسع لشركتك.",
+                price: 750,
+                category: "تطوير أعمال",
+                image: "https://placehold.co/400x250/2a2a32/fcbf01?text=استشارة+أعمال"
+            },
+            {
+                id: 6,
+                name: "خدمات محاسبية شهرية",
+                description: "إدارة دفاتر الحسابات وإعداد التقارير المالية الشهرية لشركتك.",
+                price: 4000,
+                category: "محاسبة",
+                image: "https://placehold.co/400x250/fcbf01/2a2a32?text=خدمات+محاسبة"
+            }
+        ];
+
+        // Shopping Cart
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        // Store Management Functions
+        function renderProducts(filterCategory = 'all') {
+            const container = document.getElementById('ecommerce-products');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            const filteredProducts = filterCategory === 'all' 
+                ? products 
+                : products.filter(p => p.category === filterCategory);
+
+            if (filteredProducts.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-600 text-lg">لا توجد خدمات في هذا التصنيف حالياً.</p>';
+                return;
+            }
+
+            filteredProducts.forEach(product => {
+                const productCard = `
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border border-gray-200 transform transition duration-300 hover:scale-105 hover:shadow-xl">
+                        <img src="${product.image}" alt="${product.name}" class="w-full h-40 object-cover rounded-md mb-4"/>
+                        <h3 class="text-xl font-bold text-primary-dark mb-2">${product.name}</h3>
+                        <p class="text-gray-600 mb-4">${product.description}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-primary-accent font-bold text-lg">${product.price.toLocaleString()} جنيه</span>
+                            <button onclick="addToCart(${product.id})" class="bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-secondary-dark transition">
+                                <i class="fas fa-cart-plus ml-2"></i> أضف إلى السلة
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += productCard;
+            });
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const existingItem = cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    ...product,
+                    quantity: 1
+                });
+            }
+            
+            updateCart();
+            showCustomAlert("تمت إضافة المنتج إلى سلة التسوق!", 'success');
+        }
+
+        function updateCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+        }
+
+        function renderCart() {
+            const cartContainer = document.getElementById('cart-items');
+            const cartTotalElement = document.getElementById('cart-total');
+            const cartGrandTotalElement = document.getElementById('cart-grand-total');
+            const checkoutTotalElement = document.getElementById('checkout-total');
+            const checkoutGrandTotalElement = document.getElementById('checkout-grand-total');
+            const cartCountElement = document.getElementById('cart-count');
+            const checkoutSummaryElement = document.getElementById('checkout-summary');
+
+            // Do not return here if elements are null, instead check for null before setting textContent.
+            // This allows the function to be called from navigate and update only the elements present on the current page.
+
+            let total = 0;
+            let count = 0;
+            
+            // Clear previous content
+            if (cartContainer) cartContainer.innerHTML = '';
+            if (checkoutSummaryElement) checkoutSummaryElement.innerHTML = '';
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                count += item.quantity;
+                
+                const cartItemHtml = `
+                    <div class="flex justify-between items-center border-b border-gray-200 py-4">
+                        <div>
+                            <h4 class="font-bold">${item.name}</h4>
+                            <p>${item.price.toLocaleString()} جنيه × 
+                                <input type="number" value="${item.quantity}" min="1" onchange="updateItemQuantity(${item.id}, this.value)" class="w-16 text-center border rounded-md">
+                            </p>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="mx-4 font-bold text-primary-dark">${itemTotal.toLocaleString()} جنيه</span>
+                            <button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                if (cartContainer) cartContainer.innerHTML += cartItemHtml;
+
+                // For checkout summary
+                const checkoutItemHtml = `
+                    <div class="flex justify-between items-center py-2">
+                        <span>${item.name} (×${item.quantity})</span>
+                        <span>${itemTotal.toLocaleString()} جنيه</span>
+                    </div>
+                `;
+                if (checkoutSummaryElement) checkoutSummaryElement.innerHTML += checkoutItemHtml;
+            });
+            
+            const tax = total * 0.10; // Assuming 10% tax for example
+            const grandTotal = total + tax;
+
+            // These checks are crucial to prevent the TypeError if the element is not on the current page.
+            if (cartTotalElement) cartTotalElement.textContent = total.toLocaleString();
+            if (cartGrandTotalElement) cartGrandTotalElement.textContent = grandTotal.toLocaleString();
+            if (cartCountElement) cartCountElement.textContent = count;
+            
+            if (checkoutTotalElement) checkoutTotalElement.textContent = total.toLocaleString();
+            if (checkoutGrandTotalElement) checkoutGrandTotalElement.textContent = grandTotal.toLocaleString();
+        }
+
+        function updateItemQuantity(productId, newQuantity) {
+            newQuantity = parseInt(newQuantity);
+            if (isNaN(newQuantity) || newQuantity < 1) return;
+
+            const itemIndex = cart.findIndex(item => item.id === productId);
+            if (itemIndex > -1) {
+                cart[itemIndex].quantity = newQuantity;
+                updateCart();
+            }
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCart();
+            showCustomAlert("تم حذف المنتج من سلة التسوق.", 'info');
+        }
+
+        function checkout() {
+            if (cart.length === 0) {
+                showCustomAlert("سلة التسوق فارغة! لا يمكن اتمام الشراء.", 'error');
+                return;
+            }
+            
+            navigate('checkout');
+            // Ensure checkout summary is rendered when navigating to checkout page
+            renderCart(); 
+        }
+
+        function completeOrder() {
+            const name = document.getElementById('checkout-name').value;
+            const email = document.getElementById('checkout-email').value;
+            const phone = document.getElementById('checkout-phone').value;
+            
+            if (!name || !email || !phone) {
+                showCustomAlert("يرجى ملء جميع الحقول المطلوبة لاتمام الطلب.", 'error');
+                return;
+            }
+            
+            // In a real application, you would send this data to a backend server.
+            // For this static HTML, we simulate order saving in localStorage.
+            const order = {
+                id: Date.now(), // Unique order ID
+                date: new Date().toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' }), // Egyptian time
+                customer: { name, email, phone },
+                items: [...cart],
+                total: parseFloat(document.getElementById('checkout-grand-total').textContent.replace(/,/g, '')), // Parse total from displayed value
+                status: "Pending" // Initial status
+            };
+            
+            localStorage.setItem('currentOrder', JSON.stringify(order)); // Save current order details
+            
+            // Reset cart after successful order
+            cart = [];
+            updateCart();
+            
+            navigate('order-confirmation');
+            // Display order details on confirmation page
+            displayOrderConfirmation();
+        }
+
+        function displayOrderConfirmation() {
+            const orderDetailsContainer = document.getElementById('order-details');
+            if (!orderDetailsContainer) return;
+
+            const currentOrder = JSON.parse(localStorage.getItem('currentOrder'));
+
+            if (currentOrder) {
+                let itemsHtml = '';
+                currentOrder.items.forEach(item => {
+                    itemsHtml += `
+                        <div class="flex justify-between items-center py-1">
+                            <span>${item.name} (×${item.quantity})</span>
+                            <span>${(item.price * item.quantity).toLocaleString()} جنيه</span>
+                        </div>
+                    `;
+                });
+
+                orderDetailsContainer.innerHTML = `
+                    <p><strong>رقم الطلب:</strong> ${currentOrder.id}</p>
+                    <p><strong>تاريخ الطلب:</strong> ${currentOrder.date}</p>
+                    <p><strong>اسم العميل:</strong> ${currentOrder.customer.name}</p>
+                    <p><strong>البريد الإلكتروني:</strong> ${currentOrder.customer.email}</p>
+                    <p><strong>رقم الهاتف:</strong> ${currentOrder.customer.phone}</p>
+                    <div class="mt-4 border-t border-gray-200 pt-4">
+                        <h4 class="font-bold mb-2">الخدمات المطلوبة:</h4>
+                        ${itemsHtml}
+                    </div>
+                    <div class="font-bold text-lg mt-4 flex justify-between">
+                        <span>الإجمالي الكلي:</span>
+                        <span>${currentOrder.total.toLocaleString()} جنيه</span>
+                    </div>
+                `;
+            } else {
+                orderDetailsContainer.innerHTML = '<p class="text-red-500">عذراً، لا توجد تفاصيل طلب متاحة.</p>';
+            }
+        }
+
+
+        // Function to navigate between pages
+        function navigate(pageId, scrollToTop = true) {
+            pages.forEach(id => {
+                const pageElement = document.getElementById(id + '-page');
+                if (pageElement) {
+                    pageElement.classList.remove('active');
+                    pageElement.style.display = 'none'; // Ensure it's truly hidden
+                }
+            });
+
+            const activePage = document.getElementById(pageId + '-page');
+            if (activePage) {
+                activePage.classList.add('active');
+                activePage.style.display = 'block'; // Show the active page
+                currentPage = pageId; // Update global current page state
+
+                // Specific render functions for each page
+                if (pageId === 'store') {
+                    renderProducts('all'); // Render all products by default
+                } else if (pageId === 'cart') {
+                    renderCart();
+                } else if (pageId === 'checkout') {
+                    renderCart(); // Render cart summary for checkout page
+                } else if (pageId === 'order-confirmation') {
+                    displayOrderConfirmation();
+                }
+
+                // Close mobile menu if open
+                const navbarLinks = document.getElementById('navbar-links');
+                const menuIconOpen = document.getElementById('menu-icon-open');
+                const menuIconClose = document.getElementById('menu-icon-close');
+
+                if (navbarLinks && navbarLinks.classList.contains('block')) {
+                    navbarLinks.classList.remove('hidden');
+                    navbarLinks.classList.add('block');
+                    if (menuIconOpen && menuIconClose) {
+                        menuIconOpen.style.display = 'none';
+                        menuIconClose.style.display = 'block';
+                    }
+                }
+
+                if (scrollToTop) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }
+        }
+
+        // Handle Mobile Menu Toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const navbarLinks = document.getElementById('navbar-links');
+            const menuIconOpen = document.getElementById('menu-icon-open');
+            const menuIconClose = document.getElementById('menu-icon-close');
+
+            if (navbarLinks.classList.contains('hidden')) {
+                navbarLinks.classList.remove('hidden');
+                navbarLinks.classList.add('block');
+                if (menuIconOpen && menuIconClose) {
+                    menuIconOpen.style.display = 'none';
+                    menuIconClose.style.display = 'block';
+                }
+            } else {
+                navbarLinks.classList.remove('block');
+                navbarLinks.classList.add('hidden');
+                if (menuIconOpen && menuIconClose) {
+                    menuIconOpen.style.display = 'block';
+                    menuIconClose.style.display = 'none';
+                }
+            }
+        });
+
+        // Custom Alert/Message Box (instead of alert())
+        function showCustomAlert(message, type = 'info') {
+            const alertBox = document.createElement('div');
+            alertBox.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg text-white z-50 animate-fade-in-up`;
+            
+            let bgColor = '';
+            switch (type) {
+                case 'success': bgColor = 'bg-green-500'; break;
+                case 'error': bgColor = 'bg-red-500'; break;
+                case 'info': bgColor = 'bg-blue-500'; break;
+                default: bgColor = 'bg-gray-700';
+            }
+            alertBox.classList.add(bgColor);
+            alertBox.textContent = message;
+            
+            document.body.appendChild(alertBox);
+            
+            setTimeout(() => {
+                alertBox.classList.remove('animate-fade-in-up');
+                alertBox.classList.add('animate-fade-out-down'); // Assuming you define this animation
+                alertBox.addEventListener('animationend', () => alertBox.remove());
+            }, 3000); // Remove after 3 seconds
+        }
+
+        // Contact Form Modal Logic
+        const contactFormModal = document.getElementById('contact-form-modal');
+        const modalContactForm = document.getElementById('modal-contact-form');
+        const modalSubmitMessage = document.getElementById('modal-submit-message');
+        const modalSubmitButton = document.getElementById('modal-submit-button');
+
+        function showContactFormModal() {
+            contactFormModal.style.display = 'flex';
+            // Reset form and message
+            modalContactForm.reset();
+            modalSubmitMessage.textContent = '';
+            modalSubmitMessage.className = 'text-center mt-4';
+            modalSubmitButton.disabled = false;
+            modalSubmitButton.textContent = 'إرسال الطلب';
+        }
+
+        function hideContactFormModal() {
+            contactFormModal.style.display = 'none';
+        }
+
+        if (modalContactForm) {
+            modalContactForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                modalSubmitButton.disabled = true;
+                modalSubmitButton.textContent = 'جاري الإرسال...';
+                modalSubmitMessage.textContent = 'جاري الإرسال...';
+                modalSubmitMessage.className = 'text-center mt-4 text-gray-600';
+
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                console.log('Form data submitted:', {
+                    name: document.getElementById('modal-name').value,
+                    email: document.getElementById('modal-email').value,
+                    phone: document.getElementById('modal-phone').value,
+                    message: document.getElementById('modal-message').value
+                });
+
+                modalSubmitMessage.textContent = 'تم استلام رسالتك بنجاح! سنتواصل معك قريبًا.';
+                modalSubmitMessage.classList.add('text-green-600');
+                modalSubmitButton.disabled = false;
+                modalSubmitButton.textContent = 'إرسال الطلب';
+                modalContactForm.reset();
+
+                setTimeout(() => {
+                    hideContactFormModal();
+                }, 3000);
+            });
+        }
+
+        // Main Contact Us Page Form Logic
+        const mainContactForm = document.getElementById('contact-form');
+        const mainSubmitMessage = document.getElementById('contact-submit-message');
+        const mainSubmitButton = document.getElementById('contact-submit-button');
+
+        if (mainContactForm) {
+            mainContactForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                mainSubmitButton.disabled = true;
+                mainSubmitButton.textContent = 'جاري الإرسال...';
+                mainSubmitMessage.textContent = 'جاري الإرسال...';
+                mainSubmitMessage.className = 'text-center mt-4 text-gray-600';
+
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                console.log('Form data submitted:', {
+                    name: document.getElementById('contact-name').value,
+                    email: document.getElementById('contact-email').value,
+                    phone: document.getElementById('contact-phone').value,
+                    message: document.getElementById('contact-message').value
+                });
+
+                mainSubmitMessage.textContent = 'تم استلام رسالتك بنجاح! سنتواصل معك قريبًا.';
+                mainSubmitMessage.classList.add('text-green-600');
+                mainSubmitButton.disabled = false;
+                mainSubmitButton.textContent = 'إرسال الرسالة';
+                mainContactForm.reset();
+            });
+        }
+
+        // Portfolio Page Logic
+        const portfolioGrid = document.getElementById('case-studies-grid');
+        const caseStudyModal = document.getElementById('case-study-modal');
+        let currentCaseStudy = null; // To store the currently displayed case study data
+
+        function renderCaseStudies() {
+            if (portfolioGrid) {
+                portfolioGrid.innerHTML = ''; // Clear existing content
+                caseStudiesData.forEach(cs => {
+                    const cardHtml = `
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl cursor-pointer"
+                             onclick="showCaseStudyModal(${cs.id})">
+                            <img src="${cs.image}" alt="صورة مشروع ${cs.client}" class="w-full h-48 object-cover"/>
+                            <div class="p-6">
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">${cs.client} - ${cs.industry}</h3>
+                                <p class="text-gray-600 text-sm">${cs.challenge.substring(0, 70)}...</p>
+                                <span class="mt-4 text-primary-dark hover:underline inline-block">عرض التفاصيل</span>
+                            </div>
+                        </div>
+                    `;
+                    portfolioGrid.insertAdjacentHTML('beforeend', cardHtml);
+                });
+            }
+        }
+
+        function showCaseStudyModal(id) {
+            const cs = caseStudiesData.find(item => item.id === id);
+            if (cs) {
+                currentCaseStudy = cs; // Set the global current case study
+                document.getElementById('modal-case-study-client').textContent = cs.client;
+                document.getElementById('modal-case-study-industry').textContent = cs.industry;
+                document.getElementById('modal-case-study-image').src = cs.image;
+                document.getElementById('modal-case-study-challenge').textContent = cs.challenge;
+                document.getElementById('modal-case-study-solution').textContent = cs.solution;
+                document.getElementById('modal-case-study-results').textContent = cs.results;
+                
+                // Reset AI summary section
+                document.getElementById('ai-summary-output').classList.add('hidden');
+                document.getElementById('ai-summary-text').textContent = '';
+                document.getElementById('ai-summary-loading').classList.add('hidden');
+                document.getElementById('generate-summary-button').disabled = false;
+                document.getElementById('generate-summary-button').textContent = 'توليد ملخص النقاط الرئيسية ✨';
+
+                caseStudyModal.style.display = 'flex';
+            }
+        }
+
+        function hideCaseStudyModal() {
+            caseStudyModal.style.display = 'none';
+            currentCaseStudy = null; // Clear the current case study
+        }
+
+        // Gemini API Logic for Case Study Summary
+        async function generateCaseStudySummary() {
+            if (!currentCaseStudy) return;
+
+            const summaryOutput = document.getElementById('ai-summary-output');
+            const summaryText = document.getElementById('ai-summary-text');
+            const summaryLoading = document.getElementById('ai-summary-loading');
+            const generateButton = document.getElementById('generate-summary-button');
+
+            summaryOutput.classList.remove('hidden');
+            summaryText.textContent = '';
+            summaryLoading.classList.remove('hidden');
+            generateButton.disabled = true;
+            generateButton.textContent = 'جاري التوليد...';
+
+            const prompt = `
+            لخص دراسة الحالة التالية في 3 نقاط رئيسية، مع التركيز على التحدي، الحل، والنتائج القابلة للقياس:
+
+            اسم العميل/الصناعة: ${currentCaseStudy.client} - ${currentCaseStudy.industry}
+            التحدي: ${currentCaseStudy.challenge}
+            الحل المقدم: ${currentCaseStudy.solution}
+            النتائج: ${currentCaseStudy.results}
+
+            النقاط الرئيسية:
+            `;
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Canvas will inject API key at runtime
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    summaryText.textContent = text;
+                } else {
+                    summaryText.textContent = "عذراً، لم أتمكن من توليد الملخص. يرجى المحاولة مرة أخرى.";
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                summaryText.textContent = "حدث خطأ أثناء التواصل مع الذكاء الاصطناعي. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.";
+            } finally {
+                summaryLoading.classList.add('hidden');
+                generateButton.disabled = false;
+                generateButton.textContent = 'توليد ملخص النقاط الرئيسية ✨';
+            }
+        }
+
+        // Gemini API Logic for Content Idea Generator
+        async function generateContentIdeas() {
+            const contentTopicInput = document.getElementById('content-topic');
+            const ideasOutput = document.getElementById('ai-content-ideas-output');
+            const ideasText = document.getElementById('ai-ideas-text');
+            const ideasLoading = document.getElementById('ai-ideas-loading');
+            const generateButton = document.getElementById('generate-ideas-button');
+
+            const topic = contentTopicInput.value.trim();
+            if (!topic) {
+                ideasOutput.classList.remove('hidden');
+                ideasText.textContent = "الرجاء إدخال موضوع لتوليد الأفكار.";
+                ideasOutput.classList.remove('bg-gray-50'); // Remove gray background for error
+                ideasOutput.classList.add('bg-red-100', 'text-red-800'); // Add red background for error
+                return;
+            } else {
+                ideasOutput.classList.remove('bg-red-100', 'text-red-800');
+                ideasOutput.classList.add('bg-gray-50');
+            }
+
+
+            ideasOutput.classList.remove('hidden');
+            ideasText.textContent = '';
+            ideasLoading.classList.remove('hidden');
+            generateButton.disabled = true;
+            generateButton.textContent = 'جاري التوليد...';
+
+            const prompt = `
+            أنا أبحث عن أفكار محتوى مبتكرة وحصرية لموضوع: "${topic}" لشركة تسويق رقمي تستهدف السوق المصري.
+            يرجى تزويدي بـ 5 عناوين مقترحة لمقالات/مدونات، أو أفكار لمحتوى فيديو، أو نقاط رئيسية لمحتوى طويل، مع التأكد من أنها جذابة وتتناول الموضوع بعمق وتناسب الثقافة المصرية.
+            `;
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Canvas will inject API key at runtime
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    ideasText.textContent = text;
+                } else {
+                    ideasText.textContent = "عذراً، لم أتمكن من توليد الأفكار. يرجى المحاولة مرة أخرى.";
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                ideasText.textContent = "حدث خطأ أثناء التواصل مع الذكاء الاصطناعي. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.";
+            } finally {
+                ideasLoading.classList.add('hidden');
+                generateButton.disabled = false;
+                generateButton.textContent = 'توليد الأفكار ✨';
+            }
+        }
+
+
+        // Set current year in footer
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Initial render on load
+        document.addEventListener('DOMContentLoaded', () => {
+            navigate('home', false); // Navigate to home without scrolling on initial load
+            renderCaseStudies(); // Render portfolio items
+            // Removed unconditional calls to renderProducts() and renderCart()
+            // These are now handled within the navigate() function for respective pages.
+        });
+    </script>
+</body>
+</html>
