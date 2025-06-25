@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TechnoVision - حلول متكاملة لنمو أعمالك</title>
+    <title>TechnoVision - حلول متكاملة لنمو أعمالك (إصدار 2.4)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+        /*
+        * ملاحظة هامة: في بيئة الإنتاج، يُفضل نقل هذه الأكواد إلى ملف CSS خارجي (مثل assets/css/custom.css)
+        * لتحسين أداء تحميل الصفحة واستغلال التخزين المؤقت للمتصفح.
+        */
+
         /* Custom Tailwind Colors based on brand identity */
         :root {
             --color-primary-dark: #2a2a32; /* Dark Gray from logo */
@@ -29,48 +34,26 @@
 
         .border-primary-accent { border-color: var(--color-primary-accent); }
 
-        /* General Body Styling */
+        /* General Body Styling - استخدام خط Inter أو بديل له */
         body {
-            font-family: 'Inter', sans-serif; /* Or Poppins for headings, Open Sans/Lato for body */
+            font-family: 'Inter', sans-serif;
             direction: rtl;
             text-align: right;
             margin: 0;
             padding: 0;
             overflow-x: hidden; /* Prevent horizontal scrolling */
+            background-color: #f8f9fa; /* لون خلفية فاتح للموقع ككل */
+            color: var(--color-text-dark);
         }
 
-        /* Custom Animations */
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes bounceIn {
-            0% { opacity: 0; transform: scale(0.3); }
-            50% { opacity: 1; transform: scale(1.05); }
-            70% { transform: scale(0.9); }
-            100% { transform: scale(1); }
-        }
-
-        .animate-fade-in-down { animation: fadeInDown 0.8s ease-out forwards; }
-        .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
-        .animate-bounce-in { animation: bounceIn 0.8s ease-out forwards; }
-        .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* All page sections are now displayed by default */
+        /* All page sections are now displayed by default in the SPA model */
         .page-content {
-            display: block; /* Ensure all sections are visible */
+            display: none; /* مخفي افتراضياً */
             scroll-margin-top: 80px; /* Offset for fixed navbar when scrolling to an anchor */
+        }
+
+        .page-content.active {
+            display: block; /* يُظهر القسم النشط */
         }
 
         /* Modal specific styles */
@@ -84,7 +67,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 50;
+            z-index: 100; /* أعلى من Sidebar Cart */
             padding: 1rem;
         }
 
@@ -99,23 +82,6 @@
             animation: fadeInUp 0.3s ease-out forwards;
             overflow-y: auto;
             max-height: 90vh;
-        }
-        /* Table Styling for Pricing Page - Kept for reference but not actively used in the new pricing concept */
-        .pricing-table th, .pricing-table td {
-            padding: 0.75rem;
-            text-align: right;
-            border-bottom: 1px solid #e5e7eb; /* gray-200 */
-        }
-        .pricing-table th {
-            background-color: var(--color-primary-dark);
-            color: var(--color-text-light);
-            font-weight: bold;
-        }
-        .pricing-table tr:nth-child(even) {
-            background-color: #f9fafb; /* gray-50 */
-        }
-        .pricing-table tr:hover {
-            background-color: #f3f4f6; /* gray-100 */
         }
 
         /* Accordion styles for services details */
@@ -139,7 +105,7 @@
             padding-bottom: 0;
         }
         .accordion-content.active {
-            max-height: 500px; /* Adjust as needed */
+            max-height: 500px; /* Adjust as needed - قيمة كبيرة لضمان عرض المحتوى بالكامل */
             padding-bottom: 1rem;
         }
         .accordion-header .icon {
@@ -147,6 +113,89 @@
         }
         .accordion-header .icon.rotate {
             transform: rotate(180deg);
+        }
+
+        /* Sidebar Cart Styles */
+        .sidebar-cart {
+            position: fixed;
+            top: 0;
+            right: -400px; /* Hidden by default - عرض أكبر للسلة */
+            width: 400px; /* Adjusted width */
+            max-width: 95%; /* لضمان التجاوب على الشاشات الصغيرة جداً */
+            height: 100%;
+            background-color: white;
+            box-shadow: -4px 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 90; /* أقل من المودال، أعلى من المحتوى */
+            transition: right 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+        }
+        .sidebar-cart.open {
+            right: 0;
+        }
+        .sidebar-cart-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 85; /* بين المودال والسلة */
+            display: none;
+        }
+        .sidebar-cart-overlay.open {
+            display: block;
+        }
+
+        /* محتوى السلة داخل الشريط الجانبي */
+        .sidebar-cart-content {
+            flex-grow: 1;
+            overflow-y: auto; /* للسماح بالتمرير إذا كانت العناصر كثيرة */
+            padding-right: 10px; /* مسافة داخلية لعدم التصاق المحتوى بالحافة */
+        }
+        /* لتجميل شريط التمرير */
+        .sidebar-cart-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .sidebar-cart-content::-webkit-scrollbar-thumb {
+            background-color: var(--color-primary-accent);
+            border-radius: 4px;
+        }
+        .sidebar-cart-content::-webkit-scrollbar-track {
+            background-color: #f1f1f1;
+        }
+
+        .sidebar-cart-footer {
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+            flex-shrink: 0; /* لمنع الفوتير من الانكماش */
+        }
+
+        /* CSS for custom alert messages */
+        @keyframes fadeOutDown {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(20px); }
+        }
+        .animate-fade-out-down { animation: fadeOutDown 0.5s ease-in forwards; }
+
+        /* تعديلات على تخطيط صفحة بناء الباقة عند فتح السلة */
+        @media (min-width: 1024px) { /* lg breakpoint */
+            .package-builder-layout {
+                display: grid;
+                grid-template-columns: 1fr 3fr; /* Sidebar for filters, Products for 3 parts */
+                gap: 2rem;
+            }
+            .lg\:col-span-1-filters { /* Custom class for filter sidebar */
+                grid-column: 1 / 2;
+            }
+            .lg\:col-span-3-products { /* Custom class for products grid */
+                grid-column: 2 / 5;
+                transition: margin-right 0.3s ease-in-out; /* تغيير الهامش الأيمن بدل الأيسر للغة العربية */
+            }
+            body.cart-open .lg\:col-span-3-products {
+                margin-right: 400px; /* Push content when cart is open */
+            }
         }
     </style>
 </head>
@@ -156,8 +205,8 @@
     <nav class="bg-primary-dark text-white p-4 shadow-lg fixed w-full z-50 transition-all duration-300">
         <div class="container mx-auto flex justify-between items-center flex-wrap">
             <!-- Company Name and Slogan with Logo -->
-            <div class="flex items-center space-x-3 cursor-pointer" onclick="navigate('home')">
-                <!-- TVS Logo Placeholder with brand colors -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="navigate('home-page')">
+                <!-- [Image of TechnoVision Solutions Logo] -->
                 <img src="https://placehold.co/80x40/2a2a32/fcbf01?text=TVS" alt="TechnoVision Solutions Logo" class="h-10 w-auto rounded-md" />
                 <div class="flex flex-col">
                     <span class="font-extrabold text-2xl tracking-tight text-primary-accent">TechnoVision</span>
@@ -180,19 +229,26 @@
             <!-- Navigation Links -->
             <div class="w-full md:flex md:items-center md:w-auto mt-4 md:mt-0 hidden" id="navbar-links">
                 <ul class="flex flex-col md:flex-row md:space-x-8 text-lg font-medium">
-                    <li><a href="#home-page" onclick="navigate('home')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">الرئيسية</a></li>
+                    <li><a href="#home-page" onclick="navigate('home-page')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">الرئيسية</a></li>
                     <li><a href="#about-us-section" onclick="navigate('about-us-section')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">من نحن</a></li>
-                    <li><a href="#services-page" onclick="navigate('services')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">خدماتنا</a></li>
+                    <li><a href="#services-page" onclick="navigate('services-page')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">خدماتنا</a></li>
                     <li><a href="#package-builder-page" onclick="navigate('package-builder-page')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">بناء باقتك</a></li>
-                    <li><a href="#portfolio-page" onclick="navigate('portfolio')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">عملاؤنا وقصص النجاح</a></li>
-                    <li><a href="#ai-content-editing-page" onclick="navigate('ai-content-editing')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">حلول الذكاء الاصطناعي</a></li>
-                    <li><a href="#contact-page" onclick="navigate('contact')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">اتصل بنا</a></li>
+                    <li><a href="#portfolio-page" onclick="navigate('portfolio-page')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">عملاؤنا وقصص النجاح</a></li>
+                    <li><a href="#ai-content-editing-page" onclick="navigate('ai-content-editing-page')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">حلول الذكاء الاصطناعي</a></li>
+                    <li><a href="#contact-page" onclick="navigate('contact-page')" class="block py-2 px-3 rounded hover:bg-secondary-dark transition duration-300">اتصل بنا</a></li>
                     <li>
                         <button
                             onclick="showContactFormModal()"
                             class="mt-2 md:mt-0 bg-primary-accent text-primary-dark font-bold py-2 px-5 rounded-full shadow-lg hover:bg-primary-accent-hover transition duration-300 transform hover:scale-105"
                         >
                             اطلب استشارة مجانية
+                        </button>
+                    </li>
+                    <li>
+                        <!-- Cart Icon for sidebar cart -->
+                        <button onclick="toggleSidebarCart()" class="text-white relative mr-4"> <!-- تم تغيير ml-4 إلى mr-4 للغة العربية -->
+                            <i class="fas fa-shopping-cart text-2xl"></i>
+                            <span id="cart-item-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
                         </button>
                     </li>
                 </ul>
@@ -223,10 +279,11 @@
                 </div>
             </section>
 
-            <!-- Services Overview -->
+            <!-- Services Overview (from homepage_ai_marketing_agency.html) -->
             <section class="py-16 bg-gray-50">
                 <div class="container mx-auto px-4 text-center">
                     <h2 class="text-3xl md:text-4xl font-extrabold text-primary-dark mb-10">خدماتنا الشاملة</h2>
+                    <p class="text-lg md:text-xl text-gray-700 mb-8">نجمع بين الإبداع البشري ودقة الذكاء الاصطناعي لنقدم لك حلول تسويقية متكاملة ومبتكرة.</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         <!-- Service Card 1: Digital Marketing -->
                         <div class="bg-white rounded-lg shadow-lg p-6 transform transition duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary-accent">
@@ -277,7 +334,7 @@
                             <p class="text-gray-600">نطبق أحدث تقنيات الذكاء الاصطناعي لتحسين خدماتنا وتقديم حلول متقدمة.</p>
                         </div>
                     </div>
-                    <a href="#services-page" onclick="navigate('services')"
+                    <a href="#services-page" onclick="navigate('services-page')"
                         class="mt-12 bg-primary-dark text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-secondary-dark transition duration-300 transform hover:scale-105 inline-block"
                     >
                         استكشف جميع خدماتنا
@@ -406,6 +463,7 @@
                     </p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                         <!-- Team Member 1 -->
+                        <!-- [Image of أحمد] -->
                         <div class="flex flex-col items-center text-center">
                             <img src="https://placehold.co/150x150/fcbf01/2a2a32?text=أحمد" alt="أحمد حسام" class="w-36 h-36 rounded-full object-cover mb-4 shadow-lg border-4 border-primary-accent"/>
                             <h3 class="text-xl font-bold text-gray-800">أحمد حسام</h3>
@@ -414,6 +472,7 @@
                         </div>
                         <!-- Team Member 2 -->
                         <div class="flex flex-col items-center text-center">
+                            <!-- [Image of مريم] -->
                             <img src="https://placehold.co/150x150/2a2a32/fcbf01?text=مريم" alt="مريم سعيد" class="w-36 h-36 rounded-full object-cover mb-4 shadow-lg border-4 border-primary-dark"/>
                             <h3 class="text-xl font-bold text-gray-800">مريم سعيد</h3>
                             <p class="text-primary-accent font-semibold">مديرة التسويق الرقمي</p>
@@ -421,6 +480,7 @@
                         </div>
                         <!-- Team Member 3 -->
                         <div class="flex flex-col items-center text-center">
+                            <!-- [Image of محمود] -->
                             <img src="https://placehold.co/150x150/fcbf01/2a2a32?text=محمود" alt="محمود علي" class="w-36 h-36 rounded-full object-cover mb-4 shadow-lg border-4 border-primary-accent"/>
                             <h3 class="text-xl font-bold text-gray-800">محمود علي</h3>
                             <p class="text-primary-dark font-semibold">مدير المحتوى والذكاء الاصطناعي</p>
@@ -428,6 +488,7 @@
                         </div>
                         <!-- Team Member 4 -->
                         <div class="flex flex-col items-center text-center">
+                            <!-- [Image of فاطمة] -->
                             <img src="https://placehold.co/150x150/2a2a32/fcbf01?text=فاطمة" alt="فاطمة الزهراء" class="w-36 h-36 rounded-full object-cover mb-4 shadow-lg border-4 border-primary-dark"/>
                             <h3 class="text-xl font-bold text-gray-800">فاطمة الزهراء</h3>
                             <p class="text-primary-accent font-semibold">مديرة تطوير الأعمال</p>
@@ -621,7 +682,7 @@
                                     </ul>
                                 </div>
                             </div>
-                            <a href="#ai-content-editing-page" onclick="navigate('ai-content-editing')"
+                            <a href="#ai-content-editing-page" onclick="navigate('ai-content-editing-page')"
                                 class="mt-6 bg-primary-accent text-primary-dark font-bold py-3 px-8 rounded-full shadow-lg hover:bg-primary-accent-hover transition duration-300 transform hover:scale-105 inline-block"
                             >
                                 اكتشف المزيد عن حلول الذكاء الاصطناعي
@@ -644,45 +705,34 @@
             </div>
         </div>
 
-        <!-- Pricing Model Explanation -->
-        <div id="pricing-page" class="page-content pt-24 pb-12 bg-gray-50">
+        <!-- Package Builder Page (Combines Store and mini-cart) -->
+        <div id="package-builder-page" class="page-content pt-24 pb-12 bg-gray-50">
             <div class="container mx-auto px-4">
-                <h1 class="text-4xl md:text-5xl font-extrabold text-primary-dark text-center mb-12">نموذج التسعير المرن لدينا: بناء حزمتك الخاصة</h1>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-primary-dark text-center mb-12">بناء باقتك المخصصة - اختر خدماتك</h1>
 
-                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-r-8 border-primary-accent animate-fade-in">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-4 text-right">كيف نعمل على تسعير خدماتنا؟</h2>
-                    <p class="text-gray-700 leading-relaxed text-right mb-4">
-                        في TechnoVision، ندرك أن كل عمل فريد من نوعه. لهذا السبب، بدلاً من تقديم باقات ثابتة، نقدم نموذج تسعير مرن يركز على احتياجاتك الفعلية وعائد الاستثمار (ROI) لشركتك. نحن نؤمن بالشفافية ونعمل معك لبناء حزمة الخدمات المثالية.
-                    </p>
-                    <p class="text-gray-700 leading-relaxed text-right mb-6">
-                        تعتمد أسعارنا على **التكلفة لكل وظيفة أو ساعة عمل** للفريق المختص، مع إضافة هامش ربح مستهدف يضمن جودة الخدمة واستدامتنا. هذا يسمح لك بتخصيص خدماتك بدقة واختيار ما تحتاجه بالفعل.
-                    </p>
-
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4 text-right">بناء حزمتك المخصصة</h3>
-                    <p class="text-gray-600 mb-6 text-right">
-                        يمكنك الآن تصفح متجر خدماتنا أدناه، حيث يمكنك اختيار الخدمات الفردية وتحديد مدتها (بالشهور) لبعض الخدمات القابلة للتجديد. ستقوم سلة التسوق بحساب السعر الإجمالي تلقائيًا بناءً على اختيارك. هذا يمنحك المرونة الكاملة لتصميم حزمة تناسب ميزانيتك وأهدافك.
-                    </p>
-                    <div class="text-center">
-                        <a href="#package-builder-page" onclick="navigate('package-builder-page')" class="bg-primary-dark text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-secondary-dark transition duration-300 transform hover:scale-105 inline-block">
-                            <i class="fas fa-store ml-2"></i> ابدأ في بناء حزمتك من المتجر
-                        </a>
+                <div class="package-builder-layout">
+                    <!-- Filters and Mini Cart Summary (Moved to sidebar) -->
+                    <div class="lg:col-span-1-filters">
+                        <div class="bg-white rounded-lg shadow-lg p-6 mb-8 sticky top-24">
+                            <h3 class="text-xl font-bold text-primary-dark mb-4">التصنيفات</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#package-builder-page" onclick="renderProducts('all')" class="text-gray-700 hover:text-primary-accent">جميع الخدمات</a></li>
+                                <li><a href="#package-builder-page" onclick="renderProducts('تسويق')" class="text-gray-700 hover:text-primary-accent">خدمات التسويق</a></li>
+                                <li><a href="#package-builder-page" onclick="renderProducts('تطوير')" class="text-gray-700 hover:text-primary-accent">خدمات التطوير</a></li>
+                                <li><a href="#package-builder-page" onclick="renderProducts('ذكاء اصطناعي')" class="text-gray-700 hover:text-primary-accent">حلول الذكاء الاصطناعي</a></li>
+                                <li><a href="#package-builder-page" onclick="renderProducts('تطوير أعمال')" class="text-gray-700 hover:text-primary-accent">تطوير أعمال</a></li>
+                                <li><a href="#package-builder-page" onclick="renderProducts('محاسبة')" class="text-gray-700 hover:text-primary-accent">محاسبة</a></li>
+                                <li><a href="#package-builder-page" onclick="renderProducts('قانونية')" class="text-gray-700 hover:text-primary-accent">خدمات قانونية</a></li>
+                                <li><a href="#package-builder-page" onclick="renderProducts('تقنية')" class="text-gray-700 hover:text-primary-accent">حلول تقنية</a></li>
+                            </ul>
+                        </div>
                     </div>
-                </section>
-
-                <section class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-10 border-l-8 border-primary-dark animate-fade-in">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4 text-right">هل تحتاج إلى عرض سعر مخصص؟</h3>
-                    <p class="text-gray-700 leading-relaxed text-right mb-6">
-                        إذا كانت لديك متطلبات معقدة أو ترغب في مناقشة حلول مخصصة بالكامل، فإن فريقنا مستعد لمساعدتك في صياغة عرض سعر تفصيلي يناسب مشروعك الكبير أو طويل الأمد.
-                    </p>
-                    <div class="text-center">
-                        <button
-                            onclick="showContactFormModal()"
-                            class="bg-primary-accent text-primary-dark font-bold py-3 px-8 rounded-full shadow-lg hover:bg-primary-accent-hover transition duration-300 transform hover:scale-105"
-                        >
-                            <i class="fas fa-handshake ml-2"></i> اطلب عرض سعر مخصص
-                        </button>
+                    
+                    <!-- Products Listing -->
+                    <div class="lg:col-span-3-products grid grid-cols-1 md:grid-cols-2 gap-6" id="ecommerce-products">
+                        <!-- Products will be populated here by JS -->
                     </div>
-                </section>
+                </div>
             </div>
         </div>
 
@@ -696,10 +746,15 @@
                     <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">شركاؤنا في النجاح</h2>
                     <div class="flex flex-wrap justify-center items-center gap-8 md:gap-12">
                         <!-- Logos - replace with actual client logos -->
+                        <!-- [Image of Client A] -->
                         <img src="https://placehold.co/120x60/d1d5db/4b5563?text=Client+A" alt="Client Logo A" class="h-16 opacity-80 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
+                        <!-- [Image of Client B] -->
                         <img src="https://placehold.co/120x60/d1d5db/4b5563?text=Client+B" alt="Client Logo B" class="h-16 opacity-80 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
+                        <!-- [Image of Client C] -->
                         <img src="https://placehold.co/120x60/d1d5db/4b5563?text=Client+C" alt="Client Logo C" class="h-16 opacity-80 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
+                        <!-- [Image of Client D] -->
                         <img src="https://placehold.co/120x60/d1d5db/4b5563?text=Client+D" alt="Client Logo D" class="h-16 opacity-80 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
+                        <!-- [Image of Client E] -->
                         <img src="https://placehold.co/120x60/d1d5db/4b5563?text=Client+E" alt="Client Logo E" class="h-16 opacity-80 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
                     </div>
                 </section>
@@ -721,6 +776,7 @@
                         <h2 class="text-3xl font-extrabold text-primary-dark mb-4 text-center" id="modal-case-study-client"></h2>
                         <p class="text-gray-600 text-center text-lg mb-6" id="modal-case-study-industry"></p>
 
+                        <!-- [Image of project] -->
                         <img id="modal-case-study-image" src="" alt="صورة المشروع" class="w-full h-64 object-cover rounded-md mb-6"/>
 
                         <div class="space-y-4 text-right">
@@ -756,68 +812,12 @@
                         </div>
                         <div class="mt-8 text-center">
                             <button
-                                onclick="hideCaseStudyModal(); navigate('contact', 'contact-form-modal', 'طلب استشارة لمشروع [اسم العميل]');"
+                                onclick="hideCaseStudyModal(); navigate('contact-page', 'contact-form-modal', 'طلب استشارة لمشروع [اسم العميل]');"
                                 class="bg-primary-dark text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-secondary-dark transition duration-300 transform hover:scale-105"
                             >
                                 اطلب استشارة مجانية لمشروعك
                             </button>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Package Builder Page (Combines Store and mini-cart) -->
-        <div id="package-builder-page" class="page-content pt-24 pb-12 bg-gray-50">
-            <div class="container mx-auto px-4">
-                <h1 class="text-4xl md:text-5xl font-extrabold text-primary-dark text-center mb-12">بناء باقتك المخصصة - اختر خدماتك</h1>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    <!-- Filters and Mini Cart Summary -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-white rounded-lg shadow-lg p-6 mb-8 sticky top-24">
-                            <h3 class="text-xl font-bold text-primary-dark mb-4">التصنيفات</h3>
-                            <ul class="space-y-2">
-                                <li><a href="#package-builder-page" onclick="renderProducts('all')" class="text-gray-700 hover:text-primary-accent">جميع الخدمات</a></li>
-                                <li><a href="#package-builder-page" onclick="renderProducts('تسويق')" class="text-gray-700 hover:text-primary-accent">خدمات التسويق</a></li>
-                                <li><a href="#package-builder-page" onclick="renderProducts('تطوير')" class="text-gray-700 hover:text-primary-accent">خدمات التطوير</a></li>
-                                <li><a href="#package-builder-page" onclick="renderProducts('ذكاء اصطناعي')" class="text-gray-700 hover:text-primary-accent">حلول الذكاء الاصطناعي</a></li>
-                                <li><a href="#package-builder-page" onclick="renderProducts('تطوير أعمال')" class="text-gray-700 hover:text-primary-accent">تطوير أعمال</a></li>
-                                <li><a href="#package-builder-page" onclick="renderProducts('محاسبة')" class="text-gray-700 hover:text-primary-accent">محاسبة</a></li>
-                                <li><a href="#package-builder-page" onclick="renderProducts('قانونية')" class="text-gray-700 hover:text-primary-accent">خدمات قانونية</a></li>
-                                <li><a href="#package-builder-page" onclick="renderProducts('تقنية')" class="text-gray-700 hover:text-primary-accent">حلول تقنية</a></li>
-                            </ul>
-                        </div>
-
-                        <div class="bg-white rounded-lg shadow-lg p-6 sticky top-24">
-                            <h3 class="text-xl font-bold text-primary-dark mb-4">ملخص باقتك</h3>
-                            <div id="package-cart-summary">
-                                <!-- Cart items will be displayed here dynamically -->
-                                <div id="empty-package-cart-message" class="text-center text-gray-600 mt-2">لا توجد خدمات مختارة.</div>
-                            </div>
-                            
-                            <div class="flex justify-between mb-2 mt-4 border-t border-gray-200 pt-4">
-                                <span>الإجمالي الفرعي:</span>
-                                <span id="package-subtotal">0</span> جنيه
-                            </div>
-                            <div class="flex justify-between mb-4">
-                                <span>الضريبة (10%):</span>
-                                <span id="package-tax">0</span> جنيه
-                            </div>
-                            <div class="flex justify-between font-bold text-lg border-t border-gray-200 pt-4">
-                                <span>المبلغ الكلي:</span>
-                                <span id="package-grand-total">0</span> جنيه
-                            </div>
-                            
-                            <button onclick="sendPackageOrder()" class="w-full bg-primary-accent text-primary-dark font-bold py-3 mt-6 rounded-lg hover:bg-primary-accent-hover transition">
-                                <i class="fas fa-paper-plane ml-2"></i> إرسال طلب الباقة
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Products Listing -->
-                    <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6" id="ecommerce-products">
-                        <!-- Products will be populated here by JS -->
                     </div>
                 </div>
             </div>
@@ -1033,8 +1033,8 @@
                                 <a href="#" class="text-gray-600 hover:text-primary-dark transition duration-300" aria-label="Twitter">
                                     <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 4.041c-.722.322-1.5.541-2.316.643.834-.5 1.475-1.29 1.776-2.235-.783.465-1.658.806-2.585.992-.74-.789-1.79-1.284-2.955-1.284-2.23 0-4.045 1.815-4.045 4.045 0 .317.035.626.103.923C9.092 9.202 5.097 7.007 2.378 3.753c-.35.602-.547 1.299-.547 2.046 0 1.402.714 2.64 1.797 3.364-.66-.021-1.284-.203-1.823-.504v.05c0 1.968 1.402 3.606 3.264 3.982-.34.093-.7.143-1.07.143-.263 0-.52-.026-.77-.074.518 1.622 2.016 2.793 3.79 2.825-1.392 1.09-3.14 1.737-5.048 1.737-.329 0-.655-.021-.973-.057C2.923 19.34 5.098 20 7.375 20c8.854 0 13.682-7.334 13.682-13.682 0-.208-.005-.415-.014-.621.94-.679 1.758-1.53 2.404-2.497z"></path></svg>
                                 </a>
-                                <a href="#" class="text-gray-600 hover:text-primary-dark transition duration-300" aria-label="LinkedIn">
-                                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.23 0H1.77C.79 0 0 .77 0 1.77v20.46c0 .98.79 1.77 1.77 1.77h20.46c.98 0 1.77-.79 1.77-1.77V1.77C24 .79 23.21 0 22.23 0zM7.17 20.44H3.59V9.67h3.58v10.77zM5.38 8.1c-1.2 0-2.17-.97-2.17-2.17 0-1.2.97-2.17 2.17-2.17 1.2 0 2.17.97 2.17 2.17 0 1.2-.97 2.17-2.17 2.17zM20.44 20.44h-3.58v-5.6c0-1.34-.02-3.07-1.87-3.07-1.87 0-2.16 1.46-2.16 2.97v5.7H9.25V9.67h3.42v1.57h.05c.47-.89 1.62-1.83 3.36-1.83 3.59 0 4.25 2.36 4.25 5.43v6.39z"></path></svg>
+                                <a href="#" class="hover:text-primary-accent transition duration-300" aria-label="LinkedIn">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.23 0H1.77C.79 0 0 .77 0 1.77v20.46c0 .98.79 1.77 1.77 1.77h20.46c.98 0 1.77-.79 1.77-1.77V1.77C24 .79 23.21 0 22.23 0zM7.17 20.44H3.59V9.67h3.58v10.77zM5.38 8.1c-1.2 0-2.17-.97-2.17-2.17 0-1.2.97-2.17 2.17-2.17 1.2 0 2.17.97 2.17 2.17 0 1.2-.97 2.17-2.17 2.17zM20.44 20.44h-3.58v-5.6c0-1.34-.02-3.07-1.87-3.07-1.87 0-2.16 1.46-2.16 2.97v5.7H9.25V9.67h3.42v1.57h.05c.47-.89 1.62-1.83 3.36-1.83 3.59 0 4.25 2.36 4.25 5.43v6.39z"></path></svg>
                                 </a>
                             </div>
                         </div>
@@ -1043,6 +1043,38 @@
             </div>
         </div>
     </div>
+
+    <!-- Sidebar Cart -->
+    <div id="sidebar-cart" class="sidebar-cart">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-primary-dark">باقة خدماتك</h3>
+            <button onclick="toggleSidebarCart()" class="text-gray-500 hover:text-gray-700 text-3xl font-semibold leading-none focus:outline-none" aria-label="Close cart">
+                &times;
+            </button>
+        </div>
+        <div class="sidebar-cart-content" id="sidebar-cart-items">
+            <!-- Cart items will be rendered here -->
+            <div id="empty-sidebar-cart-message" class="text-center text-gray-600 mt-4">باقة الخدمات فارغة.</div>
+        </div>
+        <div class="sidebar-cart-footer">
+            <div class="flex justify-between mb-2">
+                <span>الإجمالي الفرعي:</span>
+                <span id="sidebar-subtotal">0</span> جنيه
+            </div>
+            <div class="flex justify-between mb-4">
+                <span>الضريبة (10%):</span>
+                <span id="sidebar-tax">0</span> جنيه
+            </div>
+            <div class="flex justify-between font-bold text-lg border-t border-gray-200 pt-4">
+                <span>المبلغ الكلي:</span>
+                <span id="sidebar-grand-total">0</span> جنيه
+            </div>
+            <button onclick="sendPackageOrder()" class="w-full bg-primary-accent text-primary-dark font-bold py-3 mt-6 rounded-lg hover:bg-primary-accent-hover transition">
+                <i class="fas fa-paper-plane ml-2"></i> إرسال طلب الباقة
+            </button>
+        </div>
+    </div>
+    <div id="sidebar-cart-overlay" class="sidebar-cart-overlay" onclick="toggleSidebarCart()"></div>
 
     <!-- Contact Form Modal (for general inquiries) -->
     <div id="contact-form-modal" class="modal-overlay" style="display: none;">
@@ -1054,7 +1086,7 @@
             >
                 &times;
             </button>
-            <h2 class="text-3xl font-extrabold text-primary-dark mb-6 text-center">اطلب استشارة مجانية</h2>
+            <h2 class="text-3xl font-extrabold text-primary-dark mb-6 text-center" id="modal-title-dynamic">اطلب استشارة مجانية</h2>
             <form id="modal-contact-form" class="space-y-4">
                 <div>
                     <label for="modal-name" class="block text-gray-700 text-sm font-bold mb-2">الاسم الكامل</label>
@@ -1121,13 +1153,13 @@
             <div>
                 <h3 class="text-xl font-bold text-primary-accent mb-4">روابط سريعة</h3>
                 <ul class="space-y-2">
-                    <li><a href="#home-page" onclick="navigate('home')" class="hover:text-primary-accent transition duration-300">الرئيسية</a></li>
+                    <li><a href="#home-page" onclick="navigate('home-page')" class="hover:text-primary-accent transition duration-300">الرئيسية</a></li>
                     <li><a href="#about-us-section" onclick="navigate('about-us-section')" class="hover:text-primary-accent transition duration-300">من نحن</a></li>
-                    <li><a href="#services-page" onclick="navigate('services')" class="hover:text-primary-accent transition duration-300">خدماتنا</a></li>
+                    <li><a href="#services-page" onclick="navigate('services-page')" class="hover:text-primary-accent transition duration-300">خدماتنا</a></li>
                     <li><a href="#package-builder-page" onclick="navigate('package-builder-page')" class="hover:text-primary-accent transition duration-300">بناء باقتك</a></li>
-                    <li><a href="#portfolio-page" onclick="navigate('portfolio')" class="hover:text-primary-accent transition duration-300">عملاؤنا وقصص النجاح</a></li>
-                    <li><a href="#ai-content-editing-page" onclick="navigate('ai-content-editing')" class="hover:text-primary-accent transition duration-300">حلول الذكاء الاصطناعي</a></li>
-                    <li><a href="#contact-page" onclick="navigate('contact')" class="hover:text-primary-accent transition duration-300">اتصل بنا</a></li>
+                    <li><a href="#portfolio-page" onclick="navigate('portfolio-page')" class="hover:text-primary-accent transition duration-300">عملاؤنا وقصص النجاح</a></li>
+                    <li><a href="#ai-content-editing-page" onclick="navigate('ai-content-editing-page')" class="hover:text-primary-accent transition duration-300">حلول الذكاء الاصطناعي</a></li>
+                    <li><a href="#contact-page" onclick="navigate('contact-page')" class="hover:text-primary-accent transition duration-300">اتصل بنا</a></li>
                 </ul>
             </div>
 
@@ -1158,71 +1190,16 @@
         </div>
     </footer>
 
-    <!-- Contact Form Modal (for general inquiries) -->
-    <div id="contact-form-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <button
-                onclick="hideContactFormModal()"
-                class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-3xl font-semibold leading-none focus:outline-none"
-                aria-label="Close"
-            >
-                &times;
-            </button>
-            <h2 class="text-3xl font-extrabold text-primary-dark mb-6 text-center" id="modal-title-dynamic">اطلب استشارة مجانية</h2>
-            <form id="modal-contact-form" class="space-y-4">
-                <div>
-                    <label for="modal-name" class="block text-gray-700 text-sm font-bold mb-2">الاسم الكامل</label>
-                    <input
-                        type="text"
-                        id="modal-name"
-                        name="name"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
-                        required
-                    />
-                </div>
-                <div>
-                    <label for="modal-email" class="block text-gray-700 text-sm font-bold mb-2">البريد الإلكتروني</label>
-                    <input
-                        type="email"
-                        id="modal-email"
-                        name="email"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
-                        required
-                    />
-                </div>
-                <div>
-                    <label for="modal-phone" class="block text-gray-700 text-sm font-bold mb-2">رقم الهاتف (اختياري)</label>
-                    <input
-                        type="tel"
-                        id="modal-phone"
-                        name="phone"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
-                    />
-                </div>
-                <div>
-                    <label for="modal-message" class="block text-gray-700 text-sm font-bold mb-2">رسالتك</label>
-                    <textarea
-                        id="modal-message"
-                        name="message"
-                        rows="4"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-primary-accent"
-                        required
-                    ></textarea>
-                </div>
-                <button
-                    type="submit"
-                    id="modal-submit-button"
-                    class="w-full bg-primary-dark hover:bg-secondary-dark text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-300 transform hover:scale-105"
-                >
-                    إرسال الطلب
-                </button>
-                <p id="modal-submit-message" class="text-center mt-4"></p>
-            </form>
-        </div>
-    </div>
-
     <script>
-        // Case Studies Data (unchanged, but now uses brand colors in placeholders)
+        /*
+        * ملاحظة هامة: في بيئة الإنتاج، يُفضل نقل هذه الأكواد إلى ملف JavaScript خارجي (مثل assets/js/main.js)
+        * لتحسين أداء تحميل الصفحة واستغلال التخزين المؤقت للمتصفح.
+        */
+
+        // قائمة بجميع أقسام الصفحة التي يتم التنقل بينها بواسطة JavaScript
+        const pages = ['home-page', 'about-us-section', 'services-page', 'package-builder-page', 'portfolio-page', 'ai-content-editing-page', 'contact-page'];
+        
+        // بيانات دراسات الحالة لعرضها في قسم "عملاؤنا وقصص النجاح"
         const caseStudiesData = [
             {
                 id: 1,
@@ -1231,7 +1208,8 @@
                 challenge: "زيادة الوعي بالعلامة التجارية ومبيعات المنتجات الجديدة في السوق المصري التنافسي.",
                 solution: "حملة تسويق رقمي متكاملة (SEO, SMM, PPC) مع التركيز على المحتوى الجذاب وإعلانات الفيديو الموجهة للجمهور المصري، بالإضافة إلى حملات بريد إلكتروني مخصصة.",
                 results: "زيادة حركة المرور العضوية بنسبة 150%، وزيادة المبيعات بنسبة 70% خلال 6 أشهر، مما عزز مكانة العميل في السوق.",
-                image: "https://placehold.co/600x400/2a2a32/fcbf01?text=حملة+التجارة+الإلكترونية+مصرية" // Updated to brand colors
+                // [Image of Egyptian E-commerce Campaign]
+                image: "https://placehold.co/600x400/2a2a32/fcbf01?text=حملة+التجارة+الإلكترونية+مصرية" 
             },
             {
                 id: 2,
@@ -1240,7 +1218,8 @@
                 challenge: "تطوير هوية بصرية جديدة وموقع ويب عصري يعكس قيم الشركة التكنولوجية المبتكرة.",
                 solution: "إعادة تصميم العلامة التجارية بالكامل بالتعاون مع مصممين مصريين، وتطوير موقع ويب متجاوب مع التركيز على تجربة المستخدم السلسة والتصميم الجذاب.",
                 results: "تحسين إدراك العلامة التجارية بنسبة 40%، وزيادة التفاعل على الموقع بنسبة 30%، مما جذب المزيد من العملاء المحتملين في القطاع التقني.",
-                image: "https://placehold.co/600x400/fcbf01/2a2a32?text=هوية+وويب+تقني+مصري" // Updated to brand colors
+                // [Image of Egyptian Tech Identity and Web]
+                image: "https://placehold.co/600x400/fcbf01/2a2a32?text=هوية+وويب+تقني+مصري" 
             },
             {
                 id: 3,
@@ -1249,7 +1228,8 @@
                 challenge: "تحسين ترتيب المنتجات في محركات البحث وزيادة معدل التحويل للمتجر الإلكتروني.",
                 solution: "استراتيجية SEO شاملة تستهدف الكلمات المفتاحية المحلية، وتحسين صفحات المنتجات، وتنفيذ حملات بريد إلكتروني مستهدفة لزيادة المبيعات والولاء.",
                 results: "زيادة الزيارات العضوية بنسبة 80%، وارتفاع معدل التحويل بنسبة 25%، مما أدى إلى نمو ملحوظ في إيرادات المتجر.",
-                image: "https://placehold.co/600x400/2a2a32/fcbf01?text=تحسين+مبيعات+التجزئة+مصر" // Updated to brand colors
+                // [Image of Egyptian Retail Sales Optimization]
+                image: "https://placehold.co/600x400/2a2a32/fcbf01?text=تحسين+مبيعات+التجزئة+مصر" 
             },
             {
                 id: 4,
@@ -1258,119 +1238,211 @@
                 challenge: "جذب الطلاب الجدد وتعزيز التسجيل في البرامج التعليمية المعتمدة.",
                 solution: "تسويق شامل عبر وسائل التواصل الاجتماعي مع التركيز على حملات الفيديو التوعوية، وإعلانات PPC مستهدفة، وإنشاء محتوى تعليمي جذاب يبرز مزايا المؤسسة.",
                 results: "زيادة الاستفسارات بنسبة 60%، وتحقيق 40% زيادة في التسجيلات النهائية للعام الدراسي الجديد.",
-                image: "https://placehold.co/600x400/fcbf01/2a2a32?text=تسويق+تعليمي+مصر" // Updated to brand colors
+                // [Image of Egyptian Educational Marketing]
+                image: "https://placehold.co/600x400/fcbf01/2a2a32?text=تسويق+تعليمي+مصر" 
             },
         ];
 
-        // Functions for E-commerce (Services Store, Cart, Checkout, Order Confirmation)
-        // Products Data (Services) - Updated with basePrice and durationUnit for services with duration
+        // بيانات المنتجات (الخدمات) المعروضة في قسم "بناء باقتك"
+        // تم تحديث هذه البيانات لتكون أكثر تفصيلاً ودعم خيارات المدة والتسعير المرن.
         const products = [
+            // خدمات التسويق الرقمي
             {
-                id: 1,
-                name: "حزمة التسويق الأساسية",
-                description: "إدارة 2 منصات تواصل اجتماعي + 10 منشورات شهرياً، مثالية للشركات الناشئة.",
-                detailedDescription: "تشمل هذه الحزمة الأساسية إدارة حسابين على منصات التواصل الاجتماعي الرئيسية (مثل فيسبوك وإنستغرام) مع نشر 10 منشورات جذابة شهرياً. نركز على بناء حضورك الأولي وتفاعل جمهورك المستهدف في السوق المصري.",
-                basePrice: 3000, // Price per month
-                durationUnit: 'شهر', // Indicates this service has a duration
-                category: "تسويق",
-                image: "https://placehold.co/400x250/2a2a32/fcbf01?text=تسويق+أساسي"
-            },
-            {
-                id: 2,
-                name: "حزمة التسويق المتقدمة",
-                description: "إدارة 4 منصات تواصل + 20 منشور + تحليلات أداء وتقارير مفصلة، للنمو السريع.",
-                detailedDescription: "توسع نطاق وصولك مع هذه الحزمة التي تغطي 4 منصات تواصل اجتماعي بـ 20 منشور شهرياً. نقدم أيضاً تحليلات أداء مفصلة وتقارير دورية لمتابعة نمو حملاتك وتحسينها بشكل مستمر لضمان أقصى عائد على الاستثمار.",
-                basePrice: 6000, // Price per month
+                id: 'DM01',
+                name: "تصميم 10 منشورات شهرياً",
+                description: "للفيس بوك وإنستغرام (لخدمة التصميم)",
+                detailedDescription: "تشمل 10 تصميمات احترافية وجذابة لمنصات التواصل الاجتماعي (فيسبوك وإنستغرام) شهرياً، مع مراعاة الهوية البصرية لعلامتك التجارية والجمهور المستهدف.",
+                basePrice: 1000, // سعر أساسي لشهر واحد
                 durationUnit: 'شهر',
+                durationOptions: [ // خيارات التسعير بناءً على المدة
+                    { duration: 1, name: "شهر واحد", price: 1000 },
+                    { duration: 3, name: "3 أشهر (خصم 10%)", price: 2700 }, // 900 للشهر
+                    { duration: 6, name: "6 أشهر (خصم 15%)", price: 5100 }  // 850 للشهر
+                ],
                 category: "تسويق",
-                image: "https://placehold.co/400x250/fcbf01/2a2a32?text=تسويق+متقدم"
+                // [Image of Post Design]
+                image: "https://placehold.co/400x250/2a2a32/fcbf01?text=تصميم+منشورات"
             },
             {
-                id: 3,
-                name: "تصميم متجر إلكتروني احترافي",
-                description: "تصميم وتطوير متجر إلكتروني متكامل وجذاب، متوافق مع كافة الأجهزة. (دفع مرة واحدة)",
-                detailedDescription: "نقوم بتصميم وتطوير متجر إلكتروني فريد واحترافي، متوافق تماماً مع جميع الأجهزة (الموبايل، التابلت، الكمبيوتر). يشمل ذلك دمج أنظمة الدفع المحلية والعالمية، تحسين تجربة المستخدم (UX) وواجهة المستخدم (UI) لضمان أعلى معدلات التحويل.",
-                price: 15000, // One-time price
+                id: 'DM02',
+                name: "إدارة الردود والنشر لحسابين سوشيال ميديا",
+                description: "إدارة تفاعلية لحسابين (24 ساعة/يوم)",
+                detailedDescription: "نقدم إدارة كاملة للردود على الرسائل والتعليقات، بالإضافة إلى النشر المجدول لحسابين على منصات التواصل الاجتماعي (مثل فيسبوك وإنستغرام)، وذلك لمدة 24 ساعة يومياً على مدار 30 يومًا، لضمان تفاعل مستمر وفعال مع جمهورك.",
+                basePrice: 2000, // سعر أساسي لشهر واحد (24 ساعة)
+                durationUnit: 'شهر',
+                durationOptions: [
+                    { duration: 1, name: "شهر واحد (24 ساعة/يوم)", price: 2000 },
+                    { duration: 3, name: "3 أشهر (خصم 10%)", price: 5400 },
+                    { duration: 6, name: "6 أشهر (خصم 15%)", price: 10200 }
+                ],
+                category: "تسويق",
+                // [Image of Social Media Management]
+                image: "https://placehold.co/400x250/fcbf01/2a2a32?text=إدارة+سوشيال"
+            },
+            {
+                id: 'DM03',
+                name: "حملة إعلانية ممولة (إعداد وإدارة)",
+                description: "إعداد وإدارة حملة واحدة على منصة إعلانية.",
+                detailedDescription: "نقوم بإعداد وتصميم حملة إعلانية ممولة واحدة على منصة اختيارك (مثل Meta Ads أو Google Ads)، وإدارة ميزانية الإعلان (تضاف منفصلة) وتحسين الأداء لمدة شهر واحد.",
+                basePrice: 1500, // سعر ثابت للإعداد والإدارة لشهر
+                durationUnit: 'مرة واحدة / شهر', // هذه الخدمة يمكن تكرارها شهريا
+                durationOptions: [
+                    { duration: 1, name: "إعداد وإدارة لشهر", price: 1500 },
+                    { duration: 3, name: "إدارة لـ 3 أشهر (خصم)", price: 4000 }
+                ],
+                category: "تسويق",
+                // [Image of Advertising Campaign]
+                image: "https://placehold.co/400x250/2a2a32/fcbf01?text=حملة+إعلانية"
+            },
+            // خدمات تطوير الويب
+            {
+                id: 'WD01',
+                name: "إنشاء موقع إلكتروني تعريفي (5 صفحات)",
+                description: "تصميم وتطوير موقع ويب احترافي ومتجاوب.",
+                detailedDescription: "تصميم وتطوير موقع ويب تعريفي احترافي مكون من 5 صفحات، متوافق مع كافة الأجهزة، ويعكس هويتك التجارية. يشمل الاستضافة لسنة واحدة ودومين (com. أو net.)",
+                price: 8000, // سعر ثابت لمرة واحدة
                 category: "تطوير",
+                // [Image of Informative Website]
+                image: "https://placehold.co/400x250/fcbf01/2a2a32?text=موقع+تعريفي"
+            },
+            {
+                id: 'WD02',
+                name: "تصميم متجر إلكتروني متكامل",
+                description: "متجر متجاوب مع أنظمة دفع مصرية.",
+                detailedDescription: "تصميم وتطوير متجر إلكتروني متكامل وجذاب، متوافق مع كافة الأجهزة، مع دمج أنظمة الدفع الإلكتروني المحلية (مثل فوري، وميزة، وباي بال) لتسهيل عمليات الشراء لعملائك في مصر.",
+                price: 15000, // سعر ثابت لمرة واحدة
+                category: "تطوير",
+                // [Image of Store Design]
                 image: "https://placehold.co/400x250/2a2a32/fcbf01?text=تصميم+متجر"
             },
+            // حلول الذكاء الاصطناعي
             {
-                id: 4,
-                name: "حزمة الذكاء الاصطناعي لتحرير المحتوى",
-                description: "تحرير وتدقيق محتوى مدعوم بالذكاء الاصطناعي، لتحسين جودة ودقة النصوص.",
-                detailedDescription: "نقدم خدمة متخصصة في تحرير وتدقيق المحتوى الذي يتم إنشاؤه بواسطة الذكاء الاصطناعي. فريقنا يضمن أن النصوص طبيعية، خالية من الأخطاء، ومتوافقة تماماً مع أهداف علامتك التجارية ونبرتها، مع الحفاظ على الأصالة والجاذبية للجمهور المصري.",
-                basePrice: 5000, // Price per month for ongoing service
+                id: 'AI01',
+                name: "تحرير ومراجعة محتوى بالذكاء الاصطناعي",
+                description: "تحرير 1000 كلمة شهرياً لضمان الجودة والأصالة.",
+                detailedDescription: "نستخدم أدوات الذكاء الاصطناعي المتقدمة لتحسين جودة النصوص، تدقيقها لغوياً، والتأكد من طبيعيتها وجاذبيتها، مع مراجعة بشرية لـ 1000 كلمة شهرياً. هذه الخدمة تضمن أن المحتوى الذي ينتجه الذكاء الاصطناعي يبدو وكأنه مكتوب بواسطة إنسان خبير.",
+                basePrice: 5000, // سعر أساسي لـ 1000 كلمة/شهر
                 durationUnit: 'شهر',
+                durationOptions: [
+                    { duration: 1, name: "1000 كلمة / شهر", price: 5000 },
+                    { duration: 3, name: "3000 كلمة / 3 أشهر (خصم 5%)", price: 14250 }, // 4750 للشهر
+                    { duration: 6, name: "6000 كلمة / 6 أشهر (خصم 10%)", price: 27000 }  // 4500 للشهر
+                ],
                 category: "ذكاء اصطناعي",
+                // [Image of AI Content]
                 image: "https://placehold.co/400x250/fcbf01/2a2a32?text=AI+محتوى"
             },
+            // خدمات تطوير الأعمال
             {
-                id: 5,
-                name: "استشارة تطوير أعمال (ساعة واحدة)",
-                description: "جلسة استشارية فردية لمناقشة استراتيجيات النمو والتوسع لشركتك. (مرة واحدة)",
-                detailedDescription: "احصل على جلسة استشارية مكثفة لمدة ساعة مع أحد خبراء تطوير الأعمال لدينا. سنناقش تحدياتك، فرص النمو في السوق المصري، ونقدم لك توصيات قابلة للتنفيذ لمساعدتك في تحقيق أهدافك الاستراتيجية.",
-                price: 750, // One-time price
+                id: 'BD01',
+                name: "جلسة استشارية لتطوير الأعمال",
+                description: "جلسة مكثفة مدتها ساعة واحدة مع خبير.",
+                detailedDescription: "جلسة استشارية فردية مكثفة مع أحد خبراء تطوير الأعمال لدينا، لمناقشة تحدياتك وتحديد الفرص الرئيسية لنمو شركتك في السوق المصري.",
+                price: 750, // سعر ثابت لمرة واحدة
                 category: "تطوير أعمال",
+                // [Image of Business Consulting]
                 image: "https://placehold.co/400x250/2a2a32/fcbf01?text=استشارة+أعمال"
             },
+            // خدمات محاسبية
             {
-                id: 6,
-                name: "خدمات محاسبية شهرية",
-                description: "إدارة دفاتر الحسابات وإعداد التقارير المالية الشهرية لشركتك.",
-                detailedDescription: "خدمة شهرية شاملة لإدارة الدفاتر المحاسبية، تسجيل المعاملات، وإعداد التقارير المالية الدورية (مثل الميزانية وقائمة الدخل). نضمن الدقة والامتثال للقوانين الضريبية المصرية ونساعدك على فهم وضعك المالي لاتخاذ قرارات مستنيرة.",
-                basePrice: 4000, // Price per month
+                id: 'ACC01',
+                name: "إدارة دفاتر الحسابات الشهرية",
+                description: "خدمة محاسبية شاملة لضمان دقة السجلات.",
+                detailedDescription: "إدارة كاملة لدفاتر الحسابات الخاصة بشركتك، بما في ذلك تسجيل الإيرادات والمصروفات، وتصنيف المعاملات المالية، لضمان دقة السجلات المالية وشفافيتها.",
+                basePrice: 3500, // سعر أساسي لشهر واحد
                 durationUnit: 'شهر',
+                durationOptions: [
+                    { duration: 1, name: "شهر واحد", price: 3500 },
+                    { duration: 3, name: "3 أشهر (خصم 5%)", price: 9975 },
+                    { duration: 6, name: "6 أشهر (خصم 10%)", price: 18900 }
+                ],
                 category: "محاسبة",
-                image: "https://placehold.co/400x250/fcbf01/2a2a32?text=خدمات+محاسبة"
+                // [Image of Accounting Books]
+                image: "https://placehold.co/400x250/fcbf01/2a2a32?text=دفاتر+محاسبة"
             },
+            // خدمات قانونية
             {
-                id: 7,
-                name: "حزمة تصميم لوجو وهوية بصرية",
-                description: "تصميم شعار احترافي وهوية بصرية كاملة لعلامتك التجارية. (دفع مرة واحدة)",
-                detailedDescription: "نقدم خدمة تصميم شاملة تبدأ من تطوير مفهوم فريد لشعارك، مروراً باختيار الألوان والخطوط، وصولاً إلى تصميم كامل للهوية البصرية لشركتك (بما في ذلك كروت العمل، الأوراق الرسمية، وغيرها) لضمان تميز علامتك التجارية واحترافيتها في السوق المصري.",
-                price: 7000,
-                category: "تسويق",
-                image: "https://placehold.co/400x250/2a2a32/fcbf01?text=هوية+بصرية"
-            },
-            {
-                id: 8,
-                name: "دعم فني للموقع (شهري)",
-                description: "صيانة ودعم فني مستمر لموقع الويب الخاص بك، يشمل التحديثات الأمنية والدعم التقني.",
-                detailedDescription: "خدمة دعم فني شهرية لضمان استمرارية عمل موقعك بكفاءة عالية. تشمل الخدمة التحديثات الأمنية المنتظمة، النسخ الاحتياطي للبيانات، حل المشكلات التقنية، وتحسين أداء الموقع لضمان تجربة مستخدم ممتازة.",
-                basePrice: 1500,
-                durationUnit: 'شهر',
-                category: "تقنية",
-                image: "https://placehold.co/400x250/fcbf01/2a2a32?text=دعم+فني"
-            },
-            {
-                id: 9,
-                name: "خدمات قانونية للشركات الناشئة",
-                description: "استشارات أولية وتسجيل شركة جديدة في مصر.",
-                detailedDescription: "حزمة خدمات قانونية مصممة خصيصاً للشركات الناشئة، تشمل الاستشارات القانونية الأولية حول متطلبات السوق المصري، والمساعدة في كافة إجراءات تسجيل شركتك الجديدة في السجل التجاري والهيئات الحكومية ذات الصلة لضمان الامتثال الكامل.",
-                price: 5000,
+                id: 'LS01',
+                name: "تسجيل السجل التجاري",
+                description: "خدمة تسجيل السجل التجاري للشركات الجديدة.",
+                detailedDescription: "نتولى كافة إجراءات تسجيل السجل التجاري لشركتك الجديدة في مصر، من إعداد الأوراق اللازمة إلى المتابعة مع الجهات الحكومية المعنية لضمان إتمام العملية بسلاسة وسرعة.",
+                price: 1500, // سعر ثابت لمرة واحدة
                 category: "قانونية",
-                image: "https://placehold.co/400x250/2a2a32/fcbf01?text=قانونية+ناشئة"
+                // [Image of Commercial Register]
+                image: "https://placehold.co/400x250/2a2a32/fcbf01?text=سجل+تجاري"
             },
             {
-                id: 10,
-                name: "تطوير تطبيق جوال مخصص",
-                description: "تصميم وتطوير تطبيق جوال مخصص لنظامي iOS و Android (مرة واحدة).",
-                detailedDescription: "نقدم خدمة تصميم وتطوير تطبيقات جوال متكاملة ومخصصة لاحتياجات عملك، متوفرة على نظامي iOS وأندرويد. نركز على تقديم تجربة مستخدم سلسة، تصميم جذاب، ووظائف قوية تدعم أهدافك التجارية وتضمن أداءً متميزاً في السوق المصري.",
-                price: 25000,
-                category: "تطوير",
-                image: "https://placehold.co/400x250/fcbf01/2a2a32?text=تطبيق+جوال"
+                id: 'LS02',
+                name: "استخراج البطاقة الضريبية",
+                description: "خدمة استخراج البطاقة الضريبية للشركات.",
+                detailedDescription: "نقدم خدمة استخراج البطاقة الضريبية لشركتك، بما في ذلك تجهيز المستندات المطلوبة وتقديمها للجهات المختصة، لضمان امتثالك للوائح الضريبية المصرية.",
+                price: 2000, // سعر ثابت لمرة واحدة
+                category: "قانونية",
+                // [Image of Tax Card]
+                image: "https://placehold.co/400x250/fcbf01/2a2a32?text=بطاقة+ضريبية"
+            },
+            {
+                id: 'LS03',
+                name: "حزمة السجل التجاري والبطاقة الضريبية",
+                description: "تسجيل السجل التجاري واستخراج البطاقة الضريبية معاً (خصم خاص).",
+                detailedDescription: "احصل على خدمة تسجيل السجل التجاري واستخراج البطاقة الضريبية معاً بسعر مخفض. هذه الحزمة مثالية للشركات الناشئة لتبدأ عملياتها بشكل قانوني وسريع.",
+                price: 2500, // سعر ثابت لمرة واحدة (خصم مجمع)
+                category: "قانونية",
+                // [Image of Legal Package]
+                image: "https://placehold.co/400x250/2a2a32/fcbf01?text=حزمة+قانونية"
+            },
+            // حلول تقنية
+            {
+                id: 'TECH01',
+                name: "صيانة ودعم فني للموقع",
+                description: "دعم شهري شامل لموقعك الإلكتروني.",
+                detailedDescription: "خدمة صيانة ودعم فني مستمرة لموقعك الإلكتروني، تشمل التحديثات الأمنية، النسخ الاحتياطي الدوري، حل المشكلات التقنية، وتحسين الأداء لضمان عمل موقعك بكفاءة ودون انقطاع.",
+                basePrice: 1500, // سعر أساسي لشهر واحد
+                durationUnit: 'شهر',
+                durationOptions: [
+                    { duration: 1, name: "شهر واحد", price: 1500 },
+                    { duration: 3, name: "3 أشهر (خصم 5%)", price: 4275 },
+                    { duration: 6, name: "6 أشهر (خصم 10%)", price: 8100 }
+                ],
+                category: "تقنية",
+                // [Image of Website Support]
+                image: "https://placehold.co/400x250/2a2a32/fcbf01?text=دعم+موقع"
             }
         ];
 
-        // Shopping Cart
+        // Shopping Cart - يتم تخزين سلة التسوق في localStorage
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-        // Store Management Functions
+        // عناصر واجهة المستخدم الخاصة بسلة التسوق الجانبية
+        const sidebarCart = document.getElementById('sidebar-cart');
+        const sidebarCartOverlay = document.getElementById('sidebar-cart-overlay');
+        const sidebarCartItems = document.getElementById('sidebar-cart-items');
+        const emptySidebarCartMessage = document.getElementById('empty-sidebar-cart-message');
+        const sidebarSubtotal = document.getElementById('sidebar-subtotal');
+        const sidebarTax = document.getElementById('sidebar-tax');
+        const sidebarGrandTotal = document.getElementById('sidebar-grand-total');
+        const cartItemCountSpan = document.getElementById('cart-item-count'); // عداد العناصر في النافبار
+
+        // الدالة لفتح/إغلاق سلة التسوق الجانبية
+        function toggleSidebarCart() {
+            sidebarCart.classList.toggle('open');
+            sidebarCartOverlay.classList.toggle('open');
+            // إضافة/إزالة كلاس على الـ body لدفع المحتوى إذا كانت السلة مفتوحة (للتجاوب)
+            document.body.classList.toggle('cart-open');
+            if (sidebarCart.classList.contains('open')) {
+                renderSidebarCart(); // إعادة عرض محتوى السلة عند فتحها
+            }
+        }
+
+        // دالة لعرض المنتجات في قسم "بناء باقتك" مع إمكانية الفلترة
         function renderProducts(filterCategory = 'all') {
             const container = document.getElementById('ecommerce-products');
-            if (!container) return;
+            if (!container) {
+                console.error("عنصر المنتجات (#ecommerce-products) غير موجود.");
+                return;
+            }
             
-            container.innerHTML = '';
+            container.innerHTML = ''; // مسح المحتوى القديم قبل إعادة العرض
             
             const filteredProducts = filterCategory === 'all' 
                 ? products 
@@ -1382,270 +1454,220 @@
             }
 
             filteredProducts.forEach(product => {
-                let priceDisplay;
-                let addButton;
-                let durationInputHtml = '';
-                let defaultDuration = 1;
+                let priceDisplayHtml = '';
+                let durationSelectHtml = '';
+                let initialPrice = product.price || product.basePrice; // السعر الأولي (لمرة واحدة أو الخيار الأول للمدة)
 
-                if (product.durationUnit) {
-                    // For services with duration (e.g., monthly)
-                    priceDisplay = `<span id="product-price-${product.id}" class="text-primary-accent font-bold text-lg">
-                                        ${product.basePrice.toLocaleString()} جنيه / ${product.durationUnit}
-                                    </span>`;
-                    durationInputHtml = `
-                        <div class="flex items-center mt-2">
-                            <label for="duration-${product.id}" class="text-gray-700 ml-2 text-sm">المدة (شهور):</label>
-                            <input type="number" id="duration-${product.id}" value="${defaultDuration}" min="1" 
-                                class="w-20 p-1 border border-gray-300 rounded-md text-center text-gray-800"
-                                onchange="updateProductCardPrice(${product.id})" />
+                if (product.durationOptions && product.durationOptions.length > 0) {
+                    // للخدمات ذات التسعير الديناميكي بناءً على المدة/الخيارات
+                    initialPrice = product.durationOptions[0].price; // السعر الافتراضي هو أول خيار
+                    durationSelectHtml = `
+                        <div class="mt-2">
+                            <label for="duration-select-${product.id}" class="block text-gray-700 text-sm mb-1">اختر المدة/الباقة:</label>
+                            <select id="duration-select-${product.id}" 
+                                class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-accent"
+                                onchange="updateProductDisplayPrice('${product.id}')">
+                                ${product.durationOptions.map(option => `
+                                    <option value="${option.duration}" data-price="${option.price}" data-name="${option.name}">${option.name}</option>
+                                `).join('')}
+                            </select>
                         </div>
                     `;
-                    addButton = `
-                        <button onclick="addToCart(${product.id}, 1, document.getElementById('duration-${product.id}').value)" 
-                                class="bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-secondary-dark transition mt-4">
-                            <i class="fas fa-cart-plus ml-2"></i> أضف إلى السلة
-                        </button>
-                    `;
-                } else {
-                    // For one-time services/products
-                    priceDisplay = `<span class="text-primary-accent font-bold text-lg">${product.price.toLocaleString()} جنيه</span>`;
-                    addButton = `
-                        <button onclick="addToCart(${product.id})" class="bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-secondary-dark transition">
-                            <i class="fas fa-cart-plus ml-2"></i> أضف إلى السلة
-                        </button>
-                    `;
                 }
+                
+                priceDisplayHtml = `<span id="product-display-price-${product.id}" class="text-primary-accent font-bold text-lg">
+                                        ${initialPrice.toLocaleString()} جنيه
+                                    </span>`;
 
                 const productCard = `
                     <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border border-gray-200 transform transition duration-300 hover:scale-105 hover:shadow-xl">
                         <img src="${product.image}" alt="${product.name}" class="w-full h-40 object-cover rounded-md mb-4"/>
                         <h3 class="text-xl font-bold text-primary-dark mb-2">${product.name}</h3>
-                        <p class="text-gray-600 mb-4">${product.description}</p>
-                        <div class="flex flex-col items-start">
-                            ${priceDisplay}
-                            ${durationInputHtml}
-                            <span id="calculated-price-${product.id}" class="text-gray-700 text-sm mt-1"></span>
+                        <p class="text-gray-600 text-sm mb-4">${product.description}</p>
+                        <div class="flex flex-col items-start mb-4">
+                            ${priceDisplayHtml}
+                            ${durationSelectHtml}
                         </div>
                         <div class="flex justify-end items-center mt-4">
-                            ${addButton}
+                            <button onclick="addProductToCart('${product.id}')" 
+                                class="bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-secondary-dark transition">
+                                <i class="fas fa-cart-plus ml-2"></i> أضف إلى الباقة
+                            </button>
                         </div>
                     </div>
                 `;
                 container.innerHTML += productCard;
-                if (product.durationUnit) {
-                    updateProductCardPrice(product.id); // Set initial calculated price
-                }
             });
         }
 
-        // Updates the price displayed on the product card based on selected duration
-        function updateProductCardPrice(productId) {
+        // تحديث السعر المعروض على بطاقة المنتج عند تغيير خيار المدة
+        function updateProductDisplayPrice(productId) {
             const product = products.find(p => p.id === productId);
-            if (!product || !product.durationUnit) return;
+            if (!product || !product.durationOptions) return;
 
-            const durationInput = document.getElementById(`duration-${productId}`);
-            const calculatedPriceSpan = document.getElementById(`calculated-price-${productId}`);
-            let duration = parseInt(durationInput.value);
+            const selectElement = document.getElementById(`duration-select-${productId}`);
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const price = parseFloat(selectedOption.dataset.price);
 
-            if (isNaN(duration) || duration < 1) {
-                duration = 1;
-                durationInput.value = 1;
-            }
-            const calculatedPrice = product.basePrice * duration;
-            calculatedPriceSpan.textContent = `السعر الإجمالي: ${calculatedPrice.toLocaleString()} جنيه`;
+            const displayPriceSpan = document.getElementById(`product-display-price-${productId}`);
+            displayPriceSpan.textContent = `${price.toLocaleString()} جنيه`;
         }
 
-
-        // addToCart function adapted to handle duration and quantity
-        function addToCart(productId, quantity = 1, duration = 1) {
+        // دالة لإضافة المنتج إلى سلة التسوق (إصلاح مشكلة عدم الظهور)
+        function addProductToCart(productId) {
             const product = products.find(p => p.id === productId);
-            if (!product) return;
+            if (!product) {
+                console.error("المنتج غير موجود:", productId);
+                return;
+            }
 
-            quantity = parseInt(quantity);
-            duration = parseInt(duration);
+            let selectedPrice = product.price; // للسعر لمرة واحدة
+            let selectedDuration = undefined;
+            let durationName = undefined;
+            let cartItemUniqueId = product.id; // المعرف الفريد لعنصر السلة
 
-            if (isNaN(quantity) || quantity < 1) quantity = 1;
-            if (isNaN(duration) || duration < 1) duration = 1;
+            if (product.durationOptions && product.durationOptions.length > 0) {
+                const selectElement = document.getElementById(`duration-select-${productId}`);
+                if (selectElement) {
+                    const selectedOption = selectElement.options[selectElement.selectedIndex];
+                    selectedPrice = parseFloat(selectedOption.dataset.price);
+                    selectedDuration = parseInt(selectedOption.value);
+                    durationName = selectedOption.dataset.name;
+                    cartItemUniqueId = `${product.id}-${selectedDuration}`; // لضمان تمايز الخيارات المختلفة لنفس المنتج
+                } else {
+                    // في حالة وجود durationOptions ولكن لم يتم العثور على عنصر التحديد
+                    // قد يحدث هذا إذا لم يتم عرض القائمة المنسدلة بشكل صحيح أو خطأ في الـ ID
+                    console.warn(`عنصر التحديد للخدمة ${productId} غير موجود على الرغم من وجود خيارات مدة.`);
+                }
+            }
 
-            // If it's a duration-based service, the quantity in cart is always 1 (one instance of the service for X months)
-            // If it's a one-time service, quantity can be more than 1
-            
-            // Check if item already exists in cart with same duration
-            const existingItemIndex = cart.findIndex(item => item.id === productId && item.duration === duration);
+            // البحث عن العنصر في السلة باستخدام الـ ID الفريد
+            const existingItemIndex = cart.findIndex(item => item.cartId === cartItemUniqueId);
 
             if (existingItemIndex > -1) {
-                // If it's a duration-based item, we update quantity (number of instances of the bundle)
-                // If it's a one-time item, we just increment quantity
-                if (product.durationUnit) {
-                    cart[existingItemIndex].quantity += 1;
-                } else {
-                    cart[existingItemIndex].quantity += quantity;
-                }
+                // إذا كان العنصر موجودًا بالفعل، قم بزيادة الكمية
+                cart[existingItemIndex].quantity += 1;
+                console.log("تم زيادة كمية المنتج في السلة:", cart[existingItemIndex]);
             } else {
+                // إذا لم يكن موجودًا، أضف العنصر الجديد
                 cart.push({
-                    id: product.id,
+                    cartId: cartItemUniqueId, // معرف فريد لكل إدخال في السلة
+                    id: product.id, // معرف المنتج الأساسي
                     name: product.name,
                     description: product.description,
-                    detailedDescription: product.detailedDescription, // Include detailed description
-                    basePrice: product.basePrice, // Store base price for duration items
-                    price: product.price, // Store price for one-time items
-                    category: product.category,
-                    image: product.image,
-                    quantity: product.durationUnit ? 1 : quantity, // If duration-based, quantity is 1 (per bundle)
-                    duration: product.durationUnit ? duration : undefined, // Only set duration if applicable
-                    isDurationBased: !!product.durationUnit // Flag to easily identify duration-based items
+                    detailedDescription: product.detailedDescription,
+                    price: selectedPrice, // سعر العنصر (بما في ذلك سعر الخيار المحدد)
+                    baseProduct: product, // مرجع للمنتج الأصلي لاسترجاع خيارات المدة إذا لزم الأمر
+                    quantity: 1,
+                    duration: selectedDuration,
+                    durationName: durationName,
+                    isDurationBased: !!product.durationOptions
                 });
+                console.log("تم إضافة منتج جديد إلى السلة:", cart[cart.length - 1]);
             }
             
-            updateCart();
-            showCustomAlert("تمت إضافة الخدمة إلى سلة التسوق!", 'success');
+            updateCart(); // تحديث عرض السلة بعد الإضافة
+            showCustomAlert("تمت إضافة الخدمة إلى باقتك!", 'success');
+            toggleSidebarCart(); // فتح الشريط الجانبي للسلة بعد الإضافة
         }
 
-
+        // تحديث حالة السلة في localStorage وإعادة عرضها
         function updateCart() {
             localStorage.setItem('cart', JSON.stringify(cart));
-            renderPackageCartSummary(); // Render the mini-cart in the package builder
-            updateCartDisplay(); // Update cart count in navbar/store sidebar (though navbar cart count is removed)
+            renderSidebarCart(); // إعادة عرض محتوى السلة الجانبية
+            updateCartItemCount(); // تحديث عداد العناصر في النافبار
+            console.log("تم تحديث السلة في localStorage:", cart);
         }
 
-        // Updates cart count in elements like navbar or store sidebar (currently only sidebar)
-        function updateCartDisplay() {
-            const cartCountElement = document.getElementById('cart-count'); // This ID is no longer explicitly used for display but good to keep
-            let count = cart.reduce((sum, item) => sum + item.quantity, 0); // Count items, not total units of duration
-            if (cartCountElement) cartCountElement.textContent = count;
+        // تحديث عداد العناصر في أيقونة السلة بالنافبار
+        function updateCartItemCount() {
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            if (cartItemCountSpan) {
+                cartItemCountSpan.textContent = count;
+            } else {
+                console.warn("عنصر عداد السلة (#cart-item-count) غير موجود.");
+            }
         }
 
-        function renderPackageCartSummary() {
-            const summaryContainer = document.getElementById('package-cart-summary');
-            const emptyMessage = document.getElementById('empty-package-cart-message');
-            const subtotalElement = document.getElementById('package-subtotal');
-            const taxElement = document.getElementById('package-tax');
-            const grandTotalElement = document.getElementById('package-grand-total');
+        // دالة لعرض محتوى سلة التسوق في الشريط الجانبي (إصلاح مشكلة عدم الظهور)
+        function renderSidebarCart() {
+            if (!sidebarCartItems) {
+                console.error("عنصر عناصر السلة (#sidebar-cart-items) غير موجود.");
+                return;
+            }
 
+            sidebarCartItems.innerHTML = ''; // مسح المحتوى الحالي للسلة قبل إعادة العرض
             let subtotal = 0;
-            
-            if (!summaryContainer) return;
-
-            summaryContainer.innerHTML = ''; // Clear previous content
 
             if (cart.length === 0) {
-                emptyMessage.classList.remove('hidden');
-                subtotalElement.textContent = '0';
-                taxElement.textContent = '0';
-                grandTotalElement.textContent = '0';
-                return;
+                emptySidebarCartMessage.classList.remove('hidden'); // إظهار رسالة السلة فارغة
             } else {
-                emptyMessage.classList.add('hidden');
+                emptySidebarCartMessage.classList.add('hidden'); // إخفاء رسالة السلة فارغة
+                cart.forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    subtotal += itemTotal;
+                    
+                    let durationInfo = '';
+                    if (item.isDurationBased && item.durationName) {
+                        durationInfo = `<span class="text-gray-500 text-sm"> (${item.durationName})</span>`;
+                    }
+
+                    const cartItemHtml = `
+                        <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                            <div class="flex-grow">
+                                <h4 class="font-semibold text-gray-800">${item.name}</h4>
+                                <p class="text-sm text-gray-500">
+                                    الكمية: 
+                                    <input type="number" value="${item.quantity}" min="1" 
+                                        onchange="updateCartItemQuantity('${item.cartId}', this.value)"
+                                        class="w-12 text-center border border-gray-300 rounded-md inline-block ml-1 mr-1" />
+                                    ${durationInfo}
+                                </p>
+                                <p class="text-sm text-gray-500">السعر للوحدة: ${item.price.toLocaleString()} جنيه</p>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="font-bold text-primary-dark ml-4">${itemTotal.toLocaleString()} جنيه</span>
+                                <button onclick="removeProductFromCart('${item.cartId}')" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition" aria-label="Remove item from cart">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    sidebarCartItems.insertAdjacentHTML('beforeend', cartItemHtml);
+                });
             }
 
-            cart.forEach(item => {
-                const itemCalculatedPrice = item.isDurationBased 
-                    ? item.basePrice * item.duration 
-                    : item.price;
-                const itemTotal = itemCalculatedPrice * item.quantity;
-                subtotal += itemTotal;
-                
-                let durationDisplay = '';
-                if (item.isDurationBased) {
-                    durationDisplay = `لمدة ${item.duration} شهر`;
-                }
-
-                const summaryItemHtml = `
-                    <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                        <div class="flex-grow">
-                            <h4 class="font-semibold text-gray-800">${item.name}</h4>
-                            <p class="text-sm text-gray-500">الكمية: ${item.quantity}${durationDisplay ? `, ${durationDisplay}` : ''}</p>
-                            <p class="text-sm text-gray-500">سعر الوحدة: ${itemCalculatedPrice.toLocaleString()} جنيه</p>
-                        </div>
-                        <span class="font-bold text-primary-dark ml-4">${itemTotal.toLocaleString()} جنيه</span>
-                        <button onclick="removeFromCart(${item.id}, ${item.isDurationBased ? item.duration : 'undefined'})" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition" aria-label="Remove item from cart">
-                            <i class="fas fa-times-circle"></i>
-                        </button>
-                    </div>
-                `;
-                summaryContainer.insertAdjacentHTML('beforeend', summaryItemHtml);
-            });
-            
-            const tax = subtotal * 0.10; // Assuming 10% tax for example
+            const tax = subtotal * 0.10; // افتراض 10% ضريبة
             const grandTotal = subtotal + tax;
 
-            subtotalElement.textContent = subtotal.toLocaleString();
-            taxElement.textContent = tax.toLocaleString();
-            grandTotalElement.textContent = grandTotal.toLocaleString();
+            if (sidebarSubtotal) sidebarSubtotal.textContent = subtotal.toLocaleString();
+            if (sidebarTax) sidebarTax.textContent = tax.toLocaleString();
+            if (sidebarGrandTotal) sidebarGrandTotal.textContent = grandTotal.toLocaleString();
+            console.log("تم عرض محتوى السلة الجانبية. الإجمالي:", grandTotal);
         }
 
+        // دالة لتحديث كمية عنصر معين في السلة
+        function updateCartItemQuantity(cartId, newQuantity) {
+            let quantity = parseInt(newQuantity);
+            if (isNaN(quantity) || quantity < 1) quantity = 1; // التأكد من أن الكمية رقم صحيح وموجب
 
-        // Handles changing quantity for items in cart (now for mini-cart in package builder)
-        function changeCartItemQuantity(productId, duration, change) {
-            // Note: This function might be less critical if we rely heavily on adding new "bundles"
-            // instead of modifying quantity of existing cart entries directly from the mini-cart summary.
-            // For now, it's not being called from renderPackageCartSummary's buttons.
-            // If the user wants to adjust quantities or durations directly in the summary,
-            // we'll need to re-enable and adjust the mini-cart HTML to include these controls.
-            const itemIndex = cart.findIndex(item => 
-                item.id === productId && (item.isDurationBased ? item.duration === duration : true)
-            );
-
+            const itemIndex = cart.findIndex(item => item.cartId === cartId);
             if (itemIndex > -1) {
-                let newQuantity;
-                if (typeof change === 'number') { // If change is +1 or -1
-                    newQuantity = cart[itemIndex].quantity + change;
-                } else { // If change is a direct value from input
-                    newQuantity = parseInt(change);
-                }
-
-                if (isNaN(newQuantity) || newQuantity < 1) {
-                    newQuantity = 1; // Default to 1 if invalid
-                }
-                
-                cart[itemIndex].quantity = newQuantity;
-                updateCart();
+                cart[itemIndex].quantity = quantity;
+                updateCart(); // إعادة تحديث السلة بعد تغيير الكمية
+                console.log(`تم تحديث كمية المنتج ${cartId} إلى ${quantity}`);
             }
         }
 
-        // Handles changing duration for duration-based items in cart (now for mini-cart in package builder)
-        function updateItemDuration(productId, oldDuration, newDuration) {
-            // Similar note as changeCartItemQuantity
-            newDuration = parseInt(newDuration);
-            if (isNaN(newDuration) || newDuration < 1) {
-                const item = cart.find(i => i.id === productId && i.duration === oldDuration);
-                if (item) {
-                    // document.getElementById(`cart-duration-${productId}-${oldDuration}`).value = item.duration; // This ID won't exist in mini-cart
-                }
-                showCustomAlert("المدة يجب أن تكون رقمًا موجبًا.", "error");
-                return;
-            }
-
-            const itemIndex = cart.findIndex(item => item.id === productId && item.duration === oldDuration);
-            if (itemIndex > -1) {
-                const itemToUpdate = cart[itemIndex];
-                
-                const existingItemWithNewDurationIndex = cart.findIndex(item => item.id === productId && item.duration === newDuration);
-                
-                if (existingItemWithNewDurationIndex > -1 && existingItemWithNewDurationIndex !== itemIndex) {
-                    cart[existingItemWithNewDurationIndex].quantity += itemToUpdate.quantity;
-                    cart.splice(itemIndex, 1); // Remove the old item
-                } else {
-                    itemToUpdate.duration = newDuration;
-                }
-                updateCart();
-            }
-        }
-
-
-        // removeFromCart function adapted to handle duration for unique items
-        function removeFromCart(productId, duration = undefined) {
-            if (duration !== undefined) {
-                // If it's a duration-based item, filter by both ID and duration
-                cart = cart.filter(item => !(item.id === productId && item.duration == duration));
-            } else {
-                // For one-time items, filter by ID only
-                cart = cart.filter(item => item.id !== productId);
-            }
-            updateCart();
+        // دالة لإزالة عنصر من السلة
+        function removeProductFromCart(cartId) {
+            cart = cart.filter(item => item.cartId !== cartId);
+            updateCart(); // إعادة تحديث السلة بعد الإزالة
             showCustomAlert("تم حذف الخدمة من الباقة.", 'info');
+            console.log(`تم حذف المنتج ${cartId} من السلة.`);
         }
 
+        // دالة لإرسال طلب الباقة (تعبئة نموذج الاتصال بملخص الباقة)
         function sendPackageOrder() {
             if (cart.length === 0) {
                 showCustomAlert("باقة الخدمات فارغة! يرجى إضافة خدمات قبل إرسال الطلب.", 'error');
@@ -1654,56 +1676,61 @@
 
             let orderSummary = "أود طلب الباقة التالية:\n\n";
             cart.forEach(item => {
-                const itemCalculatedPrice = item.isDurationBased 
-                    ? item.basePrice * item.duration 
-                    : item.price;
-                const itemTotal = itemCalculatedPrice * item.quantity;
+                const itemTotal = item.price * item.quantity;
                 orderSummary += `- ${item.name} (الكمية: ${item.quantity}`;
-                if (item.isDurationBased) {
-                    orderSummary += `, المدة: ${item.duration} شهر`;
+                if (item.isDurationBased && item.durationName) {
+                    orderSummary += `, الخيار: ${item.durationName}`;
                 }
                 orderSummary += `) - السعر الإجمالي لهذه الخدمة: ${itemTotal.toLocaleString()} جنيه\n`;
             });
             
-            const subtotal = parseFloat(document.getElementById('package-subtotal').textContent.replace(/,/g, ''));
-            const tax = parseFloat(document.getElementById('package-tax').textContent.replace(/,/g, ''));
-            const grandTotal = parseFloat(document.getElementById('package-grand-total').textContent.replace(/,/g, ''));
+            const subtotal = parseFloat(sidebarSubtotal.textContent.replace(/,/g, ''));
+            const tax = parseFloat(sidebarTax.textContent.replace(/,/g, ''));
+            const grandTotal = parseFloat(sidebarGrandTotal.textContent.replace(/,/g, ''));
 
-            orderSummary += `\nالإجمالي الفرعي: ${subtotal.toLocaleString()} جنيه`;
+            orderSummary += `\nالإجمالي الفرعي للباقة: ${subtotal.toLocaleString()} جنيه`;
             orderSummary += `\nالضريبة (10%): ${tax.toLocaleString()} جنيه`;
             orderSummary += `\nالمبلغ الكلي المستحق: ${grandTotal.toLocaleString()} جنيه`;
             orderSummary += `\n\nيرجى التواصل معي لاستكمال عملية الطلب وتأكيد التفاصيل.`;
 
-            // Pre-fill the contact form modal with the order summary
+            // إغلاق الشريط الجانبي للسلة ثم فتح نافذة نموذج الاتصال مع ملخص الطلب
+            toggleSidebarCart(); 
             showContactFormModal(`طلب باقة خدمات مخصصة`, orderSummary);
+            console.log("تم إعداد ملخص الطلب وفتح نموذج الاتصال.");
         }
 
-        // Modified navigate function to scroll to sections and optionally open modal
-        function navigate(pageId, modalId = null, modalTitle = null) { 
-            const targetElement = document.getElementById(pageId); // Use pageId directly as ID
-            if (targetElement) {
-                targetElement.scrollIntoView({ behavior: 'smooth' });
+        // دالة التنقل بين أقسام الصفحة (SPA Logic)
+        function navigate(pageId, modalTitle = null, modalMessage = '') { 
+            // إخفاء جميع أقسام الصفحة أولاً
+            pages.forEach(id => {
+                const pageElement = document.getElementById(id);
+                if (pageElement) {
+                    pageElement.classList.remove('active');
+                    pageElement.style.display = 'none'; 
+                }
+            });
 
-                // Specific render functions for each section, called when scrolled to
+            // إظهار القسم المطلوب
+            const activePage = document.getElementById(pageId);
+            if (activePage) {
+                activePage.classList.add('active');
+                activePage.style.display = 'block'; 
+
+                // استدعاء الدوال الخاصة بالقسم عند التنقل إليه
                 if (pageId === 'package-builder-page') {
                     renderProducts('all'); 
-                    updateCart(); // This will call renderPackageCartSummary
                 } else if (pageId === 'portfolio-page') {
                     renderCaseStudies();
-                } else if (pageId === 'about-us-section') {
-                    // No specific render needed for About Us, but ensure it's visible
+                } else if (pageId === 'contact-page' && modalTitle && modalMessage) {
+                    showContactFormModal(modalTitle, modalMessage);
+                } else if (pageId === 'about-us-section' || pageId === 'services-page' || pageId === 'ai-content-editing-page') {
+                    // لا توجد دالات عرض محددة لهذه الأقسام بخلاف وجودها في الـ HTML
                 }
-                // No more separate cart/checkout pages to render
+            } else {
+                console.error(`الصفحة المطلوبة بالـ ID "${pageId}" غير موجودة.`);
             }
 
-            if (modalId && modalTitle) {
-                // For modals opened via navigation (like from a case study)
-                if (modalId === 'contact-form-modal') {
-                    showContactFormModal(modalTitle);
-                }
-            }
-
-            // Close mobile menu if open
+            // إغلاق قائمة الموبايل إذا كانت مفتوحة
             const navbarLinks = document.getElementById('navbar-links');
             const menuIconOpen = document.getElementById('menu-icon-open');
             const menuIconClose = document.getElementById('menu-icon-close');
@@ -1716,9 +1743,11 @@
                     menuIconClose.style.display = 'none';
                 }
             }
+            // التمرير لأعلى الصفحة دائماً عند التنقل بين الأقسام
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Handle Mobile Menu Toggle
+        // معالجة زر قائمة الموبايل
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
             const navbarLinks = document.getElementById('navbar-links');
             const menuIconOpen = document.getElementById('menu-icon-open');
@@ -1741,7 +1770,7 @@
             }
         });
 
-        // Custom Alert/Message Box (instead of alert())
+        // دالة لإظهار رسائل تنبيه مخصصة (بدلاً من alert())
         function showCustomAlert(message, type = 'info') {
             const alertBox = document.createElement('div');
             alertBox.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg text-white z-50 animate-fade-in-up`;
@@ -1760,12 +1789,13 @@
             
             setTimeout(() => {
                 alertBox.classList.remove('animate-fade-in-up');
-                alertBox.classList.add('opacity-0', 'transition-opacity', 'duration-500'); // Fade out
-                alertBox.addEventListener('transitionend', () => alertBox.remove());
-            }, 3000); // Remove after 3 seconds
+                alertBox.classList.add('animate-fade-out-down'); // لإضافة تأثير الاختفاء
+                // إزالة العنصر بعد انتهاء الأنييميشن لضمان سلاسة الانتقال
+                alertBox.addEventListener('animationend', () => alertBox.remove());
+            }, 3000); // إظهار التنبيه لمدة 3 ثواني
         }
 
-        // Contact Form Modal Logic (Updated to accept dynamic title and message)
+        // منطق نافذة نموذج الاتصال المنبثقة
         const contactFormModal = document.getElementById('contact-form-modal');
         const modalContactForm = document.getElementById('modal-contact-form');
         const modalSubmitMessage = document.getElementById('modal-submit-message');
@@ -1774,12 +1804,11 @@
 
         function showContactFormModal(title = 'اطلب استشارة مجانية', messageContent = '') {
             modalTitleDynamic.textContent = title;
-            document.getElementById('modal-message').value = messageContent;
-
+            document.getElementById('modal-message').value = messageContent; // تعبئة الرسالة مسبقاً
             contactFormModal.style.display = 'flex';
-            // Reset form (except for pre-filled message) and message
+            // إعادة تعيين النموذج (باستثناء الرسالة التي تم تعبئتها) وإعادة تعيين رسالة الإرسال
             modalContactForm.reset();
-            document.getElementById('modal-message').value = messageContent; // Re-set pre-filled message
+            document.getElementById('modal-message').value = messageContent; 
             modalSubmitMessage.textContent = '';
             modalSubmitMessage.className = 'text-center mt-4';
             modalSubmitButton.disabled = false;
@@ -1798,10 +1827,10 @@
                 modalSubmitMessage.textContent = 'جاري الإرسال...';
                 modalSubmitMessage.className = 'text-center mt-4 text-gray-600';
 
-                // Simulate API call
+                // محاكاة استدعاء API لإرسال البيانات (في التطبيق الحقيقي، سترسل البيانات إلى خادم)
                 await new Promise(resolve => setTimeout(resolve, 2000));
 
-                console.log('Form data submitted:', {
+                console.log('بيانات النموذج المرسلة:', {
                     name: document.getElementById('modal-name').value,
                     email: document.getElementById('modal-email').value,
                     phone: document.getElementById('modal-phone').value,
@@ -1812,8 +1841,8 @@
                 modalSubmitMessage.classList.add('text-green-600');
                 modalSubmitButton.disabled = false;
                 modalSubmitButton.textContent = 'إرسال الطلب';
-                modalContactForm.reset(); // Clear form after submission
-                document.getElementById('modal-message').value = ''; // Ensure message cleared too
+                modalContactForm.reset(); // مسح النموذج بعد الإرسال
+                document.getElementById('modal-message').value = ''; // التأكد من مسح الرسالة أيضاً
 
                 setTimeout(() => {
                     hideContactFormModal();
@@ -1821,7 +1850,7 @@
             });
         }
 
-        // Main Contact Us Page Form Logic (Kept separate from modal for direct use on contact page)
+        // منطق نموذج الاتصال الرئيسي في صفحة "اتصل بنا"
         const mainContactForm = document.getElementById('contact-form');
         const mainSubmitMessage = document.getElementById('contact-submit-message');
         const mainSubmitButton = document.getElementById('contact-submit-button');
@@ -1834,10 +1863,10 @@
                 mainSubmitMessage.textContent = 'جاري الإرسال...';
                 mainSubmitMessage.className = 'text-center mt-4 text-gray-600';
 
-                // Simulate API call
+                // محاكاة استدعاء API
                 await new Promise(resolve => setTimeout(resolve, 2000));
 
-                console.log('Form data submitted:', {
+                console.log('بيانات النموذج المرسلة (من النموذج الرئيسي):', {
                     name: document.getElementById('contact-name').value,
                     email: document.getElementById('contact-email').value,
                     phone: document.getElementById('contact-phone').value,
@@ -1852,14 +1881,14 @@
             });
         }
 
-        // Portfolio Page Logic
+        // منطق صفحة دراسات الحالة / معرض الأعمال
         const portfolioGrid = document.getElementById('case-studies-grid');
         const caseStudyModal = document.getElementById('case-study-modal');
-        let currentCaseStudy = null; // To store the currently displayed case study data
+        let currentCaseStudy = null; // لتخزين بيانات دراسة الحالة المعروضة حالياً
 
         function renderCaseStudies() {
             if (portfolioGrid) {
-                portfolioGrid.innerHTML = ''; // Clear existing content
+                portfolioGrid.innerHTML = ''; // مسح المحتوى الحالي
                 caseStudiesData.forEach(cs => {
                     const cardHtml = `
                         <div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl cursor-pointer"
@@ -1874,13 +1903,15 @@
                     `;
                     portfolioGrid.insertAdjacentHTML('beforeend', cardHtml);
                 });
+            } else {
+                console.error("عنصر شبكة دراسات الحالة (#case-studies-grid) غير موجود.");
             }
         }
 
         function showCaseStudyModal(id) {
             const cs = caseStudiesData.find(item => item.id === id);
             if (cs) {
-                currentCaseStudy = cs; // Set the global current case study
+                currentCaseStudy = cs; // تعيين دراسة الحالة الحالية
                 document.getElementById('modal-case-study-client').textContent = cs.client;
                 document.getElementById('modal-case-study-industry').textContent = cs.industry;
                 document.getElementById('modal-case-study-image').src = cs.image;
@@ -1888,7 +1919,7 @@
                 document.getElementById('modal-case-study-solution').textContent = cs.solution;
                 document.getElementById('modal-case-study-results').textContent = cs.results;
                 
-                // Reset AI summary section
+                // إعادة تعيين قسم ملخص الذكاء الاصطناعي
                 document.getElementById('ai-summary-output').classList.add('hidden');
                 document.getElementById('ai-summary-text').textContent = '';
                 document.getElementById('ai-summary-loading').classList.add('hidden');
@@ -1896,15 +1927,17 @@
                 document.getElementById('generate-summary-button').textContent = 'توليد ملخص النقاط الرئيسية ✨';
 
                 caseStudyModal.style.display = 'flex';
+            } else {
+                console.error(`دراسة الحالة بالـ ID ${id} غير موجودة.`);
             }
         }
 
         function hideCaseStudyModal() {
             caseStudyModal.style.display = 'none';
-            currentCaseStudy = null; // Clear the current case study
+            currentCaseStudy = null; // مسح دراسة الحالة الحالية
         }
 
-        // Gemini API Logic for Case Study Summary
+        // منطق Gemini API لملخص دراسة الحالة
         async function generateCaseStudySummary() {
             if (!currentCaseStudy) return;
 
@@ -1952,7 +1985,7 @@
                     summaryText.textContent = "عذراً، لم أتمكن من توليد الملخص. يرجى المحاولة مرة أخرى.";
                 }
             } catch (error) {
-                console.error("Error calling Gemini API:", error);
+                console.error("خطأ في استدعاء Gemini API:", error);
                 summaryText.textContent = "حدث خطأ أثناء التواصل مع الذكاء الاصطناعي. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.";
             } finally {
                 summaryLoading.classList.add('hidden');
@@ -1961,7 +1994,7 @@
             }
         }
 
-        // Gemini API Logic for Content Idea Generator
+        // منطق Gemini API لمولد أفكار المحتوى
         async function generateContentIdeas() {
             const contentTopicInput = document.getElementById('content-topic');
             const ideasOutput = document.getElementById('ai-content-ideas-output');
@@ -1973,14 +2006,13 @@
             if (!topic) {
                 ideasOutput.classList.remove('hidden');
                 ideasText.textContent = "الرجاء إدخال موضوع لتوليد الأفكار.";
-                ideasOutput.classList.remove('bg-gray-50'); // Remove gray background for error
-                ideasOutput.classList.add('bg-red-100', 'text-red-800'); // Add red background for error
+                ideasOutput.classList.remove('bg-gray-50'); 
+                ideasOutput.classList.add('bg-red-100', 'text-red-800'); 
                 return;
             } else {
                 ideasOutput.classList.remove('bg-red-100', 'text-red-800');
                 ideasOutput.classList.add('bg-gray-50');
             }
-
 
             ideasOutput.classList.remove('hidden');
             ideasText.textContent = '';
@@ -2015,7 +2047,7 @@
                     ideasText.textContent = "عذراً، لم أتمكن من توليد الأفكار. يرجى المحاولة مرة أخرى.";
                 }
             } catch (error) {
-                console.error("Error calling Gemini API:", error);
+                console.error("خطأ في استدعاء Gemini API:", error);
                 ideasText.textContent = "حدث خطأ أثناء التواصل مع الذكاء الاصطناعي. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.";
             } finally {
                 ideasLoading.classList.add('hidden');
@@ -2024,7 +2056,7 @@
             }
         }
 
-        // Accordion functionality for Services page
+        // دالة لتوسيع/طوي أقسام Accordion في صفحة الخدمات
         function toggleAccordion(header) {
             const content = header.nextElementSibling;
             const icon = header.querySelector('.icon');
@@ -2033,7 +2065,7 @@
                 content.classList.remove('active');
                 icon.classList.remove('rotate');
             } else {
-                // Close all other open accordions
+                // إغلاق جميع الأقسام المفتوحة الأخرى لضمان قسم واحد مفتوح في كل مرة
                 document.querySelectorAll('.accordion-content.active').forEach(item => {
                     item.classList.remove('active');
                     item.previousElementSibling.querySelector('.icon').classList.remove('rotate');
@@ -2043,15 +2075,13 @@
             }
         }
 
-
-        // Set current year in footer
+        // تعيين السنة الحالية في الفوتر
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
-        // Initial render on load
+        // التهيئة الأولية عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
-            renderCaseStudies(); // Render portfolio items
-            renderProducts('all'); // Render products for the store section
-            updateCart(); // Update cart display in the package builder section
+            navigate('home-page'); // التنقل إلى الصفحة الرئيسية افتراضياً عند التحميل
+            updateCart(); // تحديث السلة عند التحميل لضمان عرض أي عناصر محفوظة في localStorage
         });
     </script>
 </body>
