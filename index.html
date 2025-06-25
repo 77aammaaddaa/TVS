@@ -3,724 +3,650 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تكنو فيجن سوليوشنز - Techno Vision Solutions</title>
-    <meta name="description" content="شريكك في التحول الرقمي - خدمات التسويق الرقمي، تطوير المواقع، إدارة وسائل التواصل الاجتماعي والذكاء الاصطناعي">
-    <meta name="keywords" content="تسويق رقمي, تطوير مواقع, سوشيال ميديا, ذكاء اصطناعي, تكنو فيجن">
+    <title>Techno Vision Solutions - تكنو فيجن سوليوشنز | شريكك في التحول الرقمي</title>
+    <meta name="description" content="تكنو فيجن سوليوشنز - شركة رائدة في التسويق الرقمي وتطوير المواقع وحلول الذكاء الاصطناعي. نقدم خدمات متكاملة لنمو أعمالك الرقمية في مصر والشرق الأوسط.">
+    <meta name="keywords" content="تسويق رقمي, تطوير مواقع, سوشيال ميديا, ذكاء اصطناعي, تكنو فيجن, SEO, تصميم مواقع, استشارات تقنية">
+    <meta name="author" content="Techno Vision Solutions">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Arabic">
+    <meta name="revisit-after" content="7 days">
     
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="تكنو فيجن سوليوشنز - Techno Vision Solutions">
+    <meta property="og:title" content="Techno Vision Solutions - تكنو فيجن سوليوشنز">
     <meta property="og:description" content="شريكك في التحول الرقمي - خدمات التسويق الرقمي والذكاء الاصطناعي">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://technovision.solutions">
+    <meta property="og:image" content="https://technovision.solutions/og-image.jpg">
+    <meta property="og:site_name" content="Techno Vision Solutions">
+    <meta property="og:locale" content="ar_EG">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Techno Vision Solutions - تكنو فيجن سوليوشنز">
+    <meta name="twitter:description" content="شريكك في التحول الرقمي - خدمات التسويق الرقمي والذكاء الاصطناعي">
+    <meta name="twitter:image" content="https://technovision.solutions/twitter-image.jpg">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://technovision.solutions">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚀%3C/text%3E%3C/svg%3E">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232a2a32'/%3E%3Ctext x='50' y='35' text-anchor='middle' fill='%23fcbf01' font-size='24' font-weight='bold'%3ETVS%3C/text%3E%3C/svg%3E">
     
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://generativelanguage.googleapis.com">
+    
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    
+    <!-- Fonts with display=swap for better performance -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Critical CSS inline for better performance -->
     <style>
-        /* CSS Reset and Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         :root {
             --primary-color: #fcbf01;
             --secondary-color: #2a2a32;
             --white: #ffffff;
             --light-gray: #f8f9fa;
             --dark-gray: #6c757d;
-            --success: #28a745;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
-            --border-radius: 8px;
-            --transition: all 0.3s ease;
         }
-        
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: var(--secondary-color);
-            background-color: var(--white);
+            font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            scroll-behavior: smooth;
             overflow-x: hidden;
-        }
-        
-        /* Arabic Font Support */
-        .arabic-text {
-            font-family: 'Amiri', 'Times New Roman', serif;
-            font-weight: 700;
-        }
-        
-        /* Header Styles */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(252, 191, 1, 0.2);
-            z-index: 1000;
-            transition: var(--transition);
-        }
-        
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-            color: var(--secondary-color);
-        }
-        
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-        }
-        
-        .logo-text {
-            font-size: 1.5rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-            align-items: center;
-        }
-        
-        .nav-link {
-            text-decoration: none;
-            color: var(--secondary-color);
-            font-weight: 500;
-            transition: var(--transition);
-            position: relative;
-        }
-        
-        .nav-link:hover {
-            color: var(--primary-color);
-        }
-        
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--primary-color);
-            transition: var(--transition);
-        }
-        
-        .nav-link:hover::after {
-            width: 100%;
-        }
-        
-        .cta-button {
-            background: linear-gradient(45deg, var(--primary-color), #ffd700);
-            color: var(--secondary-color);
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: var(--border-radius);
-            font-weight: bold;
-            text-decoration: none;
-            transition: var(--transition);
-            box-shadow: var(--shadow);
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        /* Mobile Menu */
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--secondary-color);
-            cursor: pointer;
-        }
-        
-        /* Hero Section */
-        .hero {
-            min-height: 100vh;
-            background: linear-gradient(135deg, var(--light-gray) 0%, rgba(252, 191, 1, 0.1) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23fcbf01" stroke-width="0.5" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-            opacity: 0.3;
-        }
-        
-        .hero-content {
-            max-width: 800px;
-            z-index: 2;
-            position: relative;
-        }
-        
-        .hero-title {
-            font-size: 3.5rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: fadeInUp 1s ease-out;
-        }
-        
-        .hero-subtitle {
-            font-size: 1.25rem;
-            color: var(--dark-gray);
-            margin-bottom: 2rem;
-            animation: fadeInUp 1s ease-out 0.2s both;
-        }
-        
-        .hero-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            animation: fadeInUp 1s ease-out 0.4s both;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(45deg, var(--primary-color), #ffd700);
-            color: var(--secondary-color);
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: var(--border-radius);
-            font-weight: bold;
-            text-decoration: none;
-            transition: var(--transition);
-            box-shadow: var(--shadow);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-secondary {
-            background: transparent;
-            color: var(--secondary-color);
-            padding: 1rem 2rem;
-            border: 2px solid var(--primary-color);
-            border-radius: var(--border-radius);
-            font-weight: bold;
-            text-decoration: none;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-primary:hover, .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .btn-secondary:hover {
-            background: var(--primary-color);
-            color: var(--secondary-color);
-        }
-        
-        /* Stats Section */
-        .stats {
-            background: var(--white);
-            padding: 4rem 2rem;
-            box-shadow: var(--shadow);
-        }
-        
-        .stats-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            text-align: center;
-        }
-        
-        .stat-item {
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            background: linear-gradient(135deg, var(--light-gray), rgba(252, 191, 1, 0.05));
-            transition: var(--transition);
-        }
-        
-        .stat-item:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .stat-number {
-            font-size: 3rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-label {
-            font-size: 1.1rem;
-            color: var(--dark-gray);
-        }
-        
-        /* Services Section */
-        .services {
-            padding: 6rem 2rem;
-            background: var(--light-gray);
-        }
-        
-        .section-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            color: var(--secondary-color);
-        }
-        
-        .section-subtitle {
-            text-align: center;
-            font-size: 1.2rem;
-            color: var(--dark-gray);
-            margin-bottom: 4rem;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-        
-        .service-card {
-            background: var(--white);
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .service-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(45deg, var(--primary-color), #ffd700);
-        }
-        
-        .service-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .service-icon {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 1rem;
-            background: linear-gradient(45deg, var(--primary-color), #ffd700);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-        
-        .service-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            color: var(--secondary-color);
-        }
-        
-        .service-description {
-            color: var(--dark-gray);
             line-height: 1.6;
+            color: #333;
         }
-        
-        .service-price {
-            margin-top: 1rem;
-            padding: 0.5rem 1rem;
-            background: rgba(252, 191, 1, 0.1);
-            border-radius: var(--border-radius);
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-        
-        /* Team Section */
-        .team {
-            padding: 6rem 2rem;
-            background: var(--white);
-        }
-        
-        .team-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-        }
-        
-        .team-card {
-            background: var(--light-gray);
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            text-align: center;
-            transition: var(--transition);
+
+        /* Critical above-the-fold styles */
+        .hero-bg {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #1a1a1a 100%);
             position: relative;
             overflow: hidden;
-        }
-        
-        .team-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(252, 191, 1, 0.1), transparent);
-            opacity: 0;
-            transition: var(--transition);
-        }
-        
-        .team-card:hover::before {
-            opacity: 1;
-        }
-        
-        .team-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .team-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            margin: 0 auto 1rem;
-            background: linear-gradient(45deg, var(--primary-color), #ffd700);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            color: var(--secondary-color);
-            font-weight: bold;
-            filter: blur(2px);
-            transition: var(--transition);
         }
-        
-        .team-card:hover .team-avatar {
-            filter: blur(1px);
+
+        .nav-scrolled {
+            background-color: rgba(42, 42, 50, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
-        
-        .team-name {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            color: var(--secondary-color);
-            filter: blur(1px);
+
+        /* Performance optimizations */
+        .will-change-transform {
+            will-change: transform;
         }
-        
-        .team-position {
-            color: var(--dark-gray);
-            filter: blur(1px);
+
+        .gpu-accelerated {
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            perspective: 1000px;
         }
+    </style>
+    
+    <!-- Load Tailwind CSS asynchronously -->
+    <link rel="preload" href="https://cdn.tailwindcss.com" as="script">
+    <script src="https://cdn.tailwindcss.com" defer></script>
+    
+    <!-- Load Font Awesome asynchronously -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
+    
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Techno Vision Solutions",
+        "alternateName": "تكنو فيجن سوليوشنز",
+        "url": "https://technovision.solutions",
+        "logo": "https://technovision.solutions/logo.png",
+        "description": "شركة رائدة في التسويق الرقمي وتطوير المواقع وحلول الذكاء الاصطناعي",
+        "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "EG",
+            "addressLocality": "Cairo"
+        },
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+20-100-123-4567",
+            "contactType": "customer service",
+            "email": "info@technovision.solutions"
+        },
+        "sameAs": [
+            "https://facebook.com/technovision",
+            "https://twitter.com/technovision",
+            "https://linkedin.com/company/technovision",
+            "https://instagram.com/technovision"
+        ],
+        "foundingDate": "2022",
+        "numberOfEmployees": "6",
+        "slogan": "شريكك في التحول الرقمي"
+    }
+    </script>
+</head>
+<body class="bg-white">
+
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-primary-color text-secondary-color p-2 z-50">
+        تخطي إلى المحتوى الرئيسي
+    </a>
+
+    <!-- Header -->
+    <header id="header" class="bg-secondary-color text-white p-4 fixed w-full z-50 transition-all duration-300" role="banner">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3 rtl:space-x-reverse">
+                <!-- Optimized SVG Logo -->
+                <svg class="w-12 h-12" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Techno Vision Solutions Logo">
+                    <rect width="100" height="100" rx="20" fill="#2a2a32"/>
+                    <text x="50" y="35" text-anchor="middle" fill="#fcbf01" font-size="24" font-weight="bold">TVS</text>
+                    <rect x="20" y="50" width="15" height="30" fill="#fcbf01"/>
+                    <rect x="42.5" y="45" width="15" height="35" fill="#fcbf01"/>
+                    <rect x="65" y="40" width="15" height="40" fill="#fcbf01"/>
+                    <path d="M85 35 L95 25 L90 30 L95 35 L85 45 Z" fill="#fcbf01"/>
+                </svg>
+                <div class="flex flex-col">
+                    <h1 class="text-2xl font-bold text-primary-color">Techno Vision Solutions</h1>
+                    <span class="text-sm opacity-80 hidden md:block">تكنو فيجن سوليوشنز</span>
+                </div>
+            </div>
+            
+            <nav class="hidden md:flex space-x-6 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
+                <a href="#home" class="hover:text-primary-color transition-colors duration-300" aria-label="الصفحة الرئيسية">الرئيسية</a>
+                <a href="#services" class="hover:text-primary-color transition-colors duration-300" aria-label="خدماتنا">الخدمات</a>
+                <a href="#stats" class="hover:text-primary-color transition-colors duration-300" aria-label="الإحصائيات">الإحصائيات</a>
+                <a href="#team" class="hover:text-primary-color transition-colors duration-300" aria-label="فريق العمل">الفريق</a>
+                <a href="#clients" class="hover:text-primary-color transition-colors duration-300" aria-label="عملاؤنا">العملاء</a>
+                <a href="#contact" class="hover:text-primary-color transition-colors duration-300" aria-label="تواصل معنا">اتصل بنا</a>
+            </nav>
+            
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-white hover:bg-gray-700 focus:outline-none focus:bg-gray-700 focus:ring-2 focus:ring-primary-color" aria-label="فتح القائمة الرئيسية" aria-expanded="false">
+                <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                    <path id="menu-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    <path id="menu-close" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
         
-        /* Clients Section */
-        .clients {
-            padding: 6rem 2rem;
-            background: var(--light-gray);
-        }
-        
-        .clients-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-        
-        .client-card {
-            background: var(--white);
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            text-align: center;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-        }
-        
-        .client-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .client-logo {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1rem;
-            background: linear-gradient(45deg, var(--primary-color), #ffd700);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: var(--secondary-color);
-            font-weight: bold;
-        }
-        
-        .client-name {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--secondary-color);
-        }
-        
-        /* Contact Section */
-        .contact {
-            padding: 6rem 2rem;
-            background: var(--white);
-        }
-        
-        .contact-container {
-            max-width: 800px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-        }
-        
-        .contact-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .form-label {
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--secondary-color);
-        }
-        
-        .form-input, .form-textarea {
-            padding: 0.75rem;
-            border: 2px solid rgba(252, 191, 1, 0.3);
-            border-radius: var(--border-radius);
-            font-size: 1rem;
-            transition: var(--transition);
-        }
-        
-        .form-input:focus, .form-textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(252, 191, 1, 0.1);
-        }
-        
-        .form-textarea {
-            resize: vertical;
-            min-height: 120px;
-        }
-        
-        .contact-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-        
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .contact-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(45deg, var(--primary-color), #ffd700);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--secondary-color);
-        }
-        
-        /* AI Chat Widget */
-        .ai-chat-widget {
-            position: fixed;
-            bottom: 2rem;
-            left: 2rem;
-            z-index: 1000;
-        }
-        
-        .ai-chat-toggle {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(45deg, var(--primary-color), #ffd700);
-            border: none;
-            border-radius: 50%;
-            color: var(--secondary-color);
-            font-size: 1.5rem;
-            cursor: pointer;
-            box-shadow: var(--shadow-lg);
-            transition: var(--transition);
-        }
-        
-        .ai-chat-toggle:hover {
-            transform: scale(1.1);
-        }
-        
-        .ai-chat-panel {
-            position: absolute;
-            bottom: 80px;
-            left: 0;
-            width: 350px;
-            height: 400px;
-            background: var(--white);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-lg);
-            display: none;
-            flex-direction: column;
-        }
-        
-        .ai-chat-header {
-            padding: 1rem;
-            background: linear-gradient(45deg, var(--primary-color), #ffd700);
-            color: var(--secondary-color);
-            border-radius: var(--border-radius) var(--border-radius) 0 0;
-            font-weight: bold;
-        }
-        
-        .ai-chat-messages {
-            flex: 1;
-            padding: 1rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .ai-chat-input-container {
-            padding: 1rem;
-            border-top: 1px solid rgba(252, 191, 1, 0.3);
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .ai-chat-input {
-            flex: 1;
-            padding: 0.5rem;
-            border: 1px solid rgba(252, 191, 1, 0.3);
-            border-radius: var(--border-radius);
-        }
-        
-        .ai-chat-send {
-            background: var(--primary-color);
-            color: var(--secondary-color);
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-        }
-        
-        .message {
-            padding: 0.75rem;
-            border-radius: var(--border-radius);
-            max-width: 80%;
-        }
-        
-        .message.user {
-            background: var(--primary-color);
-            color: var(--secondary-color);
-            align-self: flex-end;
-        }
-        
-        .message.ai {
-            background: var(--light-gray);
-            color: var(--secondary-color);
-            align-self: flex-start;
-        }
-        
-        /* Footer */
-        .footer {
-            background: var(--secondary-color);
-            color: var(--white);
-            padding: 4rem 2rem 2rem;
-        }
-        
-        .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-        
-        .footer-section h3 {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-        
-        .footer-links {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .footer-links a {
-            color: var(--white);
-            text-decoration: none;
-            transition: var(--transition);
-        }
-        
-        .footer-links a:hover {
-            color: var(--primary-color);
-        }
-        
-        .footer-bottom {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(252, 191, 1, 0.3);
-            text-align: center;
-            color: var(--dark-gray);
-        }
-        
+        <nav id="mobile-menu" class="md:hidden hidden bg-secondary-color" role="navigation" aria-label="Mobile navigation">
+            <a href="#home" class="block py-2 px-4 text-sm hover:bg-gray-700 transition-colors duration-300" aria-label="الصفحة الرئيسية">الرئيسية</a>
+            <a href="#services" class="block py-2 px-4 text-sm hover:bg-gray-700 transition-colors duration-300" aria-label="خدماتنا">الخدمات</a>
+            <a href="#stats" class="block py-2 px-4 text-sm hover:bg-gray-700 transition-colors duration-300" aria-label="الإحصائيات">الإحصائيات</a>
+            <a href="#team" class="block py-2 px-4 text-sm hover:bg-gray-700 transition-colors duration-300" aria-label="فريق العمل">الفريق</a>
+            <a href="#clients" class="block py-2 px-4 text-sm hover:bg-gray-700 transition-colors duration-300" aria-label="عملاؤنا">العملاء</a>
+            <a href="#contact" class="block py-2 px-4 text-sm hover:bg-gray-700 transition-colors duration-300" aria-label="تواصل معنا">اتصل بنا</a>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" role="main">
+        <!-- Hero Section -->
+        <section id="home" class="hero-bg text-white min-h-screen flex items-center justify-center text-center relative" role="banner">
+            <div class="container mx-auto px-4 relative z-10">
+                <div class="animate-fadeInDown">
+                    <h2 class="hero-title text-6xl font-bold mb-6 leading-tight">
+                        تكنو فيجن سوليوشنز
+                    </h2>
+                    <p class="text-2xl mb-8 opacity-90">
+                        شريكك للنجاح في عالم الرقمنة والتكنولوجيا
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                        <a href="#contact" class="bg-primary-color text-secondary-color font-bold py-4 px-8 rounded-full hover:bg-yellow-400 transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-4 focus:ring-primary-color focus:ring-opacity-50" aria-label="اطلب استشارة مجانية">
+                            اطلب استشارة مجانية
+                        </a>
+                        <a href="#services" class="border-2 border-primary-color text-primary-color font-bold py-4 px-8 rounded-full hover:bg-primary-color hover:text-secondary-color transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-color focus:ring-opacity-50" aria-label="استكشف خدماتنا">
+                            استكشف خدماتنا
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Floating elements for visual appeal -->
+            <div class="absolute top-20 left-10 animate-float" aria-hidden="true">
+                <div class="w-20 h-20 bg-primary-color opacity-20 rounded-full"></div>
+            </div>
+            <div class="absolute bottom-20 right-10 animate-float" style="animation-delay: 1s;" aria-hidden="true">
+                <div class="w-16 h-16 bg-primary-color opacity-30 rounded-full"></div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section id="stats" class="py-20 bg-white fade-in-section" role="region" aria-labelledby="stats-heading">
+            <div class="container mx-auto px-4">
+                <h2 id="stats-heading" class="sr-only">إحصائيات الشركة</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+                    <div class="animate-fadeInUp">
+                        <div class="stat-number text-5xl font-bold text-primary-color mb-2" data-target="50" aria-label="50 مشروع مكتمل">0</div>
+                        <p class="text-lg text-gray-600">مشروع مكتمل</p>
+                    </div>
+                    <div class="animate-fadeInUp" style="animation-delay: 0.2s;">
+                        <div class="stat-number text-5xl font-bold text-primary-color mb-2" data-target="25" aria-label="25 عميل سعيد">0</div>
+                        <p class="text-lg text-gray-600">عميل سعيد</p>
+                    </div>
+                    <div class="animate-fadeInUp" style="animation-delay: 0.4s;">
+                        <div class="stat-number text-5xl font-bold text-primary-color mb-2" data-target="3" aria-label="3 سنوات خبرة">0</div>
+                        <p class="text-lg text-gray-600">سنوات خبرة</p>
+                    </div>
+                    <div class="animate-fadeInUp" style="animation-delay: 0.6s;">
+                        <div class="stat-number text-5xl font-bold text-primary-color mb-2" data-target="6" aria-label="6 خدمات متخصصة">0</div>
+                        <p class="text-lg text-gray-600">خدمات متخصصة</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section id="services" class="py-20 bg-light-gray fade-in-section" role="region" aria-labelledby="services-heading">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 id="services-heading" class="section-title text-5xl font-bold mb-6 text-secondary-color">خدماتنا</h2>
+                    <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                        نقدم مجموعة شاملة من الخدمات الرقمية المتطورة لمساعدة عملك على النمو والازدهار
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Service 1 -->
+                    <article class="service-card p-8 rounded-xl shadow-lg card-hover will-change-transform">
+                        <div class="text-primary-color text-5xl mb-6" aria-hidden="true">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 blurred-content">التسويق الرقمي المتكامل</h3>
+                        <p class="text-gray-600 mb-6 blurred-content">
+                            استراتيجيات تسويق مبتكرة ومدروسة لزيادة الوعي بعلامتك التجارية وتحقيق أهدافك التسويقية
+                        </p>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-primary-color">السعر: 0 جنيه</p>
+                            <p class="text-sm text-gray-500">الضريبة: 15%</p>
+                        </div>
+                    </article>
+
+                    <!-- Service 2 -->
+                    <article class="service-card p-8 rounded-xl shadow-lg card-hover will-change-transform">
+                        <div class="text-primary-color text-5xl mb-6" aria-hidden="true">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 blurred-content">تطوير المواقع والتطبيقات</h3>
+                        <p class="text-gray-600 mb-6 blurred-content">
+                            تصميم وتطوير مواقع ويب وتطبيقات جوال متطورة وسريعة الاستجابة
+                        </p>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-primary-color">السعر: 0 جنيه</p>
+                            <p class="text-sm text-gray-500">الضريبة: 15%</p>
+                        </div>
+                    </article>
+
+                    <!-- Service 3 -->
+                    <article class="service-card p-8 rounded-xl shadow-lg card-hover will-change-transform">
+                        <div class="text-primary-color text-5xl mb-6" aria-hidden="true">
+                            <i class="fas fa-share-alt"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 blurred-content">إدارة وسائل التواصل الاجتماعي</h3>
+                        <p class="text-gray-600 mb-6 blurred-content">
+                            إدارة احترافية لحساباتك على منصات التواصل الاجتماعي مع محتوى إبداعي وجذاب
+                        </p>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-primary-color">السعر: 0 جنيه</p>
+                            <p class="text-sm text-gray-500">الضريبة: 15%</p>
+                        </div>
+                    </article>
+
+                    <!-- Service 4 -->
+                    <article class="service-card p-8 rounded-xl shadow-lg card-hover will-change-transform">
+                        <div class="text-primary-color text-5xl mb-6" aria-hidden="true">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 blurred-content">تحسين محركات البحث (SEO)</h3>
+                        <p class="text-gray-600 mb-6 blurred-content">
+                            تحسين موقعك ليظهر في المراكز الأولى في نتائج البحث وزيادة الزيارات الطبيعية
+                        </p>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-primary-color">السعر: 0 جنيه</p>
+                            <p class="text-sm text-gray-500">الضريبة: 15%</p>
+                        </div>
+                    </article>
+
+                    <!-- Service 5 -->
+                    <article class="service-card p-8 rounded-xl shadow-lg card-hover will-change-transform">
+                        <div class="text-primary-color text-5xl mb-6" aria-hidden="true">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 blurred-content">حلول الذكاء الاصطناعي</h3>
+                        <p class="text-gray-600 mb-6 blurred-content">
+                            تطبيق أحدث تقنيات الذكاء الاصطناعي لتحسين عمليات الأعمال وزيادة الكفاءة
+                        </p>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-primary-color">السعر: 0 جنيه</p>
+                            <p class="text-sm text-gray-500">الضريبة: 15%</p>
+                        </div>
+                    </article>
+
+                    <!-- Service 6 -->
+                    <article class="service-card p-8 rounded-xl shadow-lg card-hover will-change-transform">
+                        <div class="text-primary-color text-5xl mb-6" aria-hidden="true">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 blurred-content">الاستشارات التقنية</h3>
+                        <p class="text-gray-600 mb-6 blurred-content">
+                            استشارات متخصصة في التكنولوجيا والتحول الرقمي لمساعدة شركتك على النمو
+                        </p>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-primary-color">السعر: 0 جنيه</p>
+                            <p class="text-sm text-gray-500">الضريبة: 15%</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Section -->
+        <section id="team" class="py-20 bg-white fade-in-section" role="region" aria-labelledby="team-heading">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 id="team-heading" class="section-title text-5xl font-bold mb-6 text-secondary-color">فريقنا</h2>
+                    <p class="text-xl text-gray-600 max-w-3xl mx-auto heavily-blurred">
+                        فريق من الخبراء المتخصصين في مختلف مجالات التكنولوجيا والتسويق الرقمي
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Team Member 1 -->
+                    <article class="team-card p-8 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-24 h-24 bg-primary-color rounded-full mx-auto mb-6 flex items-center justify-center text-secondary-color text-2xl font-bold heavily-blurred" aria-hidden="true">
+                            م.خ
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2 heavily-blurred">محمد خالد</h3>
+                        <p class="text-gray-600 heavily-blurred">المؤسس والمدير التسويقي للشركة</p>
+                    </article>
+
+                    <!-- Team Member 2 -->
+                    <article class="team-card p-8 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-24 h-24 bg-primary-color rounded-full mx-auto mb-6 flex items-center justify-center text-secondary-color text-2xl font-bold heavily-blurred" aria-hidden="true">
+                            ي.ع
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2 heavily-blurred">يوسف عبده</h3>
+                        <p class="text-gray-600 heavily-blurred">الشريك المؤسس ومدير موارد البشرية والعلاقات العامة</p>
+                    </article>
+
+                    <!-- Team Member 3 -->
+                    <article class="team-card p-8 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-24 h-24 bg-primary-color rounded-full mx-auto mb-6 flex items-center justify-center text-secondary-color text-2xl font-bold heavily-blurred" aria-hidden="true">
+                            م.ي
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2 heavily-blurred">محمد ياسر</h3>
+                        <p class="text-gray-600 heavily-blurred">مصمم جرافيك سنيور ومتخصص موشن</p>
+                    </article>
+
+                    <!-- Team Member 4 -->
+                    <article class="team-card p-8 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-24 h-24 bg-primary-color rounded-full mx-auto mb-6 flex items-center justify-center text-secondary-color text-2xl font-bold heavily-blurred" aria-hidden="true">
+                            م.ع
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2 heavily-blurred">مريم عبدالله</h3>
+                        <p class="text-gray-600 heavily-blurred">متخصصة سوشيال ميديا</p>
+                    </article>
+
+                    <!-- Team Member 5 -->
+                    <article class="team-card p-8 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-24 h-24 bg-primary-color rounded-full mx-auto mb-6 flex items-center justify-center text-secondary-color text-2xl font-bold heavily-blurred" aria-hidden="true">
+                            أ.ن
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2 heavily-blurred">أحمد ناصر</h3>
+                        <p class="text-gray-600 heavily-blurred">مدير باير سنيور</p>
+                    </article>
+
+                    <!-- Team Member 6 -->
+                    <article class="team-card p-8 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-24 h-24 bg-primary-color rounded-full mx-auto mb-6 flex items-center justify-center text-secondary-color text-2xl font-bold heavily-blurred" aria-hidden="true">
+                            ع.أ
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2 heavily-blurred">علي أحمد</h3>
+                        <p class="text-gray-600 heavily-blurred">مبرمج ويب فل ستاك</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Clients Section -->
+        <section id="clients" class="py-20 bg-light-gray fade-in-section" role="region" aria-labelledby="clients-heading">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 id="clients-heading" class="section-title text-5xl font-bold mb-6 text-secondary-color">عملاؤنا</h2>
+                    <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                        نفتخر بثقة عملائنا وشراكتنا الناجحة معهم
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                    <!-- Client 1 -->
+                    <article class="bg-white p-6 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold" aria-hidden="true">
+                            س.ع
+                        </div>
+                        <h3 class="text-lg font-bold">سنتر عبدالله التجاري</h3>
+                    </article>
+
+                    <!-- Client 2 -->
+                    <article class="bg-white p-6 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold" aria-hidden="true">
+                            م.س
+                        </div>
+                        <h3 class="text-lg font-bold">مكانك ستور مصر</h3>
+                    </article>
+
+                    <!-- Client 3 -->
+                    <article class="bg-white p-6 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold" aria-hidden="true">
+                            م.س
+                        </div>
+                        <h3 class="text-lg font-bold">مكانك ستور السعودية</h3>
+                    </article>
+
+                    <!-- Client 4 -->
+                    <article class="bg-white p-6 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold" aria-hidden="true">
+                            MH4
+                        </div>
+                        <h3 class="text-lg font-bold">ام اتش فور تك</h3>
+                    </article>
+
+                    <!-- Client 5 -->
+                    <article class="bg-white p-6 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold" aria-hidden="true">
+                            غ.أ
+                        </div>
+                        <h3 class="text-lg font-bold">الغاطس للأدوات المنزلية</h3>
+                    </article>
+
+                    <!-- Client 6 -->
+                    <article class="bg-white p-6 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold" aria-hidden="true">
+                            ك.ق
+                        </div>
+                        <h3 class="text-lg font-bold">كافيه القبطان</h3>
+                    </article>
+
+                    <!-- Client 7 -->
+                    <article class="bg-white p-6 rounded-xl shadow-lg card-hover text-center will-change-transform">
+                        <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold" aria-hidden="true">
+                            م.ع
+                        </div>
+                        <h3 class="text-lg font-bold">مكتب المستشار القانوني مصطفى عبده</h3>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-20 bg-white fade-in-section" role="region" aria-labelledby="contact-heading">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 id="contact-heading" class="section-title text-5xl font-bold mb-6 text-secondary-color">تواصل معنا</h2>
+                    <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                        هل لديك سؤال أو مشروع؟ نحن هنا للمساعدة وتقديم أفضل الحلول لك
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <!-- Contact Form -->
+                    <div class="bg-light-gray p-8 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-6 text-secondary-color">أرسل رسالة</h3>
+                        <form id="contact-form" novalidate>
+                            <div class="mb-6">
+                                <label for="name" class="block text-gray-700 text-sm font-bold mb-2">الاسم *</label>
+                                <input type="text" id="name" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-color focus:ring-2 focus:ring-primary-color focus:ring-opacity-50" required aria-required="true">
+                            </div>
+                            <div class="mb-6">
+                                <label for="email" class="block text-gray-700 text-sm font-bold mb-2">البريد الإلكتروني *</label>
+                                <input type="email" id="email" name="email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-color focus:ring-2 focus:ring-primary-color focus:ring-opacity-50" required aria-required="true">
+                            </div>
+                            <div class="mb-6">
+                                <label for="message" class="block text-gray-700 text-sm font-bold mb-2">الرسالة *</label>
+                                <textarea id="message" name="message" rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-color focus:ring-2 focus:ring-primary-color focus:ring-opacity-50" required aria-required="true"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-primary-color text-secondary-color font-bold py-3 px-6 rounded-lg hover:bg-yellow-400 transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-primary-color focus:ring-opacity-50">
+                                إرسال الرسالة
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="space-y-8">
+                        <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                            <div class="w-12 h-12 bg-primary-color rounded-full flex items-center justify-center text-secondary-color text-xl" aria-hidden="true">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-secondary-color">البريد الإلكتروني</h4>
+                                <a href="mailto:info@technovision.solutions" class="text-gray-600 hover:text-primary-color transition-colors duration-300">info@technovision.solutions</a>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                            <div class="w-12 h-12 bg-primary-color rounded-full flex items-center justify-center text-secondary-color text-xl" aria-hidden="true">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-secondary-color">الهاتف</h4>
+                                <a href="tel:+201001234567" class="text-gray-600 hover:text-primary-color transition-colors duration-300">+20 100 123 4567</a>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                            <div class="w-12 h-12 bg-primary-color rounded-full flex items-center justify-center text-secondary-color text-xl" aria-hidden="true">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-secondary-color">العنوان</h4>
+                                <p class="text-gray-600">القاهرة، مصر</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                            <div class="w-12 h-12 bg-primary-color rounded-full flex items-center justify-center text-secondary-color text-xl" aria-hidden="true">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-secondary-color">ساعات العمل</h4>
+                                <p class="text-gray-600">الأحد - الخميس: 9:00 ص - 6:00 م</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- AI Chatbot -->
+    <div id="chatbot-container" class="fixed bottom-5 left-5 z-40" role="complementary" aria-label="مساعد ذكي">
+        <button id="chatbot-toggle" class="chatbot-toggle w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-3xl text-secondary-color focus:outline-none focus:ring-4 focus:ring-primary-color focus:ring-opacity-50 gpu-accelerated" aria-label="فتح المساعد الذكي" aria-expanded="false">
+            🤖
+        </button>
+        <div id="chatbot-window" class="hidden absolute bottom-20 left-0 w-80 bg-white rounded-lg shadow-xl flex flex-col max-h-96" role="dialog" aria-labelledby="chatbot-title" aria-modal="false">
+            <div class="p-4 bg-secondary-color text-white rounded-t-lg flex justify-between items-center">
+                <h3 id="chatbot-title" class="font-bold">مساعد تكنو فيجن الذكي</h3>
+                <button id="chatbot-close" class="text-white hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50" aria-label="إغلاق المساعد الذكي">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto h-64 space-y-2" role="log" aria-live="polite" aria-label="محادثة المساعد الذكي">
+                <div class="text-left bg-gray-100 p-3 rounded-lg">
+                    مرحباً! أنا مساعد تكنو فيجن الذكي. كيف يمكنني مساعدتك اليوم؟
+                </div>
+            </div>
+            <div class="p-4 border-t flex">
+                <label for="chat-input" class="sr-only">اكتب رسالتك</label>
+                <input type="text" id="chat-input" class="flex-1 border rounded-r-lg p-2 focus:outline-none focus:border-primary-color focus:ring-2 focus:ring-primary-color focus:ring-opacity-50" placeholder="اكتب رسالتك..." aria-label="اكتب رسالتك">
+                <button id="chat-send" class="bg-primary-color text-secondary-color px-4 rounded-l-lg hover:bg-yellow-400 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-primary-color focus:ring-opacity-50" aria-label="إرسال الرسالة">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-secondary-color text-white py-12" role="contentinfo">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 text-primary-color">Techno Vision Solutions</h3>
+                    <p class="text-gray-300">شريكك في التحول الرقمي والنجاح التكنولوجي</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-4">روابط سريعة</h4>
+                    <nav aria-label="Footer navigation">
+                        <ul class="space-y-2">
+                            <li><a href="#home" class="text-gray-300 hover:text-primary-color transition-colors duration-300">الرئيسية</a></li>
+                            <li><a href="#services" class="text-gray-300 hover:text-primary-color transition-colors duration-300">الخدمات</a></li>
+                            <li><a href="#team" class="text-gray-300 hover:text-primary-color transition-colors duration-300">الفريق</a></li>
+                            <li><a href="#contact" class="text-gray-300 hover:text-primary-color transition-colors duration-300">اتصل بنا</a></li>
+                        </ul>
+                    </nav>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-4">تابعنا</h4>
+                    <div class="flex space-x-4 rtl:space-x-reverse">
+                        <a href="#" class="text-gray-300 hover:text-primary-color transition-colors duration-300 text-2xl focus:outline-none focus:ring-2 focus:ring-primary-color focus:ring-opacity-50 rounded" aria-label="فيسبوك">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-primary-color transition-colors duration-300 text-2xl focus:outline-none focus:ring-2 focus:ring-primary-color focus:ring-opacity-50 rounded" aria-label="تويتر">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-primary-color transition-colors duration-300 text-2xl focus:outline-none focus:ring-2 focus:ring-primary-color focus:ring-opacity-50 rounded" aria-label="لينكد إن">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-primary-color transition-colors duration-300 text-2xl focus:outline-none focus:ring-2 focus:ring-primary-color focus:ring-opacity-50 rounded" aria-label="إنستغرام">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p class="text-gray-300">&copy; 2025 تكنو فيجن سوليوشنز. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Non-critical CSS loaded asynchronously -->
+    <style>
         /* Animations */
         @keyframes fadeInUp {
             from {
@@ -732,483 +658,216 @@
                 transform: translateY(0);
             }
         }
-        
-        @keyframes pulse {
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
             0%, 100% {
-                transform: scale(1);
+                transform: translateY(0px);
             }
             50% {
-                transform: scale(1.05);
+                transform: translateY(-10px);
             }
         }
-        
-        .animate-pulse {
-            animation: pulse 2s infinite;
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.8s ease-out forwards;
         }
-        
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .nav-menu {
-                display: none;
-            }
-            
-            .mobile-menu-toggle {
-                display: block;
-            }
-            
-            .hero-title {
-                font-size: 2.5rem;
-            }
-            
-            .hero-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .contact-container {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-            
-            .ai-chat-panel {
-                width: 300px;
-            }
+
+        .animate-fadeInDown {
+            animation: fadeInDown 0.8s ease-out forwards;
         }
-        
-        @media (max-width: 480px) {
-            .nav-container {
-                padding: 1rem;
-            }
-            
-            .hero {
-                padding: 1rem;
-            }
-            
-            .hero-title {
-                font-size: 2rem;
-            }
-            
-            .section-title {
-                font-size: 2rem;
-            }
-            
-            .ai-chat-widget {
-                bottom: 1rem;
-                left: 1rem;
-            }
-            
-            .ai-chat-panel {
-                width: calc(100vw - 2rem);
-                left: -1rem;
-            }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
         }
-        
-        /* Utility Classes */
-        .text-center { text-align: center; }
-        .text-left { text-align: left; }
-        .text-right { text-align: right; }
-        .hidden { display: none; }
-        .visible { display: block; }
-        
-        /* Loading Animation */
+
+        /* Blur effects for sensitive data */
+        .blurred-content {
+            filter: blur(8px);
+            -webkit-filter: blur(8px);
+            transition: filter 0.3s ease-in-out;
+            cursor: pointer;
+        }
+
+        .blurred-content:hover {
+            filter: blur(2px);
+            -webkit-filter: blur(2px);
+        }
+
+        .heavily-blurred {
+            filter: blur(15px);
+            -webkit-filter: blur(15px);
+        }
+
+        /* Card hover effects */
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Service cards */
+        .service-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-top: 4px solid var(--primary-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(252, 191, 1, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .service-card:hover::before {
+            left: 100%;
+        }
+
+        /* Team cards */
+        .team-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(252, 191, 1, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .team-card:hover::after {
+            opacity: 1;
+        }
+
+        /* Chatbot styles */
+        .chatbot-toggle {
+            background: linear-gradient(135deg, var(--primary-color), #ffd700);
+            box-shadow: 0 8px 25px rgba(252, 191, 1, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(252, 191, 1, 0.4);
+        }
+
+        /* Loading animation */
         .loading {
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(252, 191, 1, 0.3);
+            border: 3px solid rgba(255,255,255,.3);
             border-radius: 50%;
-            border-top-color: var(--primary-color);
+            border-top-color: #fff;
             animation: spin 1s ease-in-out infinite;
         }
-        
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Intersection Observer animations */
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            visibility: hidden;
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out, visibility 0.8s ease-out;
+        }
+
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: none;
+            visibility: visible;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem !important;
+            }
+            
+            .section-title {
+                font-size: 2rem !important;
+            }
+        }
+
+        /* Screen reader only content */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .focus\:not-sr-only:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            padding: 0;
+            margin: 0;
+            overflow: visible;
+            clip: auto;
+            white-space: normal;
+        }
     </style>
-</head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <nav class="nav-container">
-            <a href="#" class="logo">
-                <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <!-- TVS Logo SVG -->
-                    <defs>
-                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fcbf01"/>
-                            <stop offset="100%" style="stop-color:#2a2a32"/>
-                        </linearGradient>
-                    </defs>
-                    
-                    <!-- Background Circle -->
-                    <circle cx="50" cy="50" r="45" fill="url(#logoGradient)" opacity="0.1"/>
-                    
-                    <!-- TVS Text -->
-                    <text x="50" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#2a2a32">TVS</text>
-                    
-                    <!-- Growth Chart Bars -->
-                    <rect x="25" y="55" width="8" height="15" fill="#fcbf01"/>
-                    <rect x="37" y="50" width="8" height="20" fill="#fcbf01"/>
-                    <rect x="49" y="45" width="8" height="25" fill="#fcbf01"/>
-                    <rect x="61" y="40" width="8" height="30" fill="#fcbf01"/>
-                    
-                    <!-- Arrow -->
-                    <path d="M 70 45 L 75 40 L 80 45 L 77 45 L 77 50 L 73 50 L 73 45 Z" fill="#fcbf01"/>
-                    
-                    <!-- Arabic Text -->
-                    <text x="50" y="85" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#2a2a32">تكنو فيجن سوليوشنز</text>
-                </svg>
-                <span class="logo-text arabic-text">Techno Vision Solutions</span>
-            </a>
-            
-            <ul class="nav-menu">
-                <li><a href="#home" class="nav-link">الرئيسية</a></li>
-                <li><a href="#services" class="nav-link">الخدمات</a></li>
-                <li><a href="#team" class="nav-link">الفريق</a></li>
-                <li><a href="#clients" class="nav-link">العملاء</a></li>
-                <li><a href="#contact" class="nav-link">اتصل بنا</a></li>
-                <li><a href="#contact" class="cta-button">احصل على استشارة مجانية</a></li>
-            </ul>
-            
-            <button class="mobile-menu-toggle">☰</button>
-        </nav>
-    </header>
 
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-content">
-            <h1 class="hero-title arabic-text">تكنو فيجن سوليوشنز</h1>
-            <h2 class="hero-subtitle">شريكك في التحول الرقمي والنمو المستدام</h2>
-            <p class="hero-subtitle">نقدم حلولاً متكاملة للتسويق الرقمي، تطوير المواقع، إدارة وسائل التواصل الاجتماعي، والذكاء الاصطناعي لتحقيق أهدافك التجارية</p>
-            
-            <div class="hero-buttons">
-                <a href="#contact" class="btn-primary">
-                    🚀 احصل على استشارة مجانية
-                </a>
-                <a href="#services" class="btn-secondary">
-                    📋 تصفح خدماتنا
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Stats Section -->
-    <section class="stats">
-        <div class="stats-container">
-            <div class="stat-item">
-                <div class="stat-number animate-pulse">50+</div>
-                <div class="stat-label">عميل راضٍ</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number animate-pulse">200+</div>
-                <div class="stat-label">مشروع منجز</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number animate-pulse">5+</div>
-                <div class="stat-label">سنوات خبرة</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number animate-pulse">24/7</div>
-                <div class="stat-label">دعم فني</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Services Section -->
-    <section id="services" class="services">
-        <div class="section-container">
-            <h2 class="section-title arabic-text">خدماتنا</h2>
-            <p class="section-subtitle">نقدم مجموعة شاملة من الخدمات الرقمية المتطورة لتلبية جميع احتياجاتك التجارية</p>
-            
-            <div class="services-grid">
-                <div class="service-card">
-                    <div class="service-icon">📱</div>
-                    <h3 class="service-title">التسويق الرقمي</h3>
-                    <p class="service-description">استراتيجيات تسويقية متقدمة لزيادة الوعي بعلامتك التجارية وجذب العملاء المحتملين</p>
-                    <div class="service-price">السعر: 0 جنيه (عرض خاص)</div>
-                </div>
-                
-                <div class="service-card">
-                    <div class="service-icon">🌐</div>
-                    <h3 class="service-title">تطوير المواقع والمتاجر</h3>
-                    <p class="service-description">تصميم وتطوير مواقع ومتاجر إلكترونية احترافية ومتجاوبة مع جميع الأجهزة</p>
-                    <div class="service-price">السعر: 0 جنيه (عرض خاص)</div>
-                </div>
-                
-                <div class="service-card">
-                    <div class="service-icon">📊</div>
-                    <h3 class="service-title">إدارة وسائل التواصل</h3>
-                    <p class="service-description">إدارة احترافية لحساباتك على منصات التواصل الاجتماعي مع محتوى جذاب ومتفاعل</p>
-                    <div class="service-price">السعر: 0 جنيه (عرض خاص)</div>
-                </div>
-                
-                <div class="service-card">
-                    <div class="service-icon">🎯</div>
-                    <h3 class="service-title">الحملات الإعلانية</h3>
-                    <p class="service-description">حملات إعلانية مدفوعة مستهدفة على جوجل وفيسبوك وإنستجرام لتحقيق أفضل عائد استثمار</p>
-                    <div class="service-price">السعر: 0 جنيه (عرض خاص)</div>
-                </div>
-                
-                <div class="service-card">
-                    <div class="service-icon">🔍</div>
-                    <h3 class="service-title">تحسين محركات البحث</h3>
-                    <p class="service-description">تحسين موقعك ليظهر في المراكز الأولى في نتائج البحث وزيادة الزيارات الطبيعية</p>
-                    <div class="service-price">السعر: 0 جنيه (عرض خاص)</div>
-                </div>
-                
-                <div class="service-card">
-                    <div class="service-icon">🤖</div>
-                    <h3 class="service-title">حلول الذكاء الاصطناعي</h3>
-                    <p class="service-description">تطبيق تقنيات الذكاء الاصطناعي لأتمتة العمليات وتحسين تجربة العملاء</p>
-                    <div class="service-price">السعر: 0 جنيه (عرض خاص)</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Team Section -->
-    <section id="team" class="team">
-        <div class="section-container">
-            <h2 class="section-title arabic-text">فريقنا</h2>
-            <p class="section-subtitle">فريق من الخبراء المتخصصين في مختلف مجالات التكنولوجيا والتسويق الرقمي</p>
-            
-            <div class="team-grid">
-                <div class="team-card">
-                    <div class="team-avatar">م.خ</div>
-                    <h3 class="team-name">محمد خالد</h3>
-                    <p class="team-position">المؤسس والمدير التسويقي</p>
-                </div>
-                
-                <div class="team-card">
-                    <div class="team-avatar">ي.ع</div>
-                    <h3 class="team-name">يوسف عبده</h3>
-                    <p class="team-position">الشريك المؤسس ومدير الموارد البشرية</p>
-                </div>
-                
-                <div class="team-card">
-                    <div class="team-avatar">م.ي</div>
-                    <h3 class="team-name">محمد ياسر</h3>
-                    <p class="team-position">مصمم جرافيك سنيور ومتخصص موشن</p>
-                </div>
-                
-                <div class="team-card">
-                    <div class="team-avatar">م.ع</div>
-                    <h3 class="team-name">مريم عبدالله</h3>
-                    <p class="team-position">متخصصة سوشيال ميديا</p>
-                </div>
-                
-                <div class="team-card">
-                    <div class="team-avatar">أ.ن</div>
-                    <h3 class="team-name">أحمد ناصر</h3>
-                    <p class="team-position">مدير باير سنيور</p>
-                </div>
-                
-                <div class="team-card">
-                    <div class="team-avatar">ع.أ</div>
-                    <h3 class="team-name">علي أحمد</h3>
-                    <p class="team-position">مبرمج ويب فل ستاك</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Clients Section -->
-    <section id="clients" class="clients">
-        <div class="section-container">
-            <h2 class="section-title arabic-text">عملاؤنا</h2>
-            <p class="section-subtitle">نفخر بثقة عملائنا وشراكتنا الناجحة معهم في تحقيق أهدافهم التجارية</p>
-            
-            <div class="clients-grid">
-                <div class="client-card">
-                    <div class="client-logo">س.ع</div>
-                    <h3 class="client-name">سنتر عبدالله التجاري</h3>
-                </div>
-                
-                <div class="client-card">
-                    <div class="client-logo">م.م</div>
-                    <h3 class="client-name">مكانك ستور مصر</h3>
-                </div>
-                
-                <div class="client-card">
-                    <div class="client-logo">م.س</div>
-                    <h3 class="client-name">مكانك ستور السعودية</h3>
-                </div>
-                
-                <div class="client-card">
-                    <div class="client-logo">MH4</div>
-                    <h3 class="client-name">ام اتش فور تك</h3>
-                </div>
-                
-                <div class="client-card">
-                    <div class="client-logo">غ.أ</div>
-                    <h3 class="client-name">الغاطس للأدوات المنزلية</h3>
-                </div>
-                
-                <div class="client-card">
-                    <div class="client-logo">ك.ق</div>
-                    <h3 class="client-name">كافيه القبطان</h3>
-                </div>
-                
-                <div class="client-card">
-                    <div class="client-logo">م.ق</div>
-                    <h3 class="client-name">مكتب المستشار القانوني مصطفى عبده</h3>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact" class="contact">
-        <div class="section-container">
-            <h2 class="section-title arabic-text">تواصل معنا</h2>
-            <p class="section-subtitle">نحن هنا لمساعدتك في تحقيق أهدافك الرقمية. تواصل معنا اليوم للحصول على استشارة مجانية</p>
-            
-            <div class="contact-container">
-                <form class="contact-form" id="contactForm">
-                    <div class="form-group">
-                        <label class="form-label">الاسم</label>
-                        <input type="text" class="form-input" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">البريد الإلكتروني</label>
-                        <input type="email" class="form-input" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">رقم الهاتف</label>
-                        <input type="tel" class="form-input" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">الخدمة المطلوبة</label>
-                        <select class="form-input" required>
-                            <option value="">اختر الخدمة</option>
-                            <option value="digital-marketing">التسويق الرقمي</option>
-                            <option value="web-development">تطوير المواقع</option>
-                            <option value="social-media">إدارة وسائل التواصل</option>
-                            <option value="advertising">الحملات الإعلانية</option>
-                            <option value="seo">تحسين محركات البحث</option>
-                            <option value="ai-solutions">حلول الذكاء الاصطناعي</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">الرسالة</label>
-                        <textarea class="form-textarea" placeholder="اكتب رسالتك هنا..." required></textarea>
-                    </div>
-                    
-                    <button type="submit" class="btn-primary">
-                        📧 إرسال الرسالة
-                    </button>
-                </form>
-                
-                <div class="contact-info">
-                    <div class="contact-item">
-                        <div class="contact-icon">📧</div>
-                        <div>
-                            <h4>البريد الإلكتروني</h4>
-                            <p>info@technovision.solutions</p>
-                        </div>
-                    </div>
-                    
-                    <div class="contact-item">
-                        <div class="contact-icon">📱</div>
-                        <div>
-                            <h4>رقم الهاتف</h4>
-                            <p>+20 100 123 4567</p>
-                        </div>
-                    </div>
-                    
-                    <div class="contact-item">
-                        <div class="contact-icon">📍</div>
-                        <div>
-                            <h4>العنوان</h4>
-                            <p>القاهرة، مصر</p>
-                        </div>
-                    </div>
-                    
-                    <div class="contact-item">
-                        <div class="contact-icon">🕒</div>
-                        <div>
-                            <h4>ساعات العمل</h4>
-                            <p>الأحد - الخميس: 9:00 ص - 6:00 م</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- AI Chat Widget -->
-    <div class="ai-chat-widget">
-        <button class="ai-chat-toggle" id="aiChatToggle">🤖</button>
-        <div class="ai-chat-panel" id="aiChatPanel">
-            <div class="ai-chat-header">
-                مساعد تكنو فيجن الذكي
-            </div>
-            <div class="ai-chat-messages" id="aiChatMessages">
-                <div class="message ai">
-                    مرحباً! أنا مساعدك الذكي في تكنو فيجن سوليوشنز. كيف يمكنني مساعدتك اليوم؟
-                </div>
-            </div>
-            <div class="ai-chat-input-container">
-                <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="اكتب رسالتك...">
-                <button class="ai-chat-send" id="aiChatSend">إرسال</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <h3>تكنو فيجن سوليوشنز</h3>
-                <p>شريكك في التحول الرقمي والنمو المستدام. نقدم حلولاً متكاملة للتسويق الرقمي والتكنولوجيا.</p>
-            </div>
-            
-            <div class="footer-section">
-                <h3>خدماتنا</h3>
-                <ul class="footer-links">
-                    <li><a href="#services">التسويق الرقمي</a></li>
-                    <li><a href="#services">تطوير المواقع</a></li>
-                    <li><a href="#services">إدارة وسائل التواصل</a></li>
-                    <li><a href="#services">الحملات الإعلانية</a></li>
-                    <li><a href="#services">تحسين محركات البحث</a></li>
-                    <li><a href="#services">حلول الذكاء الاصطناعي</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-section">
-                <h3>روابط سريعة</h3>
-                <ul class="footer-links">
-                    <li><a href="#home">الرئيسية</a></li>
-                    <li><a href="#services">الخدمات</a></li>
-                    <li><a href="#team">الفريق</a></li>
-                    <li><a href="#clients">العملاء</a></li>
-                    <li><a href="#contact">اتصل بنا</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-section">
-                <h3>تابعنا</h3>
-                <ul class="footer-links">
-                    <li><a href="#">فيسبوك</a></li>
-                    <li><a href="#">إنستجرام</a></li>
-                    <li><a href="#">تويتر</a></li>
-                    <li><a href="#">لينكد إن</a></li>
-                    <li><a href="#">يوتيوب</a></li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <p>&copy; 2025 تكنو فيجن سوليوشنز. جميع الحقوق محفوظة.</p>
-            <p>الضريبة: 15% | جميع الأسعار شاملة الضريبة</p>
-        </div>
-    </footer>
-
+    <!-- JavaScript loaded at the end for better performance -->
     <script>
+        // Performance monitoring
+        const perfObserver = new PerformanceObserver((list) => {
+            for (const entry of list.getEntries()) {
+                if (entry.entryType === 'largest-contentful-paint') {
+                    console.log('LCP:', entry.startTime);
+                }
+            }
+        });
+        perfObserver.observe({entryTypes: ['largest-contentful-paint']});
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuOpen = document.getElementById('menu-open');
+        const menuClose = document.getElementById('menu-close');
+
+        mobileMenuButton.addEventListener('click', () => {
+            const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+            mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
+            mobileMenu.classList.toggle('hidden');
+            menuOpen.classList.toggle('hidden');
+            menuClose.classList.toggle('hidden');
+        });
+
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -1220,171 +879,48 @@
                         block: 'start'
                     });
                 }
+                // Close mobile menu after clicking
+                mobileMenu.classList.add('hidden');
+                mobileMenuButton.setAttribute('aria-expanded', 'false');
+                menuOpen.classList.remove('hidden');
+                menuClose.classList.add('hidden');
             });
         });
 
-        // Header scroll effect
-        window.addEventListener('scroll', () => {
-            const header = document.querySelector('.header');
-            if (window.scrollY > 100) {
-                header.style.background = 'rgba(255, 255, 255, 0.98)';
-                header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+        // Navbar scroll effect with throttling
+        let ticking = false;
+        function updateNavbar() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('nav-scrolled');
             } else {
-                header.style.background = 'rgba(255, 255, 255, 0.95)';
-                header.style.boxShadow = 'none';
+                header.classList.remove('nav-scrolled');
             }
-        });
-
-        // Mobile menu toggle
-        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-        const navMenu = document.querySelector('.nav-menu');
-
-        mobileMenuToggle.addEventListener('click', () => {
-            navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
-        });
-
-        // Contact form submission
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Show loading state
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="loading"></span> جاري الإرسال...';
-            submitBtn.disabled = true;
-            
-            // Simulate form submission
-            setTimeout(() => {
-                alert('تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.');
-                this.reset();
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }, 2000);
-        });
-
-        // AI Chat Widget
-        const aiChatToggle = document.getElementById('aiChatToggle');
-        const aiChatPanel = document.getElementById('aiChatPanel');
-        const aiChatInput = document.getElementById('aiChatInput');
-        const aiChatSend = document.getElementById('aiChatSend');
-        const aiChatMessages = document.getElementById('aiChatMessages');
-
-        let chatOpen = false;
-
-        aiChatToggle.addEventListener('click', () => {
-            chatOpen = !chatOpen;
-            aiChatPanel.style.display = chatOpen ? 'flex' : 'none';
-            if (chatOpen) {
-                aiChatInput.focus();
-            }
-        });
-
-        function addMessage(content, isUser = false) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
-            messageDiv.textContent = content;
-            aiChatMessages.appendChild(messageDiv);
-            aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+            ticking = false;
         }
 
-        function sendToGemini(message) {
-            const API_KEY = 'AIzaSyDgERLgroTyGDCiNnO7X5-snEzaTXKpUhI';
-            const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-            
-            return fetch(`${API_URL}?key=${API_KEY}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `أنت مساعد ذكي لشركة تكنو فيجن سوليوشنز، شركة متخصصة في التسويق الرقمي وتطوير المواقع وإدارة وسائل التواصل الاجتماعي والذكاء الاصطناعي. 
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(updateNavbar);
+                ticking = true;
+            }
+        });
 
-معلومات الشركة:
-- الاسم: تكنو فيجن سوليوشنز (Techno Vision Solutions)
-- الخدمات: التسويق الرقمي، تطوير المواقع والمتاجر الإلكترونية، إدارة وسائل التواصل الاجتماعي، الحملات الإعلانية، تحسين محركات البحث (SEO), حلول الذكاء الاصطناعي
-- جميع الأسعار حالياً: 0 جنيه (عرض خاص)
-- الضريبة: 15%
-- الفريق: محمد خالد (المؤسس والمدير التسويقي), يوسف عبده (الشريك المؤسس ومدير الموارد البشرية), محمد ياسر (مصمم جرافيك سنيور), مريم عبدالله (متخصصة سوشيال ميديا), أحمد ناصر (مدير باير سنيور), علي أحمد (مبرمج ويب فل ستاك)
-
-العملاء: سنتر عبدالله التجاري، مكانك ستور مصر، مكانك ستور السعودية، ام اتش فور تك، الغاطس للأدوات المنزلية، كافيه القبطان، مكتب المستشار القانوني مصطفى عبده
-
-يرجى الرد باللغة العربية وكن مفيداً ومهذباً. ساعد العملاء في فهم خدماتنا واختيار الأنسب لهم.
-
-سؤال العميل: ${message}`
-                        }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        topK: 40,
-                        topP: 0.95,
-                        maxOutputTokens: 1024,
-                    }
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                    return data.candidates[0].content.parts[0].text;
-                } else {
-                    throw new Error('Invalid response from Gemini API');
+        // Stats counter animation with Intersection Observer
+        function animateCounter(element, target) {
+            let current = 0;
+            const increment = target / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
                 }
-            })
-            .catch(error => {
-                console.error('Error calling Gemini API:', error);
-                // Fallback responses
-                const fallbackResponses = [
-                    'شكراً لتواصلك معنا! نحن متخصصون في التسويق الرقمي وتطوير المواقع. كيف يمكنني مساعدتك؟',
-                    'نقدم خدمات شاملة في التسويق الرقمي والذكاء الاصطناعي. جميع خدماتنا متاحة حالياً بسعر 0 جنيه كعرض خاص. ما هو مشروعك؟',
-                    'يمكنني مساعدتك في اختيار الخدمة المناسبة من خدماتنا: التسويق الرقمي، تطوير المواقع، إدارة السوشيال ميديا، الحملات الإعلانية، SEO، أو حلول الذكاء الاصطناعي.',
-                    'نقدم استشارة مجانية لجميع عملائنا الجدد. هل تريد معرفة المزيد عن خدماتنا أم تفضل حجز موعد للاستشارة؟'
-                ];
-                return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
-            });
+                element.textContent = Math.floor(current);
+            }, 50);
         }
 
-        async function handleChatMessage() {
-            const message = aiChatInput.value.trim();
-            if (!message) return;
-
-            // Add user message
-            addMessage(message, true);
-            aiChatInput.value = '';
-
-            // Add loading message
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'message ai';
-            loadingDiv.innerHTML = '<span class="loading"></span> جاري الكتابة...';
-            aiChatMessages.appendChild(loadingDiv);
-            aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
-
-            try {
-                // Send to Gemini API (placeholder for now)
-                const response = await sendToGemini(message);
-                
-                // Remove loading message
-                aiChatMessages.removeChild(loadingDiv);
-                
-                // Add AI response
-                addMessage(response);
-            } catch (error) {
-                // Remove loading message
-                aiChatMessages.removeChild(loadingDiv);
-                
-                // Add error message
-                addMessage('عذراً، حدث خطأ. يرجى المحاولة مرة أخرى أو التواصل معنا مباشرة.');
-            }
-        }
-
-        aiChatSend.addEventListener('click', handleChatMessage);
-        aiChatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleChatMessage();
-            }
-        });
-
-        // Animate elements on scroll
+        // Intersection Observer for animations
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -1393,75 +929,1135 @@
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
+                    entry.target.classList.add('is-visible');
+                    
+                    // Animate counters when stats section is visible
+                    if (entry.target.id === 'stats') {
+                        const counters = entry.target.querySelectorAll('.stat-number');
+                        counters.forEach(counter => {
+                            const target = parseInt(counter.getAttribute('data-target'));
+                            animateCounter(counter, target);
+                        });
+                    }
                 }
             });
         }, observerOptions);
 
-        // Observe all service cards, team cards, and client cards
-        document.querySelectorAll('.service-card, .team-card, .client-card').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            observer.observe(card);
+        // Observe all fade-in sections
+        document.querySelectorAll('.fade-in-section').forEach(section => {
+            observer.observe(section);
         });
 
-        // Add some interactive effects
-        document.querySelectorAll('.service-card, .team-card, .client-card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-10px) scale(1.02)';
-            });
+        // Chatbot functionality
+        const chatbotToggle = document.getElementById('chatbot-toggle');
+        const chatbotWindow = document.getElementById('chatbot-window');
+        const chatbotClose = document.getElementById('chatbot-close');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        const chatMessages = document.getElementById('chat-messages');
+        const apiKey = "AIzaSyDgERLgroTyGDCiNnO7X5-snEzaTXKpUhI";
+
+        chatbotToggle.addEventListener('click', () => {
+            const isExpanded = chatbotToggle.getAttribute('aria-expanded') === 'true';
+            chatbotToggle.setAttribute('aria-expanded', !isExpanded);
+            chatbotWindow.classList.toggle('hidden');
+            if (!chatbotWindow.classList.contains('hidden')) {
+                chatInput.focus();
+            }
+        });
+
+        chatbotClose.addEventListener('click', () => {
+            chatbotWindow.classList.add('hidden');
+            chatbotToggle.setAttribute('aria-expanded', 'false');
+        });
+
+        // Close chatbot with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !chatbotWindow.classList.contains('hidden')) {
+                chatbotWindow.classList.add('hidden');
+                chatbotToggle.setAttribute('aria-expanded', 'false');
+                chatbotToggle.focus();
+            }
+        });
+
+        async function sendToGemini(prompt) {
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `أنت مساعد ذكي لشركة تكنو فيجن سوليوشنز. الشركة تقدم خدمات التسويق الرقمي، تطوير المواقع، إدارة وسائل التواصل الاجتماعي، تحسين محركات البحث، حلول الذكاء الاصطناعي، والاستشارات التقنية. جميع الأسعار حالياً 0 جنيه مع ضريبة 15%. أجب على السؤال التالي بطريقة مفيدة ومهنية: ${prompt}`
+                            }]
+                        }]
+                    })
+                });
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            } catch (error) {
+                console.error('Chatbot error:', error);
+                return "عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى أو التواصل معنا مباشرة على info@technovision.solutions";
+            }
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message === '') return;
+
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'text-right bg-primary-color text-secondary-color p-3 rounded-lg max-w-xs ml-auto';
+            userMessage.textContent = message;
+            chatMessages.appendChild(userMessage);
+
+            chatInput.value = '';
+
+            // Add loading indicator
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'text-left bg-gray-100 p-3 rounded-lg max-w-xs';
+            loadingDiv.innerHTML = '<div class="loading" aria-label="جاري التحميل"></div>';
+            chatMessages.appendChild(loadingDiv);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Get AI response
+            const botResponse = await sendToGemini(message);
             
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0) scale(1)';
-            });
+            // Remove loading indicator
+            chatMessages.removeChild(loadingDiv);
+
+            // Add bot response
+            const botMessage = document.createElement('div');
+            botMessage.className = 'text-left bg-gray-100 p-3 rounded-lg max-w-xs';
+            botMessage.textContent = botResponse;
+            chatMessages.appendChild(botMessage);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        chatSend.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
         });
 
-        // Update stats with animation
-        function animateStats() {
-            const statNumbers = document.querySelectorAll('.stat-number');
-            statNumbers.forEach(stat => {
-                const finalNumber = stat.textContent;
-                const isPlus = finalNumber.includes('+');
-                const number = parseInt(finalNumber.replace(/\D/g, ''));
-                let current = 0;
-                const increment = number / 50;
-                
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= number) {
-                        stat.textContent = finalNumber;
-                        clearInterval(timer);
-                    } else {
-                        stat.textContent = Math.floor(current) + (isPlus ? '+' : '');
-                    }
-                }, 50);
+        // Contact form submission with validation
+        document.getElementById('contact-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            // Basic validation
+            if (!name || !email || !message) {
+                alert('يرجى ملء جميع الحقول المطلوبة.');
+                return;
+            }
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('يرجى إدخال بريد إلكتروني صحيح.');
+                return;
+            }
+            
+            alert('شكراً لك! تم إرسال رسالتك بنجاح. سنتواصل معك قريباً.');
+            
+            // Reset form
+            document.getElementById('contact-form').reset();
+        });
+
+        // Service Worker for caching (if supported)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
             });
         }
 
-        // Trigger stats animation when stats section is visible
-        const statsSection = document.querySelector('.stats');
-        const statsObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    animateStats();
-                    statsObserver.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.5 });
+        // Preload critical resources
+        const preloadLink = document.createElement('link');
+        preloadLink.rel = 'preload';
+        preloadLink.href = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+        preloadLink.as = 'fetch';
+        preloadLink.crossOrigin = 'anonymous';
+        document.head.appendChild(preloadLink);
 
-        statsObserver.observe(statsSection);
-
-        // Add loading animation for page
-        window.addEventListener('load', () => {
-            document.body.style.opacity = '1';
-            document.body.style.transition = 'opacity 0.5s ease';
+        // Error handling for unhandled promise rejections
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            event.preventDefault();
         });
 
-        // Set initial opacity
-        document.body.style.opacity = '0';
+        // Performance optimization: Reduce reflows and repaints
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add will-change property to elements that will be animated
+            document.querySelectorAll('.card-hover, .chatbot-toggle').forEach(el => {
+                el.style.willChange = 'transform';
+            });
+        });
     </script>
 </body>
 </html>
+    <style>
+        :root {
+            --primary-color: #fcbf01;
+            --secondary-color: #2a2a32;
+            --white: #ffffff;
+            --light-gray: #f8f9fa;
+            --dark-gray: #6c757d;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .animate-fadeInDown {
+            animation: fadeInDown 0.8s ease-out forwards;
+        }
+
+        .animate-slideInLeft {
+            animation: slideInLeft 0.8s ease-out forwards;
+        }
+
+        .animate-slideInRight {
+            animation: slideInRight 0.8s ease-out forwards;
+        }
+
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Blur effects for sensitive data */
+        .blurred-content {
+            filter: blur(8px);
+            -webkit-filter: blur(8px);
+            transition: filter 0.3s ease-in-out;
+            cursor: pointer;
+        }
+
+        .blurred-content:hover {
+            filter: blur(2px);
+            -webkit-filter: blur(2px);
+        }
+
+        .heavily-blurred {
+            filter: blur(15px);
+            -webkit-filter: blur(15px);
+        }
+
+        /* Card hover effects */
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Navbar effects */
+        .nav-scrolled {
+            background-color: rgba(42, 42, 50, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Hero section background */
+        .hero-bg {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #1a1a1a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23fcbf01" stroke-width="0.5" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        /* Service cards */
+        .service-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-top: 4px solid var(--primary-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(252, 191, 1, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .service-card:hover::before {
+            left: 100%;
+        }
+
+        /* Team cards */
+        .team-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(252, 191, 1, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .team-card:hover::after {
+            opacity: 1;
+        }
+
+        /* Stats counter */
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Chatbot styles */
+        .chatbot-toggle {
+            background: linear-gradient(135deg, var(--primary-color), #ffd700);
+            box-shadow: 0 8px 25px rgba(252, 191, 1, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(252, 191, 1, 0.4);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem !important;
+            }
+            
+            .section-title {
+                font-size: 2rem !important;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Intersection Observer animations */
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            visibility: hidden;
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out, visibility 0.8s ease-out;
+        }
+
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: none;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body class="bg-white">
+
+    <!-- Header -->
+    <header id="header" class="bg-secondary-color text-white p-4 fixed w-full z-50 transition-all duration-300">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3 rtl:space-x-reverse">
+                <!-- SVG Logo -->
+                <svg class="w-12 h-12" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="100" height="100" rx="20" fill="#2a2a32"/>
+                    <text x="50" y="35" text-anchor="middle" fill="#fcbf01" font-size="24" font-weight="bold">TVS</text>
+                    <rect x="20" y="50" width="15" height="30" fill="#fcbf01"/>
+                    <rect x="42.5" y="45" width="15" height="35" fill="#fcbf01"/>
+                    <rect x="65" y="40" width="15" height="40" fill="#fcbf01"/>
+                    <path d="M85 35 L95 25 L90 30 L95 35 L85 45 Z" fill="#fcbf01"/>
+                </svg>
+                <div class="flex flex-col">
+                    <span class="text-2xl font-bold text-primary-color">Techno Vision Solutions</span>
+                    <span class="text-sm opacity-80 hidden md:block">تكنو فيجن سوليوشنز</span>
+                </div>
+            </div>
+            
+            <nav class="hidden md:flex space-x-6 rtl:space-x-reverse">
+                <a href="#home" class="hover:text-primary-color transition-colors duration-300">الرئيسية</a>
+                <a href="#services" class="hover:text-primary-color transition-colors duration-300">الخدمات</a>
+                <a href="#stats" class="hover:text-primary-color transition-colors duration-300">الإحصائيات</a>
+                <a href="#team" class="hover:text-primary-color transition-colors duration-300">الفريق</a>
+                <a href="#clients" class="hover:text-primary-color transition-colors duration-300">العملاء</a>
+                <a href="#contact" class="hover:text-primary-color transition-colors duration-300">اتصل بنا</a>
+            </nav>
+            
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-white hover:bg-gray-700 focus:outline-none focus:bg-gray-700" aria-label="Main menu">
+                <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                    <path id="menu-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    <path id="menu-close" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <div id="mobile-menu" class="md:hidden hidden bg-secondary-color">
+            <a href="#home" class="block py-2 px-4 text-sm hover:bg-gray-700 transition-colors duration-300">الرئيسية</a>
+            <a href="#services" class="block py-2 px-4 text-sm hover:bg-gray-700 transition-colors duration-300">الخدمات</a>
+            <a href="#stats" class="block py-2 px-4 text-sm hover:bg-gray-700 transition-colors duration-300">الإحصائيات</a>
+            <a href="#team" class="block py-2 px-4 text-sm hover:bg-gray-700 transition-colors duration-300">الفريق</a>
+            <a href="#clients" class="block py-2 px-4 text-sm hover:bg-gray-700 transition-colors duration-300">العملاء</a>
+            <a href="#contact" class="block py-2 px-4 text-sm hover:bg-gray-700 transition-colors duration-300">اتصل بنا</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-bg text-white min-h-screen flex items-center justify-center text-center relative">
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="animate-fadeInDown">
+                <h1 class="hero-title text-6xl font-bold mb-6 leading-tight">
+                    تكنو فيجن سوليوشنز
+                </h1>
+                <p class="text-2xl mb-8 opacity-90">
+                    شريكك للنجاح في عالم الرقمنة والتكنولوجيا
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <a href="#contact" class="bg-primary-color text-secondary-color font-bold py-4 px-8 rounded-full hover:bg-yellow-400 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                        اطلب استشارة مجانية
+                    </a>
+                    <a href="#services" class="border-2 border-primary-color text-primary-color font-bold py-4 px-8 rounded-full hover:bg-primary-color hover:text-secondary-color transition-all duration-300 transform hover:scale-105">
+                        استكشف خدماتنا
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Floating elements -->
+        <div class="absolute top-20 left-10 animate-float">
+            <div class="w-20 h-20 bg-primary-color opacity-20 rounded-full"></div>
+        </div>
+        <div class="absolute bottom-20 right-10 animate-float" style="animation-delay: 1s;">
+            <div class="w-16 h-16 bg-primary-color opacity-30 rounded-full"></div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section id="stats" class="py-20 bg-white fade-in-section">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+                <div class="animate-fadeInUp">
+                    <div class="stat-number" data-target="50">0</div>
+                    <p class="text-lg text-gray-600">مشروع مكتمل</p>
+                </div>
+                <div class="animate-fadeInUp" style="animation-delay: 0.2s;">
+                    <div class="stat-number" data-target="25">0</div>
+                    <p class="text-lg text-gray-600">عميل سعيد</p>
+                </div>
+                <div class="animate-fadeInUp" style="animation-delay: 0.4s;">
+                    <div class="stat-number" data-target="3">0</div>
+                    <p class="text-lg text-gray-600">سنوات خبرة</p>
+                </div>
+                <div class="animate-fadeInUp" style="animation-delay: 0.6s;">
+                    <div class="stat-number" data-target="6">0</div>
+                    <p class="text-lg text-gray-600">خدمات متخصصة</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-20 bg-light-gray fade-in-section">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="section-title text-5xl font-bold mb-6 text-secondary-color">خدماتنا</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    نقدم مجموعة شاملة من الخدمات الرقمية المتطورة لمساعدة عملك على النمو والازدهار
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Service 1 -->
+                <div class="service-card p-8 rounded-xl shadow-lg card-hover">
+                    <div class="text-primary-color text-5xl mb-6">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 blurred-content">التسويق الرقمي المتكامل</h3>
+                    <p class="text-gray-600 mb-6 blurred-content">
+                        استراتيجيات تسويق مبتكرة ومدروسة لزيادة الوعي بعلامتك التجارية وتحقيق أهدافك التسويقية
+                    </p>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-primary-color">السعر: 0 جنيه</p>
+                        <p class="text-sm text-gray-500">الضريبة: 15%</p>
+                    </div>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="service-card p-8 rounded-xl shadow-lg card-hover">
+                    <div class="text-primary-color text-5xl mb-6">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 blurred-content">تطوير المواقع والتطبيقات</h3>
+                    <p class="text-gray-600 mb-6 blurred-content">
+                        تصميم وتطوير مواقع ويب وتطبيقات جوال متطورة وسريعة الاستجابة
+                    </p>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-primary-color">السعر: 0 جنيه</p>
+                        <p class="text-sm text-gray-500">الضريبة: 15%</p>
+                    </div>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="service-card p-8 rounded-xl shadow-lg card-hover">
+                    <div class="text-primary-color text-5xl mb-6">
+                        <i class="fas fa-share-alt"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 blurred-content">إدارة وسائل التواصل الاجتماعي</h3>
+                    <p class="text-gray-600 mb-6 blurred-content">
+                        إدارة احترافية لحساباتك على منصات التواصل الاجتماعي مع محتوى إبداعي وجذاب
+                    </p>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-primary-color">السعر: 0 جنيه</p>
+                        <p class="text-sm text-gray-500">الضريبة: 15%</p>
+                    </div>
+                </div>
+
+                <!-- Service 4 -->
+                <div class="service-card p-8 rounded-xl shadow-lg card-hover">
+                    <div class="text-primary-color text-5xl mb-6">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 blurred-content">تحسين محركات البحث (SEO)</h3>
+                    <p class="text-gray-600 mb-6 blurred-content">
+                        تحسين موقعك ليظهر في المراكز الأولى في نتائج البحث وزيادة الزيارات الطبيعية
+                    </p>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-primary-color">السعر: 0 جنيه</p>
+                        <p class="text-sm text-gray-500">الضريبة: 15%</p>
+                    </div>
+                </div>
+
+                <!-- Service 5 -->
+                <div class="service-card p-8 rounded-xl shadow-lg card-hover">
+                    <div class="text-primary-color text-5xl mb-6">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 blurred-content">حلول الذكاء الاصطناعي</h3>
+                    <p class="text-gray-600 mb-6 blurred-content">
+                        تطبيق أحدث تقنيات الذكاء الاصطناعي لتحسين عمليات الأعمال وزيادة الكفاءة
+                    </p>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-primary-color">السعر: 0 جنيه</p>
+                        <p class="text-sm text-gray-500">الضريبة: 15%</p>
+                    </div>
+                </div>
+
+                <!-- Service 6 -->
+                <div class="service-card p-8 rounded-xl shadow-lg card-hover">
+                    <div class="text-primary-color text-5xl mb-6">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 blurred-content">الاستشارات التقنية</h3>
+                    <p class="text-gray-600 mb-6 blurred-content">
+                        استشارات متخصصة في التكنولوجيا والتحول الرقمي لمساعدة شركتك على النمو
+                    </p>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-primary-color">السعر: 0 جنيه</p>
+                        <p class="text-sm text-gray-500">الضريبة: 15%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="py-20 bg-white fade-in-section">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="section-title text-5xl font-bold mb-6 text-secondary-color">فريقنا</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto heavily-blurred">
+                    فريق من الخبراء المتخصصين في مختلف مجالات التكنولوجيا والتسويق الرقمي
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Team Member 1 -->
+                <div class="team-card p-8 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-24 h-24 bg-primary-color rounded-full mx-auto mb-6 flex items-center justify-center text-secondary-color text-2xl font-bold heavily-blurred">
+                        م.خ
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2 heavily-blurred">محمد خالد</h3>
+                    <p class="text-gray-600 heavily-blurred">المؤسس والمدير التسويقي للشركة</p>
+                </div>
+
+                <!-- Team Member 2 -->
+                <div class="team-card p-8 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-24 h-24 bg-primary-color rounded-full mx-auto mb-6 flex items-center justify-center text-secondary-color text-2xl font-bold heavily-blurred">
+                        ي.ع
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2 heavily-blurred">يوسف عبده</h3>
+                    <p class="text-gray-600 heavily-blurred">الشريك المؤسس ومدير موارد البشرية والعلاقات العامة</p>
+                </div>
+
+                <!-- Team Member 3 -->
+                <div class="team-card p-8 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-24 h-24 bg-primary-color rounded-full mx-auto mb-6 flex items-center justify-center text-secondary-color text-2xl font-bold heavily-blurred">
+                        م.ي
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2 heavily-blurred">محمد ياسر</h3>
+                    <p class="text-gray-600 heavily-blurred">مصمم جرافيك سنيور ومتخصص موشن</p>
+                </div>
+
+                <!-- Team Member 4 -->
+                <div class="team-card p-8 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-24 h-24 bg-primary-color rounded-full mx-auto mb-6 flex items-center justify-center text-secondary-color text-2xl font-bold heavily-blurred">
+                        م.ع
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2 heavily-blurred">مريم عبدالله</h3>
+                    <p class="text-gray-600 heavily-blurred">متخصصة سوشيال ميديا</p>
+                </div>
+
+                <!-- Team Member 5 -->
+                <div class="team-card p-8 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-24 h-24 bg-primary-color rounded-full mx-auto mb-6 flex items-center justify-center text-secondary-color text-2xl font-bold heavily-blurred">
+                        أ.ن
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2 heavily-blurred">أحمد ناصر</h3>
+                    <p class="text-gray-600 heavily-blurred">مدير باير سنيور</p>
+                </div>
+
+                <!-- Team Member 6 -->
+                <div class="team-card p-8 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-24 h-24 bg-primary-color rounded-full mx-auto mb-6 flex items-center justify-center text-secondary-color text-2xl font-bold heavily-blurred">
+                        ع.أ
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2 heavily-blurred">علي أحمد</h3>
+                    <p class="text-gray-600 heavily-blurred">مبرمج ويب فل ستاك</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Clients Section -->
+    <section id="clients" class="py-20 bg-light-gray fade-in-section">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="section-title text-5xl font-bold mb-6 text-secondary-color">عملاؤنا</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    نفتخر بثقة عملائنا وشراكتنا الناجحة معهم
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                <!-- Client 1 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold">
+                        س.ع
+                    </div>
+                    <h3 class="text-lg font-bold">سنتر عبدالله التجاري</h3>
+                </div>
+
+                <!-- Client 2 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold">
+                        م.س
+                    </div>
+                    <h3 class="text-lg font-bold">مكانك ستور مصر</h3>
+                </div>
+
+                <!-- Client 3 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold">
+                        م.س
+                    </div>
+                    <h3 class="text-lg font-bold">مكانك ستور السعودية</h3>
+                </div>
+
+                <!-- Client 4 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold">
+                        MH4
+                    </div>
+                    <h3 class="text-lg font-bold">ام اتش فور تك</h3>
+                </div>
+
+                <!-- Client 5 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold">
+                        غ.أ
+                    </div>
+                    <h3 class="text-lg font-bold">الغاطس للأدوات المنزلية</h3>
+                </div>
+
+                <!-- Client 6 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold">
+                        ك.ق
+                    </div>
+                    <h3 class="text-lg font-bold">كافيه القبطان</h3>
+                </div>
+
+                <!-- Client 7 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover text-center">
+                    <div class="w-16 h-16 bg-primary-color rounded-full mx-auto mb-4 flex items-center justify-center text-secondary-color text-lg font-bold">
+                        م.ع
+                    </div>
+                    <h3 class="text-lg font-bold">مكتب المستشار القانوني مصطفى عبده</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-white fade-in-section">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="section-title text-5xl font-bold mb-6 text-secondary-color">تواصل معنا</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    هل لديك سؤال أو مشروع؟ نحن هنا للمساعدة وتقديم أفضل الحلول لك
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Contact Form -->
+                <div class="bg-light-gray p-8 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-6 text-secondary-color">أرسل رسالة</h3>
+                    <form id="contact-form">
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">الاسم</label>
+                            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-color" required>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">البريد الإلكتروني</label>
+                            <input type="email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-color" required>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">الرسالة</label>
+                            <textarea rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-color" required></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-primary-color text-secondary-color font-bold py-3 px-6 rounded-lg hover:bg-yellow-400 transition-colors duration-300">
+                            إرسال الرسالة
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="space-y-8">
+                    <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                        <div class="w-12 h-12 bg-primary-color rounded-full flex items-center justify-center text-secondary-color text-xl">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-secondary-color">البريد الإلكتروني</h4>
+                            <p class="text-gray-600">info@technovision.solutions</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                        <div class="w-12 h-12 bg-primary-color rounded-full flex items-center justify-center text-secondary-color text-xl">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-secondary-color">الهاتف</h4>
+                            <p class="text-gray-600">+20 100 123 4567</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                        <div class="w-12 h-12 bg-primary-color rounded-full flex items-center justify-center text-secondary-color text-xl">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-secondary-color">العنوان</h4>
+                            <p class="text-gray-600">القاهرة، مصر</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                        <div class="w-12 h-12 bg-primary-color rounded-full flex items-center justify-center text-secondary-color text-xl">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-secondary-color">ساعات العمل</h4>
+                            <p class="text-gray-600">الأحد - الخميس: 9:00 ص - 6:00 م</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Chatbot -->
+    <div id="chatbot-container" class="fixed bottom-5 left-5 z-40">
+        <button id="chatbot-toggle" class="chatbot-toggle w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-3xl text-secondary-color">
+            🤖
+        </button>
+        <div id="chatbot-window" class="hidden absolute bottom-20 left-0 w-80 bg-white rounded-lg shadow-xl flex flex-col max-h-96">
+            <div class="p-4 bg-secondary-color text-white rounded-t-lg flex justify-between items-center">
+                <h3 class="font-bold">مساعد تكنو فيجن الذكي</h3>
+                <button id="chatbot-close" class="text-white hover:text-gray-300">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto h-64 space-y-2">
+                <div class="text-left bg-gray-100 p-3 rounded-lg">
+                    مرحباً! أنا مساعد تكنو فيجن الذكي. كيف يمكنني مساعدتك اليوم؟
+                </div>
+            </div>
+            <div class="p-4 border-t flex">
+                <input type="text" id="chat-input" class="flex-1 border rounded-r-lg p-2 focus:outline-none focus:border-primary-color" placeholder="اكتب رسالتك...">
+                <button id="chat-send" class="bg-primary-color text-secondary-color px-4 rounded-l-lg hover:bg-yellow-400 transition-colors duration-300">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-secondary-color text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 text-primary-color">Techno Vision Solutions</h3>
+                    <p class="text-gray-300">شريكك في التحول الرقمي والنجاح التكنولوجي</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-4">روابط سريعة</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#home" class="text-gray-300 hover:text-primary-color transition-colors duration-300">الرئيسية</a></li>
+                        <li><a href="#services" class="text-gray-300 hover:text-primary-color transition-colors duration-300">الخدمات</a></li>
+                        <li><a href="#team" class="text-gray-300 hover:text-primary-color transition-colors duration-300">الفريق</a></li>
+                        <li><a href="#contact" class="text-gray-300 hover:text-primary-color transition-colors duration-300">اتصل بنا</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-4">تابعنا</h4>
+                    <div class="flex space-x-4 rtl:space-x-reverse">
+                        <a href="#" class="text-gray-300 hover:text-primary-color transition-colors duration-300 text-2xl">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-primary-color transition-colors duration-300 text-2xl">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-primary-color transition-colors duration-300 text-2xl">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-primary-color transition-colors duration-300 text-2xl">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p class="text-gray-300">&copy; 2025 تكنو فيجن سوليوشنز. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuOpen = document.getElementById('menu-open');
+        const menuClose = document.getElementById('menu-close');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            menuOpen.classList.toggle('hidden');
+            menuClose.classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+                // Close mobile menu after clicking
+                mobileMenu.classList.add('hidden');
+                menuOpen.classList.remove('hidden');
+                menuClose.classList.add('hidden');
+            });
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('nav-scrolled');
+            } else {
+                header.classList.remove('nav-scrolled');
+            }
+        });
+
+        // Stats counter animation
+        function animateCounter(element, target) {
+            let current = 0;
+            const increment = target / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current);
+            }, 50);
+        }
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    
+                    // Animate counters when stats section is visible
+                    if (entry.target.id === 'stats') {
+                        const counters = entry.target.querySelectorAll('.stat-number');
+                        counters.forEach(counter => {
+                            const target = parseInt(counter.getAttribute('data-target'));
+                            animateCounter(counter, target);
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+
+        // Observe all fade-in sections
+        document.querySelectorAll('.fade-in-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Chatbot functionality
+        const chatbotToggle = document.getElementById('chatbot-toggle');
+        const chatbotWindow = document.getElementById('chatbot-window');
+        const chatbotClose = document.getElementById('chatbot-close');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        const chatMessages = document.getElementById('chat-messages');
+        const apiKey = "AIzaSyDgERLgroTyGDCiNnO7X5-snEzaTXKpUhI";
+
+        chatbotToggle.addEventListener('click', () => {
+            chatbotWindow.classList.toggle('hidden');
+        });
+
+        chatbotClose.addEventListener('click', () => {
+            chatbotWindow.classList.add('hidden');
+        });
+
+        async function sendToGemini(prompt) {
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `أنت مساعد ذكي لشركة تكنو فيجن سوليوشنز. الشركة تقدم خدمات التسويق الرقمي، تطوير المواقع، إدارة وسائل التواصل الاجتماعي، تحسين محركات البحث، حلول الذكاء الاصطناعي، والاستشارات التقنية. جميع الأسعار حالياً 0 جنيه مع ضريبة 15%. أجب على السؤال التالي بطريقة مفيدة ومهنية: ${prompt}`
+                            }]
+                        }]
+                    })
+                });
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            } catch (error) {
+                return "عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى أو التواصل معنا مباشرة.";
+            }
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message === '') return;
+
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'text-right bg-primary-color text-secondary-color p-3 rounded-lg max-w-xs ml-auto';
+            userMessage.textContent = message;
+            chatMessages.appendChild(userMessage);
+
+            chatInput.value = '';
+
+            // Add loading indicator
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'text-left bg-gray-100 p-3 rounded-lg max-w-xs';
+            loadingDiv.innerHTML = '<div class="loading"></div>';
+            chatMessages.appendChild(loadingDiv);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Get AI response
+            const botResponse = await sendToGemini(message);
+            
+            // Remove loading indicator
+            chatMessages.removeChild(loadingDiv);
+
+            // Add bot response
+            const botMessage = document.createElement('div');
+            botMessage.className = 'text-left bg-gray-100 p-3 rounded-lg max-w-xs';
+            botMessage.textContent = botResponse;
+            chatMessages.appendChild(botMessage);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        chatSend.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Contact form submission
+        document.getElementById('contact-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('شكراً لك! تم إرسال رسالتك بنجاح. سنتواصل معك قريباً.');
+        });
+
+        // Performance optimization: Lazy loading for images
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+
+            document.querySelectorAll('img[data-src]').forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+    </script>
+</body>
+</html>
+
 
