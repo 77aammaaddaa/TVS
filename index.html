@@ -3,21 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Techno Vision Solutions - شريكك الاستراتيجي في التحول الرقمي</title>
-    <meta name="description" content="Techno Vision Solutions - شركة رائدة في التحول الرقمي، تقدم حلول متكاملة في التسويق الرقمي، تطوير المواقع، الذكاء الاصطناعي وإدارة الأعمال">
-    <meta name="keywords" content="تسويق رقمي, تطوير مواقع, ذكاء اصطناعي, تحول رقمي, حلول برمجية, إدارة أعمال, تكنو فيجن">
+    <title>Techno Vision Solutions - شريكك الأمثل في التحول الرقمي</title>
+    <!-- بيانات الميتا المحسنة للـ SEO -->
+    <meta name="description" content="Techno Vision Solutions - شريكك الأمثل في التحول الرقمي. حلول مبتكرة في التسويق الرقمي، تطوير المواقع، رقمنة الأعمال، وإدارة المتاجر لنمو استثنائي في مصر والشرق الأوسط.">
+    <meta name="keywords" content="تسويق رقمي, تطوير مواقع, سوشيال ميديا, حلول جاهزة, تكنو فيجن, SEO, تصميم مواقع, استشارات تقنية, تحول رقمي, متجر إلكتروني, شيت جوجل">
     <meta name="author" content="Techno Vision Solutions">
-    
-    <!-- Structured Data -->
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Arabic">
+    <meta name="revisit-after" content="7 days">
+    <!-- استخدام المسار الذي طلبه العميل لـ Canonical -->
+    <link rel="canonical" href="https://77aammaaddaa.github.io/TVS/">
+    <link rel="alternate" hreflang="ar" href="https://77aammaaddaa.github.io/TVS/ar">
+
+    <!-- Open Graph for Social Media Sharing -->
+    <meta property="og:title" content="Techno Vision Solutions - شريكك الأمثل في التحول الرقمي">
+    <meta property="og:description" content="نحول رؤيتك إلى واقع رقمي ملموس. حلول مبتكرة في التسويق، التطوير، رقمنة الأعمال لنمو استثنائي لأعمالك.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://77aammaaddaa.github.io/TVS/">
+    <!-- صورة افتراضية للمشاركة -->
+    <meta property="og:image" content="https://placehold.co/1200x630/FDD835/374151?text=Techno+Vision+Solutions">
+
+    <!-- Structured Data - Organization & Services (Schema Markup) -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "Techno Vision Solutions",
         "alternateName": "تكنو فيجن سوليوشنز",
-        "url": "https://technovision.com",
-        "logo": "https://technovision.com/images/logo.png",
-        "description": "شريكك الاستراتيجي في التحول الرقمي - حلول متكاملة في التسويق الرقمي، التطوير والذكاء الاصطناعي",
+        "url": "https://77aammaaddaa.github.io/TVS/",
+        "logo": "https://placehold.co/60x60/FDD835/374151?text=TVS",
+        "description": "حلول متكاملة في التسويق الرقمي وتطوير الويب ورقمنة الأعمال.",
         "address": {
             "@type": "PostalAddress",
             "addressLocality": "السويس",
@@ -25,895 +40,830 @@
         },
         "contactPoint": {
             "@type": "ContactPoint",
-            "telephone": "+20-1014878034",
-            "contactType": "customer service",
-            "email": "info@technovision.com"
+            "telephone": "+201014878034",
+            "contactType": "Customer Service"
+        },
+        "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "متجر الحلول الجاهزة",
+            "itemListElement": [
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "نظام ادارة عملاء التقسيط والحسابات"
+                    }
+                },
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "إدارة حساب سوشيال ميديا وتصميم المحتوى"
+                    }
+                }
+            ]
         }
     }
     </script>
-
+    
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" xintegrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Configuration and Custom Styles -->
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        'primary': '#2563eb',
-                        'primary-dark': '#1e40af',
-                        'secondary': '#f59e0b',
-                        'accent': '#10b981',
-                        'dark': '#1f2937',
-                        'light': '#f8fafc'
+                        'primary-yellow': '#FDD835', // لون الهوية الأساسي (أصفر/ذهبي)
+                        'secondary-gray': '#374151', // لون رمادي داكن
+                        'dark-bg': '#111827', // خلفية الوضع الداكن
+                        'light-bg': '#F9FAFB', // خلفية الوضع الفاتح
                     },
                     fontFamily: {
-                        'arabic': ['Tahoma', 'Arial', 'sans-serif']
-                    }
+                        sans: ['Inter', 'sans-serif'],
+                    },
                 }
             }
         }
     </script>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
-            --secondary: #f59e0b;
-            --accent: #10b981;
-            --dark: #1f2937;
-            --light: #f8fafc;
-        }
-        
-        * {
-            box-sizing: border-box;
-        }
-        
-        html {
-            scroll-behavior: smooth;
-            scroll-padding-top: 80px;
-        }
-        
+        /* إعدادات خط أساسية للنص العربي لتكون متوافقة وواضحة */
         body {
-            font-family: 'Tahoma', 'Arial', sans-serif;
-            background-color: var(--light);
-            color: var(--dark);
-            line-height: 1.6;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
-        
-        .hero {
-            background: linear-gradient(rgba(30, 64, 175, 0.85), rgba(30, 64, 175, 0.9)), url('https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
-            min-height: 90vh;
+
+        /* تحسين مظهر التمرير (Scrollbar) */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        
-        .nav-link {
-            position: relative;
-            transition: all 0.3s ease;
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
         }
-        
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            right: 0;
-            width: 0;
-            height: 2px;
-            background: var(--secondary);
-            transition: width 0.3s ease;
+        ::-webkit-scrollbar-thumb {
+            background: #FDD835;
+            border-radius: 4px;
         }
-        
-        .nav-link:hover::after {
-            width: 100%;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ffc107;
         }
-        
-        .service-card, .team-card, .product-card {
-            transition: all 0.3s ease;
-            border: 1px solid transparent;
-        }
-        
-        .service-card:hover, .team-card:hover, .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border-color: var(--primary);
-        }
-        
-        .stats-counter {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .chat-container {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 350px;
-            height: 450px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            z-index: 1000;
-            transform: scale(0);
-            transform-origin: bottom left;
-            transition: transform 0.3s ease;
-        }
-        
-        .chat-container.open {
-            transform: scale(1);
-        }
-        
-        .chat-bubble {
-            max-width: 80%;
-            padding: 10px 15px;
-            border-radius: 18px;
-            margin-bottom: 10px;
-            line-height: 1.4;
-        }
-        
-        .chat-bubble.user {
-            background: var(--primary);
-            color: white;
-            align-self: flex-end;
-            margin-left: auto;
-            border-bottom-right-radius: 5px;
-        }
-        
-        .chat-bubble.bot {
-            background: #f1f5f9;
-            color: var(--dark);
-            align-self: flex-start;
-            margin-right: auto;
-            border-bottom-left-radius: 5px;
-        }
-        
+
+        /* تأثير ظهور العناصر (Fade-In) */
         .fade-in {
             opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s ease, transform 0.8s ease;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            will-change: opacity, transform;
         }
-        
-        .fade-in.appear {
+
+        .fade-in.visible {
             opacity: 1;
             transform: translateY(0);
         }
-        
-        @media (max-width: 768px) {
-            .hero {
-                min-height: 70vh;
-            }
-            
-            .stats-counter {
-                font-size: 2.5rem;
-            }
-            
-            .chat-container {
-                width: calc(100vw - 40px);
-                height: 60vh;
-            }
+
+        /* تنسيق خاص لزر الواتساب العائم */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 20px;
+            left: 20px; /* في RTL يكون على اليسار */
+            z-index: 100;
+        }
+        /* تنسيقات عربة التسوق الجانبية */
+        .sidebar-cart {
+            position: fixed;
+            top: 0;
+            left: -320px; /* إخفاء لليسار */
+            width: 320px;
+            height: 100%;
+            z-index: 50;
+            transition: left 0.3s ease-in-out;
+        }
+        .sidebar-cart.open {
+            left: 0; /* إظهار */
+        }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 49;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .sidebar-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* لضمان التناسق في الوضع الداكن */
+        .dark .bg-light-bg {
+            background-color: #111827;
+        }
+        .dark .text-gray-900 {
+            color: #E5E7EB;
         }
     </style>
 </head>
-<body class="font-arabic">
+<body class="bg-light-bg dark:bg-dark-bg text-gray-900 dark:text-gray-200">
 
-    <!-- Header -->
-    <header class="bg-white shadow-lg fixed top-0 w-full z-50">
-        <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-2 space-x-reverse">
-                <div class="bg-primary text-white p-2 rounded-lg">
-                    <i class="fas fa-rocket text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold text-dark">Techno Vision Solutions</h1>
-                    <p class="text-xs text-gray-500">شريكك الاستراتيجي في التحول الرقمي</p>
+    <!-- ملاحظة: ملفات sitemap.xml و robots.txt المشار إليها في هيكل العميل يتم محاكاتها هنا كتعليقات لأن الإخراج يقتصر على ملف واحد -->
+    <!-- sitemap.xml: https://77aammaaddaa.github.io/TVS/sitemap.xml -->
+    <!-- robots.txt: User-agent: * \nAllow: / \nDisallow: /admin/ \nSitemap: https://77aammaaddaa.github.io/TVS/sitemap.xml -->
+
+    <!-- شريط التنقل (Navbar) -->
+    <header class="sticky top-0 z-30 bg-white/90 dark:bg-dark-bg/95 backdrop-blur-sm shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- الشعار (Logo) -->
+                <a href="#hero" class="flex items-center space-x-2 space-x-reverse">
+                    <span class="text-3xl font-extrabold text-primary-yellow">TVS</span>
+                    <span class="text-xl font-bold dark:text-white">تكنو فيجن سوليوشنز</span>
+                </a>
+
+                <!-- قائمة التنقل للديسكتوب -->
+                <nav class="hidden md:flex space-x-8 space-x-reverse font-medium">
+                    <a href="#about" class="text-gray-600 dark:text-gray-400 hover:text-primary-yellow transition duration-150">من نحن</a>
+                    <a href="#services" class="text-gray-600 dark:text-gray-400 hover:text-primary-yellow transition duration-150">خدماتنا</a>
+                    <a href="#store" class="text-gray-600 dark:text-gray-400 hover:text-primary-yellow transition duration-150">المتجر</a>
+                    <a href="#team" class="text-gray-600 dark:text-gray-400 hover:text-primary-yellow transition duration-150">الفريق</a>
+                    <a href="#partners" class="text-gray-600 dark:text-gray-400 hover:text-primary-yellow transition duration-150">شركاؤنا</a>
+                    <a href="#contact" class="text-gray-600 dark:text-gray-400 hover:text-primary-yellow transition duration-150">تواصل معنا</a>
+                </nav>
+
+                <!-- أزرار الوظائف (Cart, Theme Toggle, Menu) -->
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <!-- زر سلة المشتريات -->
+                    <button onclick="toggleSidebarCart()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition relative">
+                        <i class="fas fa-shopping-cart text-gray-600 dark:text-gray-400 text-lg"></i>
+                        <span id="cart-count" class="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full transform translate-x-1/2 -translate-y-1/2">0</span>
+                    </button>
+
+                    <!-- زر الوضع الداكن/الفاتح -->
+                    <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <i id="theme-icon" class="fas fa-sun text-gray-600 dark:text-gray-400 text-lg"></i>
+                    </button>
+
+                    <!-- زر القائمة للجوال -->
+                    <button id="menu-button" class="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <i class="fas fa-bars text-gray-600 dark:text-gray-400 text-lg"></i>
+                    </button>
                 </div>
             </div>
-            
-            <!-- Desktop Navigation -->
-            <ul class="hidden md:flex space-x-6 space-x-reverse">
-                <li><a href="#home" class="nav-link text-dark hover:text-primary font-medium">الرئيسية</a></li>
-                <li><a href="#about" class="nav-link text-dark hover:text-primary font-medium">من نحن</a></li>
-                <li><a href="#services" class="nav-link text-dark hover:text-primary font-medium">الخدمات</a></li>
-                <li><a href="#shop" class="nav-link text-dark hover:text-primary font-medium">المتجر</a></li>
-                <li><a href="#team" class="nav-link text-dark hover:text-primary font-medium">فريق العمل</a></li>
-                <li><a href="#blog" class="nav-link text-dark hover:text-primary font-medium">المدونة</a></li>
-                <li><a href="#contact" class="nav-link text-dark hover:text-primary font-medium">تواصل معنا</a></li>
-            </ul>
-            
-            <!-- Mobile Menu Button -->
-            <button id="mobile-menu-button" class="md:hidden text-dark text-xl">
-                <i class="fas fa-bars"></i>
-            </button>
-        </nav>
-        
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="md:hidden bg-white shadow-lg hidden">
-            <ul class="flex flex-col space-y-4 p-4">
-                <li><a href="#home" class="block py-2 text-dark hover:text-primary font-medium border-b border-gray-100">الرئيسية</a></li>
-                <li><a href="#about" class="block py-2 text-dark hover:text-primary font-medium border-b border-gray-100">من نحن</a></li>
-                <li><a href="#services" class="block py-2 text-dark hover:text-primary font-medium border-b border-gray-100">الخدمات</a></li>
-                <li><a href="#shop" class="block py-2 text-dark hover:text-primary font-medium border-b border-gray-100">المتجر</a></li>
-                <li><a href="#team" class="block py-2 text-dark hover:text-primary font-medium border-b border-gray-100">فريق العمل</a></li>
-                <li><a href="#blog" class="block py-2 text-dark hover:text-primary font-medium border-b border-gray-100">المدونة</a></li>
-                <li><a href="#contact" class="block py-2 text-dark hover:text-primary font-medium">تواصل معنا</a></li>
-            </ul>
+        </div>
+        <!-- قائمة الجوال (Mobile Menu) -->
+        <div id="mobile-menu" class="hidden md:hidden absolute top-16 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg border-t dark:border-gray-700">
+            <a href="#about" class="block py-3 px-4 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-b dark:border-gray-700">من نحن</a>
+            <a href="#services" class="block py-3 px-4 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-b dark:border-gray-700">خدماتنا</a>
+            <a href="#store" class="block py-3 px-4 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-b dark:border-gray-700">المتجر</a>
+            <a href="#team" class="block py-3 px-4 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-b dark:border-gray-700">الفريق</a>
+            <a href="#partners" class="block py-3 px-4 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-b dark:border-gray-700">شركاؤنا</a>
+            <a href="#contact" class="block py-3 px-4 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">تواصل معنا</a>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section id="home" class="hero text-white flex items-center pt-20">
-        <div class="container mx-auto px-4 py-16 text-center">
-            <h1 class="text-4xl md:text-6xl font-black mb-6 leading-tight">شريكك الأمثل في التحول الرقمي</h1>
-            <p class="text-xl md:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed">
-                نحوّل رؤيتك إلى واقع رقمي ملموس. نمنحك أدوات متقدمة في التسويق، التطوير، والذكاء الاصطناعي لتحقيق نمو مستدام وفارق تنافسي.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="#services" class="bg-secondary text-white font-bold py-3 px-8 rounded-full hover:bg-amber-500 transition-colors text-lg">
-                    اكتشف خدماتنا
-                </a>
-                <a href="#contact" class="bg-transparent border-2 border-white text-white font-bold py-3 px-8 rounded-full hover:bg-white hover:text-primary transition-colors text-lg">
-                    تحدث مع خبير الآن
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Why Us Section -->
-    <section id="about" class="py-16 bg-white">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-black text-dark mb-4">نحن خبراء التكنولوجيا والمستقبل</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-                    في <span class="font-bold text-primary">Techno Vision</span>، نؤمن أن التكنولوجيا ليست رفاهية... بل محرّك الأعمال الحديث.
-                </p>
-            </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div>
-                    <p class="text-lg text-gray-700 mb-6 leading-relaxed">
-                        فريقنا يضم خبراء في التطوير، الأتمتة، التسويق الرقمي، وتحليل البيانات، ويعملون بمنهجية تضمن نتائج قابلة للقياس.
+    <main>
+        <!-- قسم البطل (Hero Section) -->
+        <section id="hero" class="py-20 lg:py-32 bg-light-bg dark:bg-dark-bg min-h-[80vh] flex items-center border-b border-gray-200 dark:border-gray-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="max-w-4xl mx-auto">
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight text-gray-900 dark:text-white fade-in">
+                        شريكك الأمثل في <span class="text-primary-yellow">التحول الرقمي</span>
+                    </h1>
+                    <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-8 fade-in" data-delay="300">
+                        نحول رؤيتك إلى واقع رقمي ملموس. حلول مبتكرة في التسويق، التطوير، ورقمنة الأعمال لضمان نمو استثنائي لأعمالك.
                     </p>
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-start gap-3">
-                            <div class="bg-accent text-white p-2 rounded-full mt-1">
-                                <i class="fas fa-check text-sm"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-dark text-lg">حلول برمجية ورقمية مخصصة</h4>
-                                <p class="text-gray-600">نصمم حلولاً تلبي احتياجات عملك بشكل كامل</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start gap-3">
-                            <div class="bg-accent text-white p-2 rounded-full mt-1">
-                                <i class="fas fa-check text-sm"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-dark text-lg">استراتيجيات تسويق قائمة على البيانات</h4>
-                                <p class="text-gray-600">نستخدم البيانات لبناء استراتيجيات تسويقية فعالة</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start gap-3">
-                            <div class="bg-accent text-white p-2 rounded-full mt-1">
-                                <i class="fas fa-check text-sm"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-dark text-lg">ذكاء اصطناعي وتكامل رقمي متقدم</h4>
-                                <p class="text-gray-600">نوظف أحدث تقنيات الذكاء الاصطناعي لتحسين عملك</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start gap-3">
-                            <div class="bg-accent text-white p-2 rounded-full mt-1">
-                                <i class="fas fa-check text-sm"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-dark text-lg">دعم فني ومتابعة مستمرة</h4>
-                                <p class="text-gray-600">نقدم دعماً مستمراً لضمان نجاح مشروعك</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start gap-3">
-                            <div class="bg-accent text-white p-2 rounded-full mt-1">
-                                <i class="fas fa-check text-sm"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-dark text-lg">سرعة في التنفيذ وشفافية في الأداء</h4>
-                                <p class="text-gray-600">نلتزم بمواعيد التسليم ونوفر تقارير أداء شفافة</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-gradient-to-br from-primary to-primary-dark p-8 rounded-2xl text-white">
-                    <h3 class="text-2xl font-black mb-6">إحصائيات الشركة</h3>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="text-center">
-                            <div class="stats-counter mb-2">20+</div>
-                            <p class="font-medium">مشروع ناجح</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="stats-counter mb-2">3</div>
-                            <p class="font-medium">سنوات خبرة</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="stats-counter mb-2">80%</div>
-                            <p class="font-medium">معدل رضا العملاء</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="stats-counter mb-2">5+</div>
-                            <p class="font-medium">خبراء معتمدين</p>
-                        </div>
+                    <div class="flex justify-center space-x-4 space-x-reverse fade-in" data-delay="600">
+                        <a href="#services" class="bg-primary-yellow hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-full transition duration-300 shadow-lg transform hover:scale-105">
+                            اكتشف خدماتنا
+                        </a>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Services Section -->
-    <section id="services" class="py-16 bg-light">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-black text-dark mb-4">خدماتنا الاحترافية</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">نقدم مجموعة متكاملة من الخدمات الرقمية لتلبية جميع احتياجات عملك</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Service 1 -->
-                <div class="service-card bg-white p-8 rounded-2xl shadow-md">
-                    <div class="bg-primary text-white rounded-xl p-4 w-16 h-16 flex items-center justify-center mb-6">
-                        <i class="fas fa-rocket text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-black text-dark mb-4">التسويق الرقمي وتنمية الأعمال</h3>
-                    <ul class="space-y-3 text-gray-700">
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            إدارة الحملات الإعلانية
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            تحسين محركات البحث (SEO)
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            إدارة منصات السوشيال ميديا
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            الخطط التسويقية الشاملة
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            التحليل ومؤشرات الأداء
-                        </li>
-                    </ul>
-                </div>
-                
-                <!-- Service 2 -->
-                <div class="service-card bg-white p-8 rounded-2xl shadow-md">
-                    <div class="bg-primary text-white rounded-xl p-4 w-16 h-16 flex items-center justify-center mb-6">
-                        <i class="fas fa-laptop-code text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-black text-dark mb-4">تطوير المواقع وتطبيقات الويب</h3>
-                    <ul class="space-y-3 text-gray-700">
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            مواقع شركات احترافية
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            متاجر إلكترونية متكاملة
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            أنظمة إدارة تشغيل ومالية
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            تطبيقات ويب متقدمة
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            لوحات تحكم تفاعلية
-                        </li>
-                    </ul>
-                </div>
-                
-                <!-- Service 3 -->
-                <div class="service-card bg-white p-8 rounded-2xl shadow-md">
-                    <div class="bg-primary text-white rounded-xl p-4 w-16 h-16 flex items-center justify-center mb-6">
-                        <i class="fas fa-robot text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-black text-dark mb-4">التحول الرقمي والذكاء الاصطناعي</h3>
-                    <ul class="space-y-3 text-gray-700">
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            أتمتة العمليات والأنظمة
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            دمج أنظمة إدارة العملاء (CRM)
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            حلول تحليل البيانات المتقدمة
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            تحسين تجربة العملاء
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fas fa-check text-accent"></i>
-                            أنظمة ذكاء الأعمال (BI)
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Digital Store Section -->
-    <section id="shop" class="py-16 bg-white">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-black text-dark mb-4">متجر الحلول الرقمية الجاهزة</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">حلول رقمية جاهزة للاستخدام الفوري لتنمية أعمالك</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Product 1 -->
-                <div class="product-card bg-light p-6 rounded-2xl shadow-md">
-                    <div class="bg-primary text-white rounded-xl p-3 w-14 h-14 flex items-center justify-center mb-4">
-                        <i class="fas fa-users text-xl"></i>
-                    </div>
-                    <h3 class="text-xl font-black text-dark mb-2">نظام إدارة العملاء CRM</h3>
-                    <p class="text-gray-700 mb-4">نظام كامل لإدارة العملاء – المبيعات – التذاكر – التقارير</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-2xl font-black text-primary">1,200 ج.م</span>
-                        <button class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors font-medium">
-                            أضف للسلة
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Product 2 -->
-                <div class="product-card bg-light p-6 rounded-2xl shadow-md">
-                    <div class="bg-primary text-white rounded-xl p-3 w-14 h-14 flex items-center justify-center mb-4">
-                        <i class="fas fa-shopping-cart text-xl"></i>
-                    </div>
-                    <h3 class="text-xl font-black text-dark mb-2">حلول التجارة الإلكترونية</h3>
-                    <p class="text-gray-700 mb-4">قالب متجر احترافي شامل الدفع الإلكتروني والتوصيل</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-2xl font-black text-primary">850 ج.م</span>
-                        <button class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors font-medium">
-                            أضف للسلة
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Product 3 -->
-                <div class="product-card bg-light p-6 rounded-2xl shadow-md">
-                    <div class="bg-primary text-white rounded-xl p-3 w-14 h-14 flex items-center justify-center mb-4">
-                        <i class="fas fa-chart-bar text-xl"></i>
-                    </div>
-                    <h3 class="text-xl font-black text-dark mb-2">نظام التقارير والتحليلات</h3>
-                    <p class="text-gray-700 mb-4">منصة متكاملة لتقارير الأداء والتحليلات المتقدمة</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-2xl font-black text-primary">1,500 ج.م</span>
-                        <button class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors font-medium">
-                            أضف للسلة
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Team Section -->
-    <section id="team" class="py-16 bg-light">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-black text-dark mb-4">فريقنا المحترف</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">فريق من الخبراء المتميزين لتحقيق رؤيتك الرقمية</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <!-- Team Member 1 -->
-                <div class="team-card bg-white p-6 rounded-2xl shadow-md text-center">
-                    <div class="w-32 h-32 rounded-full bg-gray-200 mx-auto mb-4 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="يوسف عبده" class="w-full h-full object-cover">
-                    </div>
-                    <h3 class="text-xl font-black text-dark mb-1">يوسف عبده</h3>
-                    <p class="text-primary font-medium mb-3">الرئيس التنفيذي (CEO)</p>
-                    <p class="text-gray-700 text-sm">قيادة استراتيجية ورؤية مستقبلية لتوجيه الشركة نحو التميز</p>
-                </div>
-                
-                <!-- Team Member 2 -->
-                <div class="team-card bg-white p-6 rounded-2xl shadow-md text-center">
-                    <div class="w-32 h-32 rounded-full bg-gray-200 mx-auto mb-4 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="محمد خالد" class="w-full h-full object-cover">
-                    </div>
-                    <h3 class="text-xl font-black text-dark mb-1">محمد خالد</h3>
-                    <p class="text-primary font-medium mb-3">مدير التسويق الرقمي (CMO)</p>
-                    <p class="text-gray-700 text-sm">خبير SEO وحملات Performance لتحقيق أعلى عائد على الاستثمار</p>
-                </div>
-                
-                <!-- Team Member 3 -->
-                <div class="team-card bg-white p-6 rounded-2xl shadow-md text-center">
-                    <div class="w-32 h-32 rounded-full bg-gray-200 mx-auto mb-4 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="نورهان تامر" class="w-full h-full object-cover">
-                    </div>
-                    <h3 class="text-xl font-black text-dark mb-1">نورهان تامر</h3>
-                    <p class="text-primary font-medium mb-3">مديرة الإبداع (Creative Director)</p>
-                    <p class="text-gray-700 text-sm">مصممة رقمية ومالتي ميديا لإنشاء هوية بصرية متميزة</p>
-                </div>
-                
-                <!-- Team Member 4 -->
-                <div class="team-card bg-white p-6 rounded-2xl shadow-md text-center">
-                    <div class="w-32 h-32 rounded-full bg-gray-200 mx-auto mb-4 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="حبيبة أشرف" class="w-full h-full object-cover">
-                    </div>
-                    <h3 class="text-xl font-black text-dark mb-1">حبيبة أشرف</h3>
-                    <p class="text-primary font-medium mb-3">مديرة العلاقات العامة (PR Manager)</p>
-                    <p class="text-gray-700 text-sm">تحليل عملاء وبناء حملات تفاعل لتعزيز حضور العلامة التجارية</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Clients Section -->
-    <section class="py-16 bg-white">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-black text-dark mb-4">شركاء النجاح</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">نفخر بشراكتنا مع علامات تجارية رائدة في مختلف المجالات</p>
-            </div>
-            
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
-                <div class="bg-light p-6 rounded-xl flex items-center justify-center h-24">
-                    <span class="font-bold text-dark text-center">مكانك ستور</span>
-                </div>
-                <div class="bg-light p-6 rounded-xl flex items-center justify-center h-24">
-                    <span class="font-bold text-dark text-center">وزير السعادة</span>
-                </div>
-                <div class="bg-light p-6 rounded-xl flex items-center justify-center h-24">
-                    <span class="font-bold text-dark text-center">سنتر عبدالله</span>
-                </div>
-                <div class="bg-light p-6 rounded-xl flex items-center justify-center h-24">
-                    <span class="font-bold text-dark text-center">جروسري الزراير</span>
-                </div>
-                <div class="bg-light p-6 rounded-xl flex items-center justify-center h-24">
-                    <span class="font-bold text-dark text-center">صناع المستقبل</span>
-                </div>
-                <div class="bg-light p-6 rounded-xl flex items-center justify-center h-24">
-                    <span class="font-bold text-dark text-center">ام اتش فور تك</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Blog Section -->
-    <section id="blog" class="py-16 bg-light">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-black text-dark mb-4">آخر مقالات المدونة</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">أحدث insights ونصائح في عالم التكنولوجيا والتحول الرقمي</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Blog Post 1 -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-                    <div class="h-48 bg-gradient-to-r from-primary to-primary-dark"></div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-black text-dark mb-3">مستقبل الذكاء الاصطناعي في الأعمال</h3>
-                        <p class="text-gray-700 mb-4">كيف سيغير الذكاء الاصطناعي طريقة عمل الشركات في المستقبل القريب</p>
-                        <a href="#" class="text-primary font-medium hover:text-primary-dark transition-colors">اقرأ المزيد →</a>
-                    </div>
-                </div>
-                
-                <!-- Blog Post 2 -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-                    <div class="h-48 bg-gradient-to-r from-secondary to-amber-500"></div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-black text-dark mb-3">أفضل استراتيجيات التسويق الرقمي 2025</h3>
-                        <p class="text-gray-700 mb-4">استراتيجيات فعالة لتحقيق النجاح في التسويق الرقمي العام القادم</p>
-                        <a href="#" class="text-primary font-medium hover:text-primary-dark transition-colors">اقرأ المزيد →</a>
-                    </div>
-                </div>
-                
-                <!-- Blog Post 3 -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-                    <div class="h-48 bg-gradient-to-r from-accent to-emerald-500"></div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-black text-dark mb-3">كيفية بناء متجر إلكتروني ناجح</h3>
-                        <p class="text-gray-700 mb-4">خطوات عملية لإنشاء متجر إلكتروني يحقق مبيعات مستمرة</p>
-                        <a href="#" class="text-primary font-medium hover:text-primary-dark transition-colors">اقرأ المزيد →</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="text-center mt-12">
-                <a href="#" class="bg-primary text-white font-bold py-3 px-8 rounded-full hover:bg-primary-dark transition-colors text-lg">
-                    عرض جميع المقالات
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact" class="py-16 bg-white">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-black text-dark mb-4">تواصل معنا</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">نحن هنا لمساعدتك في رحلة التحول الرقمي</p>
-            </div>
-            
-            <div class="max-w-2xl mx-auto bg-light p-8 rounded-2xl shadow-md">
-                <form class="space-y-6">
+        <!-- قسم من نحن (About Us Section) -->
+        <section id="about" class="py-20 lg:py-28 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
+                    <!-- النص والمميزات -->
                     <div>
-                        <label for="name" class="block text-dark font-medium mb-2">الاسم الكامل</label>
-                        <input type="text" id="name" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <span class="text-primary-yellow font-semibold uppercase text-sm mb-2 block fade-in" data-delay="200">الرؤية والخبرة</span>
+                        <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-6 fade-in" data-delay="400">نحن خبراء التكنولوجيا والمستقبل</h2>
+                        <p class="text-gray-600 dark:text-gray-400 mb-6 text-lg fade-in" data-delay="600">
+                            في تكنو فيجن، نؤمن بأن التكنولوجيا هي المفتاح لفتح إمكانيات لا محدودة لأعمالك. فريقنا يضم نخبة من المهندسين، المسوقين الرقميين، وخبراء التقنية الذين يعملون بتفانٍ لتقديم حلول متكاملة تضمن لك التفوق في السوق التنافسي.
+                        </p>
+                        
+                        <!-- قائمة المميزات -->
+                        <ul class="space-y-4 text-gray-700 dark:text-gray-300 fade-in" data-delay="800">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary-yellow mt-1 ml-3 text-xl"></i>
+                                <span class="text-base">حلول برمجية ورقمية مبتكرة ومخصصة.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary-yellow mt-1 ml-3 text-xl"></i>
+                                <span class="text-base">استراتيجيات تسويق رقمي قائمة على البيانات.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary-yellow mt-1 ml-3 text-xl"></i>
+                                <span class="text-base">تكامل سلس لتقنيات رقمنة الأعمال.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary-yellow mt-1 ml-3 text-xl"></i>
+                                <span class="text-base">إدارة فعالة لجميع عمليات التحول الرقمي.</span>
+                            </li>
+                        </ul>
                     </div>
                     
-                    <div>
-                        <label for="email" class="block text-dark font-medium mb-2">البريد الإلكتروني</label>
-                        <input type="email" id="email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <!-- الصورة التوضيحية -->
+                    <div class="mt-10 lg:mt-0 fade-in" data-delay="1000">
+                        <img src="https://placehold.co/800x600/374151/FDD835?text=Experts+Working" alt="صورة توضيحية لخبراء يعملون على مشاريع رقمية" class="rounded-xl shadow-2xl w-full h-auto">
                     </div>
-                    
-                    <div>
-                        <label for="message" class="block text-dark font-medium mb-2">الرسالة</label>
-                        <textarea id="message" rows="5" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
-                    </div>
-                    
-                    <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-lg hover:bg-primary-dark transition-colors text-lg">
-                        أرسل الآن
-                    </button>
-                </form>
-            </div>
-        </div>
-    </section>
+                </div>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-12">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                <!-- Company Info -->
-                <div class="md:col-span-2">
-                    <div class="flex items-center space-x-2 space-x-reverse mb-4">
-                        <div class="bg-secondary text-dark p-2 rounded-lg">
-                            <i class="fas fa-rocket text-xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-black">Techno Vision Solutions</h3>
+                <!-- إحصائيات الشركة -->
+                <div id="stats" class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center mt-16 fade-in" data-delay="1200">
+                    <div class="p-4 bg-light-bg dark:bg-gray-800 rounded-lg shadow-xl">
+                        <span class="text-5xl font-extrabold text-primary-yellow stats-counter">50+</span>
+                        <p class="text-md text-gray-500 dark:text-gray-400 mt-2">مشروع ناجح</p>
                     </div>
-                    <p class="text-gray-300 mb-6 max-w-md">
-                        نساعد الشركات على تحقيق أعلى قيمة عبر حلول رقمية مبتكرة. شريكك الاستراتيجي في رحلة التحول الرقمي.
+                    <div class="p-4 bg-light-bg dark:bg-gray-800 rounded-lg shadow-xl">
+                        <span class="text-5xl font-extrabold text-primary-yellow stats-counter">4</span>
+                        <p class="text-md text-gray-500 dark:text-gray-400 mt-2">أعوام من الخبرة</p>
+                    </div>
+                    <div class="p-4 bg-light-bg dark:bg-gray-800 rounded-lg shadow-xl">
+                        <span class="text-5xl font-extrabold text-primary-yellow stats-counter-percent">80%</span>
+                        <p class="text-md text-gray-500 dark:text-gray-400 mt-2">رضا العملاء</p>
+                    </div>
+                    <div class="p-4 bg-light-bg dark:bg-gray-800 rounded-lg shadow-xl">
+                        <span class="text-5xl font-extrabold text-primary-yellow stats-counter">5+</span>
+                        <p class="text-md text-gray-500 dark:text-gray-400 mt-2">خبير ومطور</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- قسم الخدمات (Services Section) -->
+        <section id="services" class="py-20 lg:py-28 bg-light-bg dark:bg-dark-bg border-b border-gray-200 dark:border-gray-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-4 fade-in">خدماتنا الاحترافية</h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto fade-in" data-delay="200">
+                        نقدم مجموعة متكاملة من الخدمات لضمان حضورك الرقمي الفعّال ونمو أعمالك.
+                    </p>
+                </div>
+                
+                <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+                    
+                    <!-- البطاقة الأولى: التسويق الرقمي -->
+                    <div class="p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 transform hover:-translate-y-1 fade-in" data-delay="400">
+                        <div class="text-5xl text-primary-yellow mb-4"><i class="fas fa-rocket"></i></div>
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">التسويق الرقمي وتنمية الأعمال</h3>
+                        <p class="text-gray-600 dark:text-gray-400">استراتيجيات نمو شاملة، تحسين محركات البحث، إدارة الحملات الإعلانية المدفوعة، وتسويق المحتوى الهادف.</p>
+                    </div>
+
+                    <!-- البطاقة الثانية: تطوير المواقع -->
+                    <div class="p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 transform hover:-translate-y-1 fade-in" data-delay="600">
+                        <div class="text-5xl text-primary-yellow mb-4"><i class="fas fa-code"></i></div>
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">تطوير المواقع وتطبيقات الويب المخصصة</h3>
+                        <p class="text-gray-600 dark:text-gray-400">تصميم وبناء مواقع عصرية، متجاوبة، وسريعة، بما في ذلك المتاجر الإلكترونية والتطبيقات الداخلية.</p>
+                    </div>
+
+                    <!-- البطاقة الثالثة: التحول الرقمي -->
+                    <div class="p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 transform hover:-translate-y-1 fade-in" data-delay="800">
+                        <div class="text-5xl text-primary-yellow mb-4"><i class="fas fa-robot"></i></div>
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">تكامل وخدمات التحول الرقمي لإدارة الأعمال</h3>
+                        <p class="text-gray-600 dark:text-gray-400">رقمنة العمليات، دمج الأنظمة، وأتمتة المهام الإدارية لزيادة الكفاءة وتقليل التكاليف.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- قسم المتجر (Store Section) - الحلول الجاهزة -->
+        <section id="store" class="py-20 lg:py-28 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-4 fade-in">متجرنا للحلول الجاهزة</h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto fade-in" data-delay="200">
+                        اقتنص الفرصة مع باقاتنا المسبقة الصنع والحلول البرمجية الجاهزة التي تمكنك من الانطلاق بسرعة وكفاءة عالية.
+                    </p>
+                </div>
+                
+                <div id="product-list" class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- سيتم ملء هذا القسم بواسطة JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- قسم الفريق (Team Section) -->
+        <section id="team" class="py-20 lg:py-28 bg-light-bg dark:bg-dark-bg border-b border-gray-200 dark:border-gray-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-4 fade-in">فريقنا الملهم</h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto fade-in" data-delay="200">
+                        خبراء متخصصون ملتزمون بتحويل رؤيتك إلى واقع رقمي.
+                    </p>
+                </div>
+
+                <div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-8">
+                    
+                    <!-- العضو 1: يوسف عبده -->
+                    <div class="text-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 fade-in" data-delay="400">
+                        <div class="w-24 h-24 mx-auto mb-4 bg-primary-yellow/20 dark:bg-primary-yellow/30 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-secondary-gray dark:text-gray-900" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">يوسف عبده</h3>
+                        <p class="text-sm text-primary-yellow mb-3">الرئيس التنفيذي</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">قيادة استراتيجية ورؤية مستقبلية.</p>
+                        <a href="#" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-yellow font-medium transition">المزيد <i class="fas fa-arrow-left text-xs mr-1"></i></a>
+                    </div>
+
+                    <!-- العضو 2: محمد خالد -->
+                    <div class="text-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 fade-in" data-delay="600">
+                        <div class="w-24 h-24 mx-auto mb-4 bg-primary-yellow/20 dark:bg-primary-yellow/30 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-secondary-gray dark:text-gray-900" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15.5V9h2v8.5h-2zm0-9.5v-2h2v2h-2z"/></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">محمد خالد</h3>
+                        <p class="text-sm text-primary-yellow mb-3">مديرة التسويق الرقمي</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">خبيرة في SEO والحملات الإعلانية.</p>
+                        <a href="#" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-yellow font-medium transition">المزيد <i class="fas fa-arrow-left text-xs mr-1"></i></a>
+                    </div>
+
+                    <!-- العضو 3: نورهان تامر -->
+                    <div class="text-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 fade-in" data-delay="800">
+                        <div class="w-24 h-24 mx-auto mb-4 bg-primary-yellow/20 dark:bg-primary-yellow/30 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-secondary-gray dark:text-gray-900" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.5 13.5v-7h3v7h-3zm-2.5-1.5v-4h1v4h-1zm5 0v-4h1v4h-1z"/></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">نورهان تامر</h3>
+                        <p class="text-sm text-primary-yellow mb-3">مديرة الإبداع</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">فنانة رقمية مبدعة في تصميم المحتوى.</p>
+                        <a href="#" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-yellow font-medium transition">المزيد <i class="fas fa-arrow-left text-xs mr-1"></i></a>
+                    </div>
+                    
+                    <!-- العضو 4: حبيبه اشرف -->
+                    <div class="text-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 fade-in" data-delay="1000">
+                        <div class="w-24 h-24 mx-auto mb-4 bg-primary-yellow/20 dark:bg-primary-yellow/30 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-secondary-gray dark:text-gray-900" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 2c-2.7 0-7 1.35-7 4v2h14v-2c0-2.65-4.3-4-7-4z"/></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">حبيبه اشرف</h3>
+                        <p class="text-sm text-primary-yellow mb-3">مديرة العلاقات العامة</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">خلق رؤى ذكية من بيانات العملاء وخدمتهم.</p>
+                        <a href="#" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-yellow font-medium transition">المزيد <i class="fas fa-arrow-left text-xs mr-1"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- قسم الشركاء (Partners Section) -->
+        <section id="partners" class="py-16 lg:py-24 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white mb-4 fade-in">شركاء نجاحنا</h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-400 fade-in" data-delay="200">
+                        نفخر بالعمل مع هذه الشركات الرائدة لتحقيق أهدافهم الرقمية.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap justify-center items-center gap-x-10 gap-y-8 opacity-80 fade-in" data-delay="400">
+                    <!-- لوجو 1: مكانك ستور مصر -->
+                    <div class="p-3">
+                        <img src="https://placehold.co/120x60/FDD835/111827?text=Makanak+Store+EG" alt="شعار مكانك ستور مصر" class="h-10 sm:h-12 grayscale hover:grayscale-0 transition duration-300">
+                    </div>
+                    <!-- لوجو 2: مكانك ستور السعودية -->
+                    <div class="p-3">
+                        <img src="https://placehold.co/120x60/374151/FDD835?text=Makanak+Store+KSA" alt="شعار مكانك ستور السعودية" class="h-10 sm:h-12 grayscale hover:grayscale-0 transition duration-300">
+                    </div>
+                    <!-- لوجو 3: وزير السعادة -->
+                    <div class="p-3">
+                        <img src="https://placehold.co/120x60/FDD835/111827?text=Wazeer+Saadah" alt="شعار وزير السعادة" class="h-10 sm:h-12 grayscale hover:grayscale-0 transition duration-300">
+                    </div>
+                    <!-- لوجو 4: سنتر عبدالله -->
+                    <div class="p-3">
+                        <img src="https://placehold.co/120x60/374151/FDD835?text=Center+Abdullah" alt="شعار سنتر عبدالله" class="h-10 sm:h-12 grayscale hover:grayscale-0 transition duration-300">
+                    </div>
+                    <!-- لوجو 5: جروسري بقالة الزراير -->
+                    <div class="p-3">
+                        <img src="https://placehold.co/120x60/FDD835/111827?text=Grocery+Zarayir" alt="شعار جروسري بقالة الزراير" class="h-10 sm:h-12 grayscale hover:grayscale-0 transition duration-300">
+                    </div>
+                    <!-- لوجو 6: صناع المستقبل -->
+                    <div class="p-3">
+                        <img src="https://placehold.co/120x60/374151/FDD835?text=Future+Makers" alt="شعار صناع المستقبل" class="h-10 sm:h-12 grayscale hover:grayscale-0 transition duration-300">
+                    </div>
+                    <!-- لوجو 7: ام اتش فور تك -->
+                    <div class="p-3">
+                        <img src="https://placehold.co/120x60/FDD835/111827?text=MH4+Tech" alt="شعار ام اتش فور تك" class="h-10 sm:h-12 grayscale hover:grayscale-0 transition duration-300">
+                    </div>
+                    <!-- لوجو 8: القبطان كافيه -->
+                    <div class="p-3">
+                        <img src="https://placehold.co/120x60/374151/FDD835?text=Captain+Cafe" alt="شعار القبطان كافيه" class="h-10 sm:h-12 grayscale hover:grayscale-0 transition duration-300">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- قسم تواصل معنا (Contact Section) -->
+        <section id="contact" class="py-20 lg:py-28 bg-light-bg dark:bg-dark-bg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-4 fade-in">تواصل معنا اليوم</h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto fade-in" data-delay="200">
+                        لنتحدث عن فكرتك. املأ النموذج وسنقوم بالرد عليك في أقرب وقت.
+                    </p>
+                </div>
+                
+                <div class="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl fade-in" data-delay="400">
+                    <form id="contact-form" class="space-y-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">الاسم الكامل</label>
+                            <input type="text" id="name" name="name" required class="mt-1 block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-primary-yellow focus:border-primary-yellow dark:bg-gray-700 dark:text-white transition">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">البريد الإلكتروني</label>
+                            <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-primary-yellow focus:border-primary-yellow dark:bg-gray-700 dark:text-white transition">
+                        </div>
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300">الرسالة</label>
+                            <textarea id="message" name="message" rows="4" required class="mt-1 block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-primary-yellow focus:border-primary-yellow dark:bg-gray-700 dark:text-white transition"></textarea>
+                        </div>
+                        <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-gray-900 bg-primary-yellow hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-yellow transition duration-300 transform hover:scale-[1.01]">
+                            أرسل الرسالة الآن
+                        </button>
+                    </form>
+
+                    <!-- رسالة التأكيد (Modal) -->
+                    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+                        <div class="bg-white dark:bg-gray-700 p-8 rounded-xl shadow-2xl text-center max-w-sm mx-4">
+                            <i class="fas fa-check-circle text-6xl text-primary-yellow mb-4"></i>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">تم الإرسال بنجاح!</h3>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">نشكرك على تواصلك معنا، سيقوم فريقنا بالرد عليك في أقرب وقت ممكن.</p>
+                            <button id="close-modal" class="bg-primary-yellow hover:bg-yellow-600 text-gray-900 font-bold py-2 px-6 rounded-full transition">
+                                إغلاق
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- تذييل الصفحة (Footer) -->
+    <footer class="bg-secondary-gray dark:bg-gray-950 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 border-b border-gray-700 pb-8 mb-8">
+                <!-- العمود 1: الشعار والوصف -->
+                <div class="col-span-2 md:col-span-1">
+                    <h4 class="text-xl font-bold text-primary-yellow mb-4">TVS</h4>
+                    <p class="text-sm text-gray-400 mb-4">
+                        نعمل على تمكين الشركات والأعمال الصغيرة والمتوسطة من تحقيق أقصى إمكانياتها في العصر الرقمي من خلال الابتكار والجودة.
                     </p>
                     <div class="flex space-x-4 space-x-reverse">
-                        <a href="#" class="bg-gray-700 text-white p-3 rounded-full hover:bg-primary transition-colors">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="bg-gray-700 text-white p-3 rounded-full hover:bg-primary transition-colors">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="bg-gray-700 text-white p-3 rounded-full hover:bg-primary transition-colors">
-                            <i class="fab fa-linkedin-in"></i>
-                        </a>
-                        <a href="#" class="bg-gray-700 text-white p-3 rounded-full hover:bg-primary transition-colors">
-                            <i class="fab fa-instagram"></i>
-                        </a>
+                        <a href="#" class="text-gray-400 hover:text-primary-yellow transition" aria-label="فيسبوك"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-primary-yellow transition" aria-label="تويتر"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-primary-yellow transition" aria-label="لينكد إن"><i class="fab fa-linkedin-in"></i></a>
                     </div>
                 </div>
-                
-                <!-- Quick Links -->
+                <!-- العمود 2: روابط سريعة -->
                 <div>
-                    <h4 class="text-lg font-black mb-4">روابط سريعة</h4>
-                    <ul class="space-y-2">
-                        <li><a href="#about" class="text-gray-300 hover:text-white transition-colors">من نحن</a></li>
-                        <li><a href="#services" class="text-gray-300 hover:text-white transition-colors">الخدمات</a></li>
-                        <li><a href="#shop" class="text-gray-300 hover:text-white transition-colors">المتجر</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">سياسة الخصوصية</a></li>
-                        <li><a href="#contact" class="text-gray-300 hover:text-white transition-colors">اتصل بنا</a></li>
+                    <h4 class="text-lg font-semibold mb-4">روابط سريعة</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#about" class="text-gray-400 hover:text-primary-yellow transition">من نحن</a></li>
+                        <li><a href="#services" class="text-gray-400 hover:text-primary-yellow transition">خدماتنا</a></li>
+                        <li><a href="#store" class="text-gray-400 hover:text-primary-yellow transition">المتجر</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-yellow transition">سياسة الخصوصية</a></li>
                     </ul>
                 </div>
-                
-                <!-- Contact Info -->
+                <!-- العمود 3: معلومات الاتصال -->
                 <div>
-                    <h4 class="text-lg font-black mb-4">معلومات الاتصال</h4>
-                    <div class="space-y-3">
-                        <div class="flex items-start gap-3">
-                            <i class="fas fa-envelope text-secondary mt-1"></i>
-                            <a href="mailto:info@technovision.com" class="text-gray-300 hover:text-white transition-colors">info@technovision.com</a>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <i class="fas fa-phone text-secondary mt-1"></i>
-                            <a href="tel:+201014878034" class="text-gray-300 hover:text-white transition-colors">+20 101 487 8034</a>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <i class="fas fa-map-marker-alt text-secondary mt-1"></i>
-                            <span class="text-gray-300">السويس – مصر</span>
-                        </div>
-                    </div>
+                    <h4 class="text-lg font-semibold mb-4">اتصل بنا</h4>
+                    <address class="text-sm text-gray-400 not-italic space-y-3">
+                        <span class="flex items-center space-x-2 space-x-reverse"><i class="fas fa-envelope text-primary-yellow"></i> <a href="mailto:info@technovision.com" class="hover:text-primary-yellow transition">info@technovision.com</a></span>
+                        <span class="flex items-center space-x-2 space-x-reverse"><i class="fas fa-phone text-primary-yellow"></i> <a href="tel:+01014878034" class="hover:text-primary-yellow transition">+01014878034</a></span>
+                        <span class="flex items-start space-x-2 space-x-reverse"><i class="fas fa-map-marker-alt text-primary-yellow mt-1"></i> <span>مصر، السويس</span></span>
+                    </address>
+                </div>
+                <!-- العمود 4: النشرة البريدية -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">اشترك في نشرتنا</h4>
+                    <form id="newsletter-form">
+                        <input type="email" placeholder="بريدك الإلكتروني" required class="w-full p-2 mb-3 rounded-lg text-sm bg-gray-700 text-white border border-gray-600 focus:border-primary-yellow focus:ring-primary-yellow">
+                        <button type="submit" class="w-full py-2 bg-primary-yellow hover:bg-yellow-600 text-gray-900 rounded-lg font-bold text-sm transition">
+                            اشترك
+                        </button>
+                    </form>
                 </div>
             </div>
             
-            <div class="border-t border-gray-700 pt-8 text-center">
-                <p class="text-gray-400">
-                    © 2025 Techno Vision Solutions — جميع الحقوق محفوظة
-                </p>
+            <div class="text-center text-sm text-gray-400">
+                &copy; <span id="current-year">2025</span> Techno Vision Solutions. جميع الحقوق محفوظة.
             </div>
         </div>
     </footer>
 
-    <!-- AI Assistant Widget -->
-    <div id="chat-bubble" class="fixed bottom-6 left-6 bg-primary text-white p-4 rounded-full shadow-2xl cursor-pointer z-40" onclick="toggleChatbot()">
-        <i class="fas fa-robot text-2xl"></i>
-    </div>
+    <!-- زر الصعود للأعلى (Back to Top Button) -->
+    <button id="back-to-top" class="fixed bottom-20 right-6 p-3 bg-primary-yellow text-gray-900 rounded-full shadow-lg opacity-0 transition-opacity duration-300 z-40 hover:bg-yellow-600">
+        <i class="fas fa-arrow-up"></i>
+    </button>
     
-    <div id="chat-container" class="chat-container">
-        <div class="bg-primary text-white p-4 font-bold flex justify-between items-center">
-            <span>مساعد Techno Vision الذكي</span>
-            <button onclick="toggleChatbot()" class="text-white text-xl">&times;</button>
+    <!-- زر الواتساب العائم (Floating WhatsApp Button) -->
+    <a href="https://wa.me/201014878034?text=أهلاً بك! كيف يمكنني مساعدتك في التحول الرقمي اليوم؟" target="_blank" class="whatsapp-float p-3 bg-green-500 text-white rounded-full shadow-xl transition transform hover:scale-110" aria-label="تواصل معنا عبر واتساب">
+        <i class="fab fa-whatsapp text-3xl"></i>
+    </a>
+    
+    <!-- عربة التسوق الجانبية (Sidebar Cart) -->
+    <div id="sidebar-cart-overlay" onclick="toggleSidebarCart()" class="sidebar-overlay"></div>
+    <div id="sidebar-cart" class="sidebar-cart bg-white dark:bg-gray-800 shadow-2xl flex flex-col">
+        <div class="p-4 flex justify-between items-center border-b dark:border-gray-700">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white">سلة المشتريات</h3>
+            <button onclick="toggleSidebarCart()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                <i class="fas fa-times text-gray-600 dark:text-gray-400"></i>
+            </button>
         </div>
-        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto">
-            <div class="chat-bubble bot">
-                أهلاً بك! كيف يمكنني مساعدتك في التحول الرقمي اليوم؟
-            </div>
+        
+        <div id="cart-items-container" class="flex-grow p-4 overflow-y-auto space-y-4">
+            <!-- سيتم إضافة عناصر السلة هنا -->
+            <p id="empty-cart-message" class="text-center text-gray-500 dark:text-gray-400">سلتك فارغة حالياً.</p>
         </div>
-        <div class="p-4 border-t border-gray-200">
-            <div class="flex space-x-2 space-x-reverse">
-                <input type="text" id="chat-input" placeholder="اكتب رسالتك هنا..." class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-                <button id="chat-send" class="bg-primary text-white p-3 rounded-lg hover:bg-primary-dark transition-colors">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+        
+        <div class="p-4 border-t dark:border-gray-700">
+            <div class="flex justify-between font-bold text-lg mb-4">
+                <span>الإجمالي:</span>
+                <span id="cart-total" class="text-primary-yellow">0 ج.م</span>
             </div>
+            <button onclick="checkout()" class="w-full py-3 bg-primary-yellow hover:bg-yellow-600 text-gray-900 rounded-lg font-bold transition">
+                إتمام الطلب
+            </button>
         </div>
     </div>
 
+
     <script>
-        // Mobile Menu Toggle
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            document.getElementById('mobile-menu').classList.toggle('hidden');
-        });
+        // مصفوفة المنتجات (تم تعريفها هنا لسهولة الوصول إليها في JavaScript)
+        const products = [
+            { id: 1, name: "نظام ادارة عملاء التقسيط والتحصيل والحسابات", price: 1500, period: "/ شهر", icon: 'fas fa-file-invoice-dollar', description: "نظام متكامل مبني على جوجل شيت لإدارة العملاء والمدفوعات والحسابات." },
+            { id: 2, name: "خدمات ادارة 1 حساب سوشيال ميديا (15 تصميم)", price: 3000, period: "/ شهر", icon: 'fas fa-bullhorn', description: "إدارة شاملة لحساب واحد مع 15 تصميم محتوى (10 بوست + 5 ستوري)." },
+            { id: 3, name: "خدمات ادارة 1 حساب سوشيال ميديا (15 تصميم + 2 ريلز)", price: 5000, period: "/ شهر", icon: 'fas fa-video', description: "إدارة شاملة مع تصاميم احترافية وإضافة 2 فيديو ريلز مدة 1 دقيقة." },
+            { id: 4, name: "3 فيديو برومو لنشاطك التجاري", price: 2500, period: "/ مرة واحدة", icon: 'fas fa-film', description: "تصميم 3 فيديوهات ترويجية قصيرة عالية الجودة لنشاطك التجاري." },
+            { id: 5, name: "ادارة متجر التجارة الإلكترونية", price: 5000, period: "/ شهر", icon: 'fas fa-store', description: "إدارة يومية كاملة لمتجرك الإلكتروني (منتجات، طلبات، مخزون)." },
+            { id: 6, name: "انشاء متجر الكتروني احترافي", price: 10000, period: "/ مرة واحدة", icon: 'fas fa-laptop-code', description: "إنشاء متجر إلكتروني احترافي متكامل وجاهز للانطلاق." },
+            { id: 7, name: "تقرير مالي شامل (شيت جوجل)", price: 500, period: "/ شهر", icon: 'fas fa-chart-pie', description: "تقرير مالي شهري شامل ومفصل باستخدام قوالب شيت جوجل مخصصة." },
+        ];
         
-        // Close mobile menu when clicking on a link
-        document.querySelectorAll('#mobile-menu a').forEach(link => {
-            link.addEventListener('click', () => {
-                document.getElementById('mobile-menu').classList.add('hidden');
-            });
-        });
-        
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-        
-        // Chatbot functionality
-        function toggleChatbot() {
-            document.getElementById('chat-container').classList.toggle('open');
-        }
-        
-        document.getElementById('chat-send').addEventListener('click', sendMessage);
-        document.getElementById('chat-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-        
-        function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const message = input.value.trim();
-            
-            if (message === '') return;
-            
-            // Add user message
-            const userMessage = document.createElement('div');
-            userMessage.className = 'chat-bubble user';
-            userMessage.textContent = message;
-            document.getElementById('chat-messages').appendChild(userMessage);
-            
-            // Clear input
-            input.value = '';
-            
-            // Scroll to bottom
-            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
-            
-            // Simulate bot response
-            setTimeout(() => {
-                const botResponse = document.createElement('div');
-                botResponse.className = 'chat-bubble bot';
-                
-                // Simple response logic
-                if (message.includes('خدمات') || message.includes('service')) {
-                    botResponse.textContent = 'نقدم خدمات متكاملة في التسويق الرقمي، تطوير المواقع، والذكاء الاصطناعي. أي خدمة تهتم بمعرفة المزيد عنها؟';
-                } else if (message.includes('سعر') || message.includes('تكلفة') || message.includes('price')) {
-                    botResponse.textContent = 'أسعار خدماتنا تختلف حسب المتطلبات. يمكنك زيارة قسم "المتجر" لمعرفة أسعار الحلول الجاهزة، أو التواصل معنا لعرض سعر مخصص.';
-                } else if (message.includes('اتصال') || message.includes('contact')) {
-                    botResponse.textContent = 'يمكنك التواصل معنا عبر البريد info@technovision.com أو الهاتف +201014878034. أو املأ نموذج الاتصال وسنرد عليك قريباً.';
-                } else {
-                    botResponse.textContent = 'شكراً لاستفسارك! للأسف لا أستطيع الإجابة على هذا السؤال حالياً. يرجى التواصل مع فريقنا عبر نموذج الاتصال للحصول على مساعدة متخصصة.';
-                }
-                
-                document.getElementById('chat-messages').appendChild(botResponse);
-                document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
-            }, 1000);
-        }
-        
-        // Animate stats counters
-        function animateCounter(element, target, duration) {
-            let start = 0;
-            const increment = target / (duration / 16); // 60fps
-            
-            const updateCounter = () => {
-                start += increment;
-                if (start < target) {
-                    element.textContent = Math.floor(start) + (element.textContent.includes('+') ? '+' : '');
-                    requestAnimationFrame(updateCounter);
-                } else {
-                    element.textContent = target + (element.textContent.includes('+') ? '+' : '');
-                }
-            };
-            
-            updateCounter();
-        }
-        
-        // Intersection Observer for animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('appear');
-                    
-                    // Animate stats if this is the stats section
-                    if (entry.target.id === 'about') {
-                        setTimeout(() => {
-                            document.querySelectorAll('.stats-counter').forEach(counter => {
-                                let target;
-                                if (counter.textContent.includes('+')) {
-                                    target = parseInt(counter.textContent);
-                                } else if (counter.textContent.includes('%')) {
-                                    target = 80;
-                                } else {
-                                    target = parseInt(counter.textContent);
-                                }
-                                animateCounter(counter, target, 1500);
-                            });
-                        }, 500);
-                    }
-                    
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
-        
-        // Observe all fade-in elements
-        document.querySelectorAll('.fade-in').forEach(el => {
-            observer.observe(el);
-        });
-        
-        // Set current year in footer
+        // سلة المشتريات (In-memory storage)
+        let cart = [];
+
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelector('footer .text-gray-400').innerHTML = 
-                document.querySelector('footer .text-gray-400').innerHTML.replace('2025', new Date().getFullYear());
+            // تحديث العام الحالي في التذييل
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+
+            // === منطق الوضع الفاتح/الداكن ===
+            function checkTheme() {
+                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                    document.getElementById('theme-icon').classList.replace('fa-sun', 'fa-moon');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.getElementById('theme-icon').classList.replace('fa-moon', 'fa-sun');
+                }
+            }
+            checkTheme();
+
+            document.getElementById('theme-toggle').addEventListener('click', () => {
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                    document.getElementById('theme-icon').classList.replace('fa-moon', 'fa-sun');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                    document.getElementById('theme-icon').classList.replace('fa-sun', 'fa-moon');
+                }
+            });
+
+            // === منطق قائمة الجوال ===
+            document.getElementById('menu-button').addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.toggle('hidden');
+            });
+            document.querySelectorAll('#mobile-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                });
+            });
+
+            // === منطق الإحصائيات (العداد) ===
+            function animateCounter(element, target, duration) {
+                let start = 0;
+                const stepTime = Math.abs(Math.floor(duration / target));
+
+                const interval = setInterval(() => {
+                    start += Math.ceil(target / 100); // زيادة أسرع للوصول للهدف في 100 خطوة
+                    if (start >= target) {
+                        clearInterval(interval);
+                        start = target;
+                    }
+                    element.textContent = start + (element.textContent.includes('%') ? '%' : (element.textContent.includes('+') ? '+' : ''));
+                }, 15);
+            }
+            
+            // === مراقب التقاطع لتأثير الظهور (Fade-In) والعدادات ===
+            const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const delay = entry.target.getAttribute('data-delay') || 0;
+                        setTimeout(() => {
+                            entry.target.classList.add('visible');
+                            
+                            // تشغيل العدادات عند الوصول لقسم الإحصائيات
+                            if (entry.target.id === 'stats') {
+                                document.querySelectorAll('#stats .stats-counter').forEach(counter => {
+                                    let target = parseInt(counter.textContent.replace(/[^0-9]/g, ''));
+                                    animateCounter(counter, target, 1500);
+                                });
+                                // العداد الخاص بالنسبة المئوية
+                                document.querySelectorAll('#stats .stats-counter-percent').forEach(counter => {
+                                    let target = parseInt(counter.textContent.replace(/[^0-9]/g, ''));
+                                    animateCounter(counter, target, 1500);
+                                });
+                            }
+                        }, delay);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+            // === منطق زر الصعود للأعلى ===
+            const backToTopButton = document.getElementById('back-to-top');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    backToTopButton.classList.add('opacity-100');
+                    backToTopButton.classList.remove('opacity-0');
+                } else {
+                    backToTopButton.classList.remove('opacity-100');
+                    backToTopButton.classList.add('opacity-0');
+                }
+            });
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // === منطق إرسال نموذج الاتصال ورسالة التأكيد ===
+            document.getElementById('contact-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                document.getElementById('success-modal').classList.remove('hidden');
+                document.getElementById('success-modal').classList.add('flex');
+                this.reset();
+            });
+            document.getElementById('close-modal').addEventListener('click', function() {
+                document.getElementById('success-modal').classList.add('hidden');
+                document.getElementById('success-modal').classList.remove('flex');
+            });
+            
+            // === منطق عربة التسوق (Cart Logic) ===
+            
+            function renderProducts() {
+                const productListContainer = document.getElementById('product-list');
+                productListContainer.innerHTML = products.map(product => `
+                    <div class="p-6 bg-light-bg dark:bg-gray-800 rounded-xl shadow-lg flex flex-col justify-between transform transition hover:shadow-xl hover:-translate-y-0.5">
+                        <div>
+                            <div class="text-4xl text-primary-yellow mb-4"><i class="${product.icon}"></i></div>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">${product.name}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">${product.description}</p>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-end justify-between mb-4">
+                                <span class="text-2xl font-extrabold text-primary-yellow">${product.price.toLocaleString()}</span>
+                                <span class="text-sm text-gray-500 dark:text-gray-400">${product.period}</span>
+                            </div>
+                            <button onclick="addToCart(${product.id})" class="w-full py-2 bg-secondary-gray hover:bg-gray-700 text-white rounded-lg font-bold text-sm transition shadow-md">
+                                أضف للسلة
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            function updateCartDisplay() {
+                const cartContainer = document.getElementById('cart-items-container');
+                const cartTotal = document.getElementById('cart-total');
+                const cartCount = document.getElementById('cart-count');
+                const emptyMessage = document.getElementById('empty-cart-message');
+
+                cartContainer.innerHTML = '';
+                
+                if (cart.length === 0) {
+                    emptyMessage.style.display = 'block';
+                } else {
+                    emptyMessage.style.display = 'none';
+                    let total = 0;
+                    
+                    cart.forEach(item => {
+                        const product = products.find(p => p.id === item.id);
+                        if (product) {
+                            total += product.price * item.quantity;
+                            const cartItem = document.createElement('div');
+                            cartItem.className = 'flex justify-between items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-sm';
+                            cartItem.innerHTML = `
+                                <div>
+                                    <h4 class="font-bold text-gray-900 dark:text-white text-sm">${product.name}</h4>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">${product.price.toLocaleString()} ج.م ${product.period}</p>
+                                </div>
+                                <div class="flex items-center space-x-2 space-x-reverse">
+                                    <button onclick="decreaseQuantity(${item.id})" class="text-gray-500 dark:text-gray-400 hover:text-red-500 transition"><i class="fas fa-minus-circle"></i></button>
+                                    <span class="font-bold text-sm">${item.quantity}</span>
+                                    <button onclick="increaseQuantity(${item.id})" class="text-gray-500 dark:text-gray-400 hover:text-green-500 transition"><i class="fas fa-plus-circle"></i></button>
+                                    <button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700 text-lg ml-2"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            `;
+                            cartContainer.appendChild(cartItem);
+                        }
+                    });
+                    
+                    cartTotal.textContent = `${total.toLocaleString()} ج.م`;
+                    cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+                }
+            }
+
+            window.addToCart = (productId) => {
+                const existingItem = cart.find(item => item.id === productId);
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    cart.push({ id: productId, quantity: 1 });
+                }
+                updateCartDisplay();
+            };
+
+            window.removeFromCart = (productId) => {
+                cart = cart.filter(item => item.id !== productId);
+                updateCartDisplay();
+            };
+
+            window.increaseQuantity = (productId) => {
+                const item = cart.find(item => item.id === productId);
+                if (item) {
+                    item.quantity++;
+                }
+                updateCartDisplay();
+            };
+
+            window.decreaseQuantity = (productId) => {
+                const item = cart.find(item => item.id === productId);
+                if (item && item.quantity > 1) {
+                    item.quantity--;
+                } else if (item && item.quantity === 1) {
+                    window.removeFromCart(productId);
+                }
+                updateCartDisplay();
+            };
+
+            window.toggleSidebarCart = () => {
+                const sidebarCart = document.getElementById('sidebar-cart');
+                const sidebarCartOverlay = document.getElementById('sidebar-cart-overlay');
+                sidebarCart.classList.toggle('open');
+                sidebarCartOverlay.classList.toggle('open');
+            }
+
+            window.checkout = () => {
+                if (cart.length === 0) {
+                    // Simulate alert with a modal/message box if needed, but here we just return.
+                    console.log("Cart is empty.");
+                    return;
+                }
+                
+                const total = cart.reduce((sum, item) => sum + products.find(p => p.id === item.id).price * item.quantity, 0);
+                let message = `مرحباً، أود طلب الخدمات التالية:\n`;
+                cart.forEach(item => {
+                    const product = products.find(p => p.id === item.id);
+                    message += `- ${product.name} (الكمية: ${item.quantity}، السعر: ${product.price.toLocaleString()} ج.م ${product.period})\n`;
+                });
+                message += `الإجمالي المتوقع: ${total.toLocaleString()} ج.م.`;
+
+                // بناء رابط الواتساب للطلب
+                const whatsappUrl = `https://wa.me/201014878034?text=${encodeURIComponent(message)}`;
+                
+                // فتح رابط الواتساب
+                window.open(whatsappUrl, '_blank');
+                
+                // تفريغ السلة بعد الطلب (اختياري)
+                cart = [];
+                updateCartDisplay();
+                window.toggleSidebarCart();
+            }
+
+            // تهيئة العرض
+            renderProducts();
+            updateCartDisplay();
         });
     </script>
 </body>
