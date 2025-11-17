@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 
-Sitemap: https://77aammaaddaa.github.io/TVS/sitemap.xml
+Sitemap: https://tvs-cw1.pages.dev/sitemap.xml
