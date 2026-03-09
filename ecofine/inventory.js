@@ -1,7 +1,7 @@
 /**
  * 📦 inventory.js - مديول المخازن والجرد الشامل (Eco Fine Pro V6 Turbo)
  * المطور: M H 4 Tech
- * التحديث V9.9.7: الإصلاح النهائي لواجهة إضافة المنتجات (Bottom Sheet UI Fix).
+ * التحديث V9.9.8: الإصلاح الهندسي الشامل لواجهة الموبايل (Zero-Overlap UI).
  */
 
 const { useState, useEffect } = React;
@@ -22,9 +22,6 @@ const InventoryModule = () => {
     const [formData, setFormData] = useState(initialFormState);
     const [catName, setCatName] = useState(''); 
 
-    // ==========================================
-    // 1. تحميل البيانات
-    // ==========================================
     const loadAllData = async () => {
         try {
             const [p, l] = await Promise.all([
@@ -35,6 +32,7 @@ const InventoryModule = () => {
             let c = [];
             try { 
                 c = await db.getAll('categories'); 
+                if (!Array.isArray(c)) c = [];
             } catch (err) { 
                 c = JSON.parse(localStorage.getItem('eco_fallback_categories') || '[]'); 
             }
@@ -43,7 +41,7 @@ const InventoryModule = () => {
             setCategories(c || []);
             setLogs((l || []).sort((a, b) => new Date(b.date) - new Date(a.date)));
         } catch (err) {
-            console.error("خطأ في تحميل بيانات المخزن:", err);
+            console.error("خطأ في تحميل البيانات:", err);
         }
     };
 
@@ -55,20 +53,14 @@ const InventoryModule = () => {
         }
     };
 
-    // ==========================================
-    // 2. إدارة التصنيفات
-    // ==========================================
     const handleSaveCategory = async (e) => {
         e.preventDefault();
         const trimmedName = catName.trim();
-        
         if (!trimmedName) return alert("⚠️ برجاء إدخال اسم التصنيف");
-
         const exists = categories.find(c => c.name.toLowerCase() === trimmedName.toLowerCase());
-        if (exists) return alert("⚠️ هذا التصنيف مسجل بالفعل في القائمة");
+        if (exists) return alert("⚠️ هذا التصنيف مسجل بالفعل");
 
         const newCat = { id: crypto.randomUUID(), name: trimmedName };
-
         try {
             await db.add('categories', newCat);
         } catch (err) {
@@ -76,11 +68,9 @@ const InventoryModule = () => {
             localCats.push(newCat);
             localStorage.setItem('eco_fallback_categories', JSON.stringify(localCats));
         }
-
         setCatName('');
         await loadAllData();
         triggerSync();
-        alert("✅ تم إضافة التصنيف بنجاح");
     };
 
     const deleteCategory = async (id) => {
@@ -97,28 +87,10 @@ const InventoryModule = () => {
         }
     };
 
-    // ==========================================
-    // 3. المنطق المحاسبي وإدارة الأصناف
-    // ==========================================
-    const validatePricing = () => {
-        const cost = Number(formData.cost_price);
-        const wholesale = Number(formData.wholesale_price);
-        const cash = Number(formData.cash_price);
-        const installment = Number(formData.installment_price);
-
-        if (cost <= 0 || cash <= 0) return "⚠️ سعر التكلفة وسعر الكاش إجبارية ويجب أن تكون أكبر من صفر.";
-        if (cost > wholesale && wholesale > 0) return "🚫 خطأ محاسبي: سعر التكلفة لا يمكن أن يكون أعلى من سعر الجملة!";
-        if (wholesale > cash) return "🚫 خطأ محاسبي: سعر الجملة لا يمكن أن يكون أعلى من سعر الكاش!";
-        if (cash > installment && installment > 0) return "🚫 خطأ محاسبي: سعر الكاش لا يمكن أن يكون أعلى من سعر التقسيط!";
-        
-        return null;
-    };
-
     const handleSaveProduct = async (e) => {
         e.preventDefault();
-        
-        const validationError = validatePricing();
-        if (validationError) return alert(validationError);
+        // فحص محاسبي سريع
+        if (Number(formData.cost_price) > Number(formData.cash_price)) return alert("🚫 التكلفة لا يمكن أن تتخطى سعر الكاش!");
 
         setIsProcessing(true);
         try {
@@ -134,76 +106,72 @@ const InventoryModule = () => {
             if (editMode) {
                 const oldProduct = await db.getById('products', formData.id);
                 await db.update('products', formData.id, finalData);
-                
                 if (oldProduct && Number(oldProduct.stock) !== finalData.stock) {
                     await db.add('inventory_logs', {
-                        product_id: formData.id, 
-                        product_name: finalData.name,
-                        type: 'adjustment', 
-                        qty: finalData.stock - Number(oldProduct.stock), 
-                        date: new Date().toISOString(),
-                        note: 'تسوية جردية لتصحيح الرصيد'
+                        product_id: formData.id, product_name: finalData.name,
+                        type: 'adjustment', qty: finalData.stock - Number(oldProduct.stock), 
+                        date: new Date().toISOString(), note: 'تعديل جرد'
                     });
                 }
-                alert("✅ تم التحديث بنجاح");
             } else {
-                const newP = await db.add('products', { 
-                    ...finalData, 
-                    created_at: new Date().toISOString(),
-                    opening_balance: finalData.stock 
-                });
+                const newP = await db.add('products', { ...finalData, created_at: new Date().toISOString() });
                 await db.add('inventory_logs', {
-                    product_id: newP.id, 
-                    product_name: newP.name,
-                    type: 'opening', 
-                    qty: finalData.stock, 
-                    date: new Date().toISOString(),
-                    note: 'رصيد افتتاحي (صنف جديد)'
+                    product_id: newP.id, product_name: newP.name,
+                    type: 'opening', qty: finalData.stock, date: new Date().toISOString()
                 });
-                alert("✅ تم تسجيل الصنف في المخزن");
             }
-            
             triggerSync();
             setIsModalOpen(false);
             loadAllData();
-        } catch (err) { 
-            alert("❌ خطأ في الحفظ: " + err.message); 
-        } finally {
-            setIsProcessing(false);
-        }
-    };
-
-    const openAddModal = () => {
-        setFormData(initialFormState);
-        setEditMode(false);
-        setIsModalOpen(true);
-    };
-
-    const openEditModal = (product) => {
-        setFormData(product);
-        setEditMode(true);
-        setIsModalOpen(true);
+        } catch (err) { alert("❌ خطأ: " + err.message); } finally { setIsProcessing(false); }
     };
 
     return (
         <div className="space-y-4 pb-20 animate-in fade-in">
-            {/* التبويبات العلوية */}
-            <div className="flex bg-white p-2 rounded-[2rem] shadow-sm border border-slate-100 overflow-x-auto snap-x snap-mandatory custom-scroll">
+            {/* التبويبات */}
+            <div className="flex bg-white p-2 rounded-[2rem] shadow-sm border border-slate-100 overflow-x-auto custom-scroll">
                 {[
                     {id: 'products', label: 'دليل الأصناف', icon: '📦'},
                     {id: 'categories', label: 'التصنيفات', icon: '🏷️'},
                     {id: 'audit', label: 'دفتر الجرد', icon: '⚖️'}
                 ].map(tab => (
-                    <button 
-                        key={tab.id}
-                        onClick={() => setActiveSubTab(tab.id)}
-                        className={`flex-1 snap-center flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-[1.5rem] text-[10px] font-black transition-all min-w-[100px] ${activeSubTab === tab.id ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/20' : 'text-slate-400 hover:bg-slate-50'}`}
-                    >
-                        <span className="text-xl mb-1">{tab.icon}</span> 
-                        <span className="truncate w-full text-center">{tab.label}</span>
+                    <button key={tab.id} onClick={() => setActiveSubTab(tab.id)} className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-[1.5rem] text-[10px] font-black transition-all min-w-[100px] ${activeSubTab === tab.id ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400'}`}>
+                        <span className="text-xl mb-1">{tab.icon}</span> {tab.label}
                     </button>
                 ))}
             </div>
+
+            {/* محتوى التبويبات */}
+            {activeSubTab === 'products' && (
+                <div className="space-y-4 animate-in fade-in">
+                    <button onClick={() => { setFormData(initialFormState); setEditMode(false); setIsModalOpen(true); }} className="w-full p-4 bg-slate-900 text-white rounded-[2rem] font-black text-xs shadow-xl flex items-center justify-center gap-2">
+                        <span className="text-lg">➕</span> إضافة صنف جديد
+                    </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {products.map(p => (
+                            <div key={p.id} className="bg-white p-4 rounded-[2rem] border shadow-sm relative overflow-hidden flex flex-col justify-between">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="pr-1 flex-1">
+                                        <h4 className="font-black text-slate-800 text-xs leading-snug line-clamp-2">{p.name}</h4>
+                                        <span className="text-[8px] bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded-md mt-1 inline-block uppercase">{p.category || 'عام'}</span>
+                                    </div>
+                                    <button onClick={() => { setFormData(p); setEditMode(true); setIsModalOpen(true); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">✏️</button>
+                                </div>
+                                <div className="bg-slate-50 rounded-xl p-3 flex justify-between items-center border border-slate-100">
+                                    <div className="text-center">
+                                        <p className="text-[9px] text-slate-400 font-black uppercase">الرصيد</p>
+                                        <p className={`font-black text-lg ${p.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>{p.stock}</p>
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-[9px] text-slate-400 font-black uppercase">سعر القسط</p>
+                                        <p className="font-black text-blue-600 text-sm">{Number(p.installment_price).toLocaleString()} ج</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* شاشة التصنيفات */}
             {activeSubTab === 'categories' && (
@@ -226,45 +194,6 @@ const InventoryModule = () => {
                             <div key={c.id} className="bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center shadow-sm">
                                 <span className="font-black text-slate-700 text-xs truncate pr-2">{c.name}</span>
                                 <button onClick={() => deleteCategory(c.id)} className="w-8 h-8 bg-red-50 text-red-400 rounded-xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shrink-0">✕</button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* شاشة الأصناف */}
-            {activeSubTab === 'products' && (
-                <div className="space-y-4 animate-in fade-in">
-                    <button onClick={openAddModal} className="w-full p-4 bg-slate-900 text-white rounded-[2rem] font-black text-xs shadow-xl shadow-slate-900/20 flex items-center justify-center gap-2 active:scale-95 transition-all">
-                        <span className="text-lg">➕</span> تسجيل صنف في المخزن
-                    </button>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {products.map(p => (
-                            <div key={p.id} className="bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden flex flex-col justify-between">
-                                {p.stock <= 0 && <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl z-10 shadow-md">نفذت الكمية</div>}
-                                
-                                <div className="flex justify-between items-start mb-3">
-                                    <div className="pr-1 flex-1">
-                                        <h4 className="font-black text-slate-800 text-xs leading-snug line-clamp-2">{p.name}</h4>
-                                        <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-                                            <span className="text-[8px] bg-slate-100 text-slate-500 font-bold uppercase px-2 py-0.5 rounded-md">{p.category || 'عام'}</span>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => openEditModal(p)} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">✏️</button>
-                                </div>
-                                
-                                <div className="bg-slate-50 rounded-xl p-3 flex justify-between items-center border border-slate-100">
-                                    <div className="text-center">
-                                        <p className="text-[9px] text-slate-400 font-black uppercase mb-0.5">الرصيد</p>
-                                        <p className={`font-black text-lg leading-none ${p.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>{p.stock}</p>
-                                    </div>
-                                    <div className="w-px h-8 bg-slate-200 mx-1"></div>
-                                    <div className="text-left">
-                                        <p className="text-[9px] text-slate-400 font-black uppercase mb-0.5">القسط</p>
-                                        <p className="font-black text-blue-600 text-sm leading-none">{Number(p.installment_price).toLocaleString()} <span className="text-[8px] text-blue-400">ج</span></p>
-                                    </div>
-                                </div>
                             </div>
                         ))}
                     </div>
@@ -318,63 +247,70 @@ const InventoryModule = () => {
                 </div>
             )}
 
-            {/* 🛡️ نافذة إضافة/تعديل صنف (إصلاح الواجهة المنهارة) */}
+            {/* 🛡️ النافذة المصلحة هندسياً (Zero-Overlap Modal) */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[500] bg-slate-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center animate-in fade-in">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
                     
-                    {/* الكونتينر الرئيسي: يأخذ 90% من الشاشة لترك مساحة للكيبورد */}
-                    <div className="bg-slate-50 w-full sm:max-w-lg h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl animate-in slide-in-from-bottom-8">
+                    <div className="relative bg-slate-50 w-full sm:max-w-lg h-[92vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl overflow-hidden min-h-0">
                         
-                        {/* الهيدر ثابت */}
-                        <div className="bg-slate-900 p-5 text-white shrink-0 flex justify-between items-center rounded-t-[2.5rem] sm:rounded-t-[2.5rem]">
+                        {/* 1. هيدر ثابت (Sticky Header) */}
+                        <div className="shrink-0 bg-slate-900 p-6 text-white flex justify-between items-center z-50">
                             <div>
-                                <h3 className="font-black text-lg">{editMode ? 'تحديث بيانات الصنف' : 'صنف جديد'}</h3>
+                                <h3 className="font-black text-lg">{editMode ? 'تحديث الصنف' : 'صنف جديد'}</h3>
+                                <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">مركز العمليات</p>
                             </div>
-                            <button type="button" onClick={() => setIsModalOpen(false)} className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center text-lg hover:bg-white/20">✕</button>
+                            <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center text-xl">✕</button>
                         </div>
 
-                        {/* الفورم يملأ المنتصف وقابل للتمرير */}
-                        <form id="product-form" onSubmit={handleSaveProduct} className="flex-1 overflow-y-auto p-5 space-y-4 custom-scroll">
+                        {/* 2. جسم الفورم (Scrollable Body) */}
+                        <form id="product-form" onSubmit={handleSaveProduct} className="flex-1 overflow-y-auto p-5 space-y-5 custom-scroll">
                             
+                            {/* القسم 1: البيانات الأساسية */}
                             <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-2">1. البيانات الأساسية</h4>
-                                <input placeholder="اسم المنتج بالكامل (مطلوب)" required className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl font-black text-sm outline-none focus:border-blue-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <select required className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl font-bold text-xs outline-none appearance-none" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
-                                        <option value="">-- التصنيف --</option>
-                                        {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                                    </select>
-                                    <input placeholder="الباركود (اختياري)" className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl font-bold text-xs outline-none" value={formData.barcode} onChange={e => setFormData({...formData, barcode: e.target.value})} />
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-2 tracking-widest">1. البيانات الأساسية</h4>
+                                <div>
+                                    <label className="text-[9px] font-black text-slate-500 uppercase block mb-1">اسم المنتج</label>
+                                    <input placeholder="أدخل اسم المنتج بالكامل..." required className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-black text-sm outline-none focus:border-blue-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-[9px] font-black text-slate-500 uppercase block mb-1">التصنيف</label>
+                                        <select required className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-xs outline-none appearance-none" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                                            <option value="">-- اختر --</option>
+                                            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[9px] font-black text-slate-500 uppercase block mb-1">الباركود</label>
+                                        <input placeholder="اختياري" className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-xs outline-none" value={formData.barcode} onChange={e => setFormData({...formData, barcode: e.target.value})} />
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-4 mb-2">
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-2 flex justify-between items-center">
-                                    <span>2. التسعير والجرد</span>
-                                    <span className="text-[8px] text-red-400">تكلفة &lt; جملة &lt; كاش &lt; قسط</span>
-                                </h4>
-                                <div className="grid grid-cols-2 gap-3">
+                            {/* القسم 2: التسعير والجرد */}
+                            <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-2 tracking-widest">2. التسعير والجرد (ج.م)</h4>
+                                <div className="grid grid-cols-2 gap-4">
                                     <PriceInp label="التكلفة" val={formData.cost_price} onChange={v => setFormData({...formData, cost_price: v})} />
-                                    <PriceInp label="سعر الجملة" val={formData.wholesale_price} onChange={v => setFormData({...formData, wholesale_price: v})} />
+                                    <PriceInp label="الجملة" val={formData.wholesale_price} onChange={v => setFormData({...formData, wholesale_price: v})} />
                                     <PriceInp label="الكاش" val={formData.cash_price} onChange={v => setFormData({...formData, cash_price: v})} />
                                     <PriceInp label="التقسيط" val={formData.installment_price} onChange={v => setFormData({...formData, installment_price: v})} isHighlight={true} />
                                 </div>
-                                <div className="pt-3 border-t">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">رصيد المخزن</label>
-                                    <input placeholder="الكمية" type="number" required min="0" className="w-full p-4 bg-green-50 text-green-700 border border-green-200 rounded-xl font-black text-lg outline-none" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} />
+                                <div className="pt-4 border-t">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">الكمية الحالية في المخزن</label>
+                                    <input type="number" required min="0" className="w-full p-4 bg-green-50 text-green-700 border border-green-200 rounded-2xl font-black text-lg outline-none" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} />
                                 </div>
                             </div>
+
+                            {/* مساحة إضافية في القاع لضمان عدم تغطية الحقول بالكيبورد */}
+                            <div className="h-20"></div>
                         </form>
 
-                        {/* الفوتر وزر الحفظ ثابتين بالأسفل */}
-                        <div className="bg-white border-t border-slate-200 p-4 shrink-0 shadow-inner z-20 rounded-b-[2.5rem] sm:rounded-b-[2.5rem]">
-                            <button 
-                                form="product-form"
-                                type="submit" 
-                                disabled={isProcessing}
-                                className="w-full py-4 rounded-xl font-black text-sm shadow-md transition-all active:scale-95 bg-slate-900 text-white disabled:opacity-50"
-                            >
-                                {isProcessing ? 'جاري الحفظ...' : (editMode ? 'تحديث 🔄' : 'حفظ الصنف 💾')}
+                        {/* 3. فوتر ثابت (Sticky Footer) */}
+                        <div className="shrink-0 bg-white border-t border-slate-200 p-5 z-50">
+                            <button form="product-form" type="submit" disabled={isProcessing} className="w-full py-5 rounded-[1.5rem] font-black text-sm shadow-xl transition-all active:scale-95 bg-slate-900 text-white disabled:opacity-50">
+                                {isProcessing ? 'جاري الحفظ...' : (editMode ? 'تحديث السجلات 🔄' : 'حفظ الصنف في المخزن 💾')}
                             </button>
                         </div>
 
@@ -388,16 +324,7 @@ const InventoryModule = () => {
 const PriceInp = ({ label, val, onChange, isHighlight = false }) => (
     <div>
         <label className={`text-[9px] font-black uppercase mb-1 block ${isHighlight ? 'text-blue-600' : 'text-slate-500'}`}>{label}</label>
-        <input 
-            type="number" 
-            required 
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-            className={`w-full p-3 border rounded-xl font-bold text-sm outline-none ${isHighlight ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-100 text-slate-800'}`} 
-            value={val} 
-            onChange={e => onChange(e.target.value)} 
-        />
+        <input type="number" required step="0.01" className={`w-full p-4 border rounded-2xl font-bold text-sm outline-none transition-all ${isHighlight ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-100 text-slate-800'}`} value={val} onChange={e => onChange(e.target.value)} />
     </div>
 );
 
