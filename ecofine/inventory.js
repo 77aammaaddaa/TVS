@@ -1,7 +1,7 @@
 /**
  * 📦 inventory.js - مديول المخازن والجرد الشامل (Eco Fine Pro V6 Turbo)
  * المطور: M H 4 Tech
- * التحديث V9.9.6: حل نهائي لمشكلة الكيبورد وتداخل الواجهة على شاشات الموبايل (Flex Fix).
+ * التحديث V9.9.7: الإصلاح النهائي لواجهة إضافة المنتجات (Bottom Sheet UI Fix).
  */
 
 const { useState, useEffect } = React;
@@ -15,7 +15,6 @@ const InventoryModule = () => {
     const [editMode, setEditMode] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     
-    // حالة الصنف
     const initialFormState = {
         name: '', barcode: '', category: '', 
         cost_price: '', wholesale_price: '', cash_price: '', installment_price: '', stock: ''
@@ -24,7 +23,7 @@ const InventoryModule = () => {
     const [catName, setCatName] = useState(''); 
 
     // ==========================================
-    // 1. تحميل البيانات (مع محرك الطوارئ للتصنيفات)
+    // 1. تحميل البيانات
     // ==========================================
     const loadAllData = async () => {
         try {
@@ -57,7 +56,7 @@ const InventoryModule = () => {
     };
 
     // ==========================================
-    // 2. إدارة التصنيفات (محمية ضد الأعطال)
+    // 2. إدارة التصنيفات
     // ==========================================
     const handleSaveCategory = async (e) => {
         e.preventDefault();
@@ -146,7 +145,7 @@ const InventoryModule = () => {
                         note: 'تسوية جردية لتصحيح الرصيد'
                     });
                 }
-                alert("✅ تم تحديث بيانات وتسعير الصنف بنجاح");
+                alert("✅ تم التحديث بنجاح");
             } else {
                 const newP = await db.add('products', { 
                     ...finalData, 
@@ -161,7 +160,7 @@ const InventoryModule = () => {
                     date: new Date().toISOString(),
                     note: 'رصيد افتتاحي (صنف جديد)'
                 });
-                alert("✅ تم تسجيل الصنف الجديد في المخزن");
+                alert("✅ تم تسجيل الصنف في المخزن");
             }
             
             triggerSync();
@@ -188,7 +187,7 @@ const InventoryModule = () => {
 
     return (
         <div className="space-y-4 pb-20 animate-in fade-in">
-            {/* التبويبات العلوية - مُحسنة للموبايل السحب الأفقي */}
+            {/* التبويبات العلوية */}
             <div className="flex bg-white p-2 rounded-[2rem] shadow-sm border border-slate-100 overflow-x-auto snap-x snap-mandatory custom-scroll">
                 {[
                     {id: 'products', label: 'دليل الأصناف', icon: '📦'},
@@ -206,7 +205,7 @@ const InventoryModule = () => {
                 ))}
             </div>
 
-            {/* 🏷️ شاشة التصنيفات */}
+            {/* شاشة التصنيفات */}
             {activeSubTab === 'categories' && (
                 <div className="space-y-4 animate-in fade-in">
                     <form onSubmit={handleSaveCategory} className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
@@ -218,9 +217,7 @@ const InventoryModule = () => {
                                 value={catName}
                                 onChange={(e) => setCatName(e.target.value)}
                             />
-                            <button type="submit" className="bg-blue-600 text-white py-4 px-6 rounded-2xl font-black text-xs shadow-lg shadow-blue-600/20 active:scale-95 transition-all">
-                                حفظ 🚀
-                            </button>
+                            <button type="submit" className="bg-blue-600 text-white py-4 px-6 rounded-2xl font-black text-xs shadow-lg shadow-blue-600/20 active:scale-95 transition-all">حفظ 🚀</button>
                         </div>
                     </form>
 
@@ -235,7 +232,7 @@ const InventoryModule = () => {
                 </div>
             )}
 
-            {/* 📦 شاشة الأصناف */}
+            {/* شاشة الأصناف */}
             {activeSubTab === 'products' && (
                 <div className="space-y-4 animate-in fade-in">
                     <button onClick={openAddModal} className="w-full p-4 bg-slate-900 text-white rounded-[2rem] font-black text-xs shadow-xl shadow-slate-900/20 flex items-center justify-center gap-2 active:scale-95 transition-all">
@@ -274,7 +271,7 @@ const InventoryModule = () => {
                 </div>
             )}
 
-            {/* ⚖️ شاشة دفتر الجرد (Audit) */}
+            {/* شاشة دفتر الجرد */}
             {activeSubTab === 'audit' && (
                 <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden animate-in fade-in">
                     <div className="p-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
@@ -321,71 +318,73 @@ const InventoryModule = () => {
                 </div>
             )}
 
-            {/* 📱 نافذة إضافة/تعديل صنف (Flex Layout Fix) */}
+            {/* 🛡️ نافذة إضافة/تعديل صنف (إصلاح الواجهة المنهارة) */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[500] bg-slate-50 flex flex-col animate-in slide-in-from-bottom duration-300">
+                <div className="fixed inset-0 z-[500] bg-slate-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
                     
-                    {/* هيدر النافذة (shrink-0) */}
-                    <div className="bg-slate-900 p-5 pt-6 text-white shrink-0 flex justify-between items-center shadow-md relative z-20 rounded-b-[2rem]">
-                        <div>
-                            <h3 className="font-black text-lg">{editMode ? 'تحديث بيانات الصنف' : 'صنف جديد'}</h3>
-                        </div>
-                        <button type="button" onClick={() => setIsModalOpen(false)} className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-lg">✕</button>
-                    </div>
-
-                    {/* جسم الفورم (flex-1 يملأ المساحة المتاحة فقط، قابل للتمرير) */}
-                    <form id="product-form" onSubmit={handleSaveProduct} className="flex-1 overflow-y-auto p-4 space-y-4 custom-scroll">
+                    {/* الكونتينر الرئيسي: يأخذ 90% من الشاشة لترك مساحة للكيبورد */}
+                    <div className="bg-slate-50 w-full sm:max-w-lg h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl animate-in slide-in-from-bottom-8">
                         
-                        <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-2">1. البيانات الأساسية</h4>
-                            <input placeholder="اسم المنتج بالكامل (مطلوب)" required className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-black text-sm outline-none focus:border-blue-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <select required className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-xs outline-none appearance-none" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
-                                    <option value="">-- التصنيف --</option>
-                                    {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                                </select>
-                                <input placeholder="الباركود (اختياري)" className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-xs outline-none" value={formData.barcode} onChange={e => setFormData({...formData, barcode: e.target.value})} />
+                        {/* الهيدر ثابت */}
+                        <div className="bg-slate-900 p-5 text-white shrink-0 flex justify-between items-center rounded-t-[2.5rem] sm:rounded-t-[2.5rem]">
+                            <div>
+                                <h3 className="font-black text-lg">{editMode ? 'تحديث بيانات الصنف' : 'صنف جديد'}</h3>
                             </div>
+                            <button type="button" onClick={() => setIsModalOpen(false)} className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center text-lg hover:bg-white/20">✕</button>
                         </div>
 
-                        <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-4 mb-4">
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-2 flex justify-between items-center">
-                                <span>2. التسعير والجرد</span>
-                                <span className="text-[8px] text-red-400">تكلفة &lt; جملة &lt; كاش &lt; قسط</span>
-                            </h4>
-                            <div className="grid grid-cols-2 gap-3">
-                                <PriceInp label="التكلفة" val={formData.cost_price} onChange={v => setFormData({...formData, cost_price: v})} />
-                                <PriceInp label="سعر الجملة" val={formData.wholesale_price} onChange={v => setFormData({...formData, wholesale_price: v})} />
-                                <PriceInp label="الكاش" val={formData.cash_price} onChange={v => setFormData({...formData, cash_price: v})} />
-                                <PriceInp label="التقسيط" val={formData.installment_price} onChange={v => setFormData({...formData, installment_price: v})} isHighlight={true} />
+                        {/* الفورم يملأ المنتصف وقابل للتمرير */}
+                        <form id="product-form" onSubmit={handleSaveProduct} className="flex-1 overflow-y-auto p-5 space-y-4 custom-scroll">
+                            
+                            <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-2">1. البيانات الأساسية</h4>
+                                <input placeholder="اسم المنتج بالكامل (مطلوب)" required className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl font-black text-sm outline-none focus:border-blue-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <select required className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl font-bold text-xs outline-none appearance-none" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                                        <option value="">-- التصنيف --</option>
+                                        {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                    </select>
+                                    <input placeholder="الباركود (اختياري)" className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl font-bold text-xs outline-none" value={formData.barcode} onChange={e => setFormData({...formData, barcode: e.target.value})} />
+                                </div>
                             </div>
-                            <div className="pt-3 border-t">
-                                <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">رصيد المخزن</label>
-                                <input placeholder="الكمية" type="number" required min="0" className="w-full p-4 bg-green-50 text-green-700 border border-green-200 rounded-2xl font-black text-lg outline-none" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} />
+
+                            <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-4 mb-2">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-2 flex justify-between items-center">
+                                    <span>2. التسعير والجرد</span>
+                                    <span className="text-[8px] text-red-400">تكلفة &lt; جملة &lt; كاش &lt; قسط</span>
+                                </h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <PriceInp label="التكلفة" val={formData.cost_price} onChange={v => setFormData({...formData, cost_price: v})} />
+                                    <PriceInp label="سعر الجملة" val={formData.wholesale_price} onChange={v => setFormData({...formData, wholesale_price: v})} />
+                                    <PriceInp label="الكاش" val={formData.cash_price} onChange={v => setFormData({...formData, cash_price: v})} />
+                                    <PriceInp label="التقسيط" val={formData.installment_price} onChange={v => setFormData({...formData, installment_price: v})} isHighlight={true} />
+                                </div>
+                                <div className="pt-3 border-t">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">رصيد المخزن</label>
+                                    <input placeholder="الكمية" type="number" required min="0" className="w-full p-4 bg-green-50 text-green-700 border border-green-200 rounded-xl font-black text-lg outline-none" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} />
+                                </div>
                             </div>
+                        </form>
+
+                        {/* الفوتر وزر الحفظ ثابتين بالأسفل */}
+                        <div className="bg-white border-t border-slate-200 p-4 shrink-0 shadow-inner z-20 rounded-b-[2.5rem] sm:rounded-b-[2.5rem]">
+                            <button 
+                                form="product-form"
+                                type="submit" 
+                                disabled={isProcessing}
+                                className="w-full py-4 rounded-xl font-black text-sm shadow-md transition-all active:scale-95 bg-slate-900 text-white disabled:opacity-50"
+                            >
+                                {isProcessing ? 'جاري الحفظ...' : (editMode ? 'تحديث 🔄' : 'حفظ الصنف 💾')}
+                            </button>
                         </div>
 
-                    </form>
-
-                    {/* الفوتر وزر الحفظ (shrink-0 يرتفع مع الكيبورد ولا يغطي المحتوى) */}
-                    <div className="bg-white border-t border-slate-200 p-4 shrink-0 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-20">
-                        <button 
-                            form="product-form"
-                            type="submit" 
-                            disabled={isProcessing}
-                            className="w-full py-4 rounded-[1.5rem] font-black text-sm shadow-xl transition-all active:scale-95 bg-slate-900 text-white disabled:opacity-50"
-                        >
-                            {isProcessing ? 'جاري الحفظ...' : (editMode ? 'تحديث 🔄' : 'حفظ الصنف 💾')}
-                        </button>
                     </div>
-
                 </div>
             )}
         </div>
     );
 };
 
-// مكون إدخال السعر المساعد للموبايل
 const PriceInp = ({ label, val, onChange, isHighlight = false }) => (
     <div>
         <label className={`text-[9px] font-black uppercase mb-1 block ${isHighlight ? 'text-blue-600' : 'text-slate-500'}`}>{label}</label>
