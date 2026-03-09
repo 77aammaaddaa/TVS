@@ -1,126 +1,216 @@
 /**
  * 🚀 EcoFine Pro V6 Turbo - المايسترو (The Maestro)
- * تم إصلاح مشكلة التحميل اللانهائي (Infinite Loading Fix)
+ * الإصدار النهائي - تم إصلاح مشكلة التحميل اللانهائي وتحسين الأداء
  */
 
-const { useState, useEffect, useCallback, useMemo } = React;
+const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
 const App = () => {
     const [isReady, setIsReady] = useState(false);
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [loadedScripts, setLoadedScripts] = useState(new Set(['dashboard']));
-    const [renderTrigger, setRenderTrigger] = useState(0); // 🔴 الحالة الجديدة لإجبار الشاشة على التحديث
-    
+    const [loadedModules, setLoadedModules] = useState(new Set(['dashboard'])); // الموديولات التي تم تحميلها
+    const [renderTrigger, setRenderTrigger] = useState(0); // لتحديث الشاشة بعد التحميل
     const [user] = useState({ name: 'مستر إكس', role: 'CEO' });
+    
+    // مرجع لتخزين حالة التحميل لكل موديول (لتجنب التحميل المتكرر)
+    const loadingRef = useRef({});
 
     useEffect(() => {
+        // إزالة شاشة البداية إذا وجدت
         const splash = document.getElementById('splash-screen');
         if (splash) {
             splash.style.opacity = '0';
-            setTimeout(() => splash.remove(), 500);
+            setTimeout(() => splash?.remove(), 500);
         }
 
+        // تهيئة قاعدة البيانات
         if (typeof db !== 'undefined') {
-            db.init().then(() => setIsReady(true)).catch(err => alert("❌ فشل تشغيل محرك إكس القابضة: " + err));
+            db.init()
+                .then(() => setIsReady(true))
+                .catch(err => alert("❌ فشل تشغيل محرك إكس القابضة: " + err));
         } else {
             alert("⚠️ ملف database.js غير موجود!");
         }
     }, []);
 
+    // قائمة المجموعات (ثابتة)
     const rawMenuGroups = [
-        { group: "القيادة والأداء", items: [{ id: 'dashboard', label: 'لوحة التحكم المركزية', icon: '📊' }, { id: 'hr', label: 'شؤون الموظفين والنقاط', icon: '👥' }, { id: 'users', label: 'إدارة الصلاحيات (UAC)', icon: '🔑' }] },
-        { group: "العملاء والائتمان", items: [{ id: 'crm', label: 'العملاء والضامنين', icon: '🤝' }, { id: 'survey', label: 'الاستعلام الميداني', icon: '📍' }] },
-        { group: "المخازن والمشتريات", items: [{ id: 'inventory', label: 'المخزن والجرد', icon: '📦' }, { id: 'suppliers', label: 'إدارة الموردين', icon: '🏢' }, { id: 'purchases', label: 'المشتريات والتوريد', icon: '🛒' }] },
-        { group: "التشغيل والمبيعات", items: [{ id: 'pos', label: 'نقطة البيع (التقسيط)', icon: '💻' }] },
-        { group: "المالية والقانون", items: [{ id: 'collection', label: 'وحدة التحصيل', icon: '💰' }, { id: 'treasury', label: 'الخزينة والمصاريف', icon: '🏦' }, { id: 'legal', label: 'الشؤون القانونية', icon: '⚖️' }] },
-        { group: "البيانات والإعدادات", items: [{ id: 'data_import', label: 'استيراد وتصدير (CSV)', icon: '📥' }, { id: 'settings', label: 'المزامنة والطباعة', icon: '⚙️' }] }
+        { group: "القيادة والأداء", items: [
+            { id: 'dashboard', label: 'لوحة التحكم المركزية', icon: '📊' },
+            { id: 'hr', label: 'شؤون الموظفين والنقاط', icon: '👥' },
+            { id: 'users', label: 'إدارة الصلاحيات (UAC)', icon: '🔑' }
+        ]},
+        { group: "العملاء والائتمان", items: [
+            { id: 'crm', label: 'العملاء والضامنين', icon: '🤝' },
+            { id: 'survey', label: 'الاستعلام الميداني', icon: '📍' }
+        ]},
+        { group: "المخازن والمشتريات", items: [
+            { id: 'inventory', label: 'المخزن والجرد', icon: '📦' },
+            { id: 'suppliers', label: 'إدارة الموردين', icon: '🏢' },
+            { id: 'purchases', label: 'المشتريات والتوريد', icon: '🛒' }
+        ]},
+        { group: "التشغيل والمبيعات", items: [
+            { id: 'pos', label: 'نقطة البيع (التقسيط)', icon: '💻' }
+        ]},
+        { group: "المالية والقانون", items: [
+            { id: 'collection', label: 'وحدة التحصيل', icon: '💰' },
+            { id: 'treasury', label: 'الخزينة والمصاريف', icon: '🏦' },
+            { id: 'legal', label: 'الشؤون القانونية', icon: '⚖️' }
+        ]},
+        { group: "البيانات والإعدادات", items: [
+            { id: 'data_import', label: 'استيراد وتصدير (CSV)', icon: '📥' },
+            { id: 'settings', label: 'المزامنة والطباعة', icon: '⚙️' }
+        ]}
     ];
 
+    // فلترة المجموعات حسب صلاحيات المستخدم (إذا كان XGuard موجودًا)
     const menuGroups = useMemo(() => {
         return rawMenuGroups.map(group => ({
             ...group,
-            items: group.items.filter(item => typeof XGuard !== 'undefined' ? XGuard.canAccess(user.role, item.id) : true)
+            items: group.items.filter(item => 
+                typeof XGuard !== 'undefined' ? XGuard.canAccess(user.role, item.id) : true
+            )
         })).filter(group => group.items.length > 0);
     }, [user.role]);
 
     // ==========================================
-    // 🔴 محرك التحميل المصلح (Fixed Lazy Loader)
+    // محرك التحميل الذكي (Lazy Loader)
     // ==========================================
-    const loadModule = useCallback((id) => {
-        if (loadedScripts.has(id)) return;
-        
-        setLoadedScripts(prev => new Set(prev).add(id));
-        
-        const scriptId = `script-module-${id}`;
+    const loadModule = useCallback((moduleId) => {
+        // إذا كان الموديول محملاً بالفعل أو قيد التحميل، لا تفعل شيئًا
+        if (loadedModules.has(moduleId) || loadingRef.current[moduleId]) return;
+
+        // علامة أن الموديول بدأ التحميل
+        loadingRef.current[moduleId] = true;
+
+        const scriptId = `script-module-${moduleId}`;
         if (!document.getElementById(scriptId)) {
             const script = document.createElement('script');
             script.id = scriptId;
             script.type = 'text/babel';
-            script.src = `${id}.js`;
-            
+            script.src = `${moduleId}.js`;
+
             script.onload = () => {
+                // بعد تحميل السكريبت، نطلب من Babel تحويله
                 if (window.Babel) {
                     window.Babel.transformScriptTags();
-                    
-                    // 🔴 خريطة أسماء الموديولات في الذاكرة
-                    const expectedGlobalName = {
-                        'hr': 'HRModule', 'users': 'UsersModule', 'crm': 'CRMModule',
-                        'survey': 'SurveyModule', 'inventory': 'InventoryModule',
-                        'suppliers': 'SuppliersModule', 'purchases': 'PurchasesModule',
-                        'pos': 'POSModule', 'collection': 'CollectionModule',
-                        'treasury': 'TreasuryModule', 'legal': 'LegalModule',
-                        'data_import': 'ImportModule', 'settings': 'SettingsModule'
-                    }[id];
-
-                    // 🔴 نبضة المراقبة: نستنى لحد ما Babel يخلص ترجمة ويرفع الموديول للذاكرة
-                    let attempts = 0;
-                    const checkInterval = setInterval(() => {
-                        attempts++;
-                        if (window[expectedGlobalName] || attempts > 50) { // 5 ثواني كحد أقصى
-                            clearInterval(checkInterval);
-                            setRenderTrigger(Date.now()); // إجبار الشاشة على التحديث وعرض الموديول!
-                        }
-                    }, 100);
                 }
+
+                // خريطة أسماء الموديولات المتوقعة في window
+                const expectedGlobalName = {
+                    'hr': 'HRModule', 'users': 'UsersModule', 'crm': 'CRMModule',
+                    'survey': 'SurveyModule', 'inventory': 'InventoryModule',
+                    'suppliers': 'SuppliersModule', 'purchases': 'PurchasesModule',
+                    'pos': 'POSModule', 'collection': 'CollectionModule',
+                    'treasury': 'TreasuryModule', 'legal': 'LegalModule',
+                    'data_import': 'ImportModule', 'settings': 'SettingsModule'
+                }[moduleId];
+
+                // ننتظر حتى يتم إنشاء الكائن العام للموديول (قد يستغرق Babel بعض الوقت)
+                let attempts = 0;
+                const checkInterval = setInterval(() => {
+                    attempts++;
+                    if (window[expectedGlobalName] || attempts > 50) { // 5 ثوان كحد أقصى
+                        clearInterval(checkInterval);
+                        if (window[expectedGlobalName]) {
+                            // تم التحميل بنجاح
+                            setLoadedModules(prev => new Set(prev).add(moduleId));
+                        } else {
+                            // فشل التحميل - إزالة علامة التحميل للسماح بإعادة المحاولة
+                            console.warn(`⚠️ لم يتم العثور على الموديول ${expectedGlobalName} بعد التحميل`);
+                            alert(`⚠️ فشل تحميل موديول ${moduleId}، يرجى التحقق من الملف.`);
+                        }
+                        // إزالة علامة التحميل
+                        delete loadingRef.current[moduleId];
+                        // إجبار إعادة التصيير لعرض الموديول (إذا نجح) أو رسالة الخطأ
+                        setRenderTrigger(Date.now());
+                    }
+                }, 100);
             };
-            
+
             script.onerror = () => {
-                alert(`❌ تأكد من وجود ملف ${id}.js في نفس المجلد`);
-                setLoadedScripts(prev => { const newSet = new Set(prev); newSet.delete(id); return newSet; });
+                alert(`❌ تأكد من وجود ملف ${moduleId}.js في نفس المجلد`);
+                // إزالة علامة التحميل
+                delete loadingRef.current[moduleId];
+                setLoadedModules(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(moduleId);
+                    return newSet;
+                });
+                setRenderTrigger(Date.now()); // تحديث لإخفاء شاشة التحميل
             };
-            
+
             document.body.appendChild(script);
         }
-    }, [loadedScripts]);
+    }, [loadedModules]); // ملاحظة: لا نضع `loadedModules` كاعتماد لمنع إعادة إنشاء الدالة، لكنه آمن هنا
 
     // ==========================================
-    // 5. محرك عرض الموديولات
+    // محرك عرض الموديولات
     // ==========================================
     const renderModule = () => {
+        // خريطة الموديولات المتاحة (بعضها في window، وبعضها داخلي)
         const moduleMap = {
             'dashboard': DashboardView,
-            'hr': window.HRModule, 'users': window.UsersModule, 'crm': window.CRMModule,
-            'survey': window.SurveyModule, 'inventory': window.InventoryModule,
-            'suppliers': window.SuppliersModule, 'purchases': window.PurchasesModule,
-            'pos': window.POSModule, 'collection': window.CollectionModule,
-            'treasury': window.TreasuryModule, 'legal': window.LegalModule,
-            'data_import': window.ImportModule, 'settings': window.SettingsModule,
+            'hr': window.HRModule,
+            'users': window.UsersModule,
+            'crm': window.CRMModule,
+            'survey': window.SurveyModule,
+            'inventory': window.InventoryModule,
+            'suppliers': window.SuppliersModule,
+            'purchases': window.PurchasesModule,
+            'pos': window.POSModule,
+            'collection': window.CollectionModule,
+            'treasury': window.TreasuryModule,
+            'legal': window.LegalModule,
+            'data_import': window.ImportModule,
+            'settings': window.SettingsModule,
         };
 
         const Component = moduleMap[activeTab];
 
         if (Component) {
+            // الموديول موجود -> اعرضه
             return <div className="animate-in fade-in duration-500"><Component /></div>;
         }
 
+        // إذا لم يتم تحميل الموديول بعد، نبدأ التحميل
         loadModule(activeTab);
-        
+
+        // عرض شاشة التحميل مع إمكانية إعادة المحاولة بعد فشل
+        const isLoading = loadingRef.current[activeTab];
+        const hasFailed = !isLoading && !loadedModules.has(activeTab) && activeTab !== 'dashboard';
+
         return (
-            <div className="flex flex-col items-center justify-center py-32 bg-white rounded-[2rem] border border-slate-100 shadow-sm animate-pulse">
-                <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-                <h3 className="font-black text-slate-800 text-lg">جاري استدعاء الموديول...</h3>
-                <p className="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-widest">ECOFINE TURBO ENGINE</p>
+            <div className="flex flex-col items-center justify-center py-32 bg-white rounded-[2rem] border border-slate-100 shadow-sm">
+                {isLoading ? (
+                    <>
+                        <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+                        <h3 className="font-black text-slate-800 text-lg">جاري استدعاء الموديول...</h3>
+                        <p className="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-widest">ECOFINE TURBO ENGINE</p>
+                    </>
+                ) : hasFailed ? (
+                    <>
+                        <div className="text-5xl mb-4 text-red-400">⚠️</div>
+                        <h3 className="font-black text-slate-800 text-lg">فشل تحميل الموديول</h3>
+                        <p className="text-xs text-slate-400 mt-2">يرجى التحقق من وجود الملف والمحاولة مرة أخرى</p>
+                        <button 
+                            onClick={() => {
+                                // إعادة تعيين علامة التحميل والمحاولة
+                                delete loadingRef.current[activeTab];
+                                setLoadedModules(prev => {
+                                    const newSet = new Set(prev);
+                                    newSet.delete(activeTab);
+                                    return newSet;
+                                });
+                                loadModule(activeTab);
+                            }}
+                            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm"
+                        >
+                            إعادة المحاولة
+                        </button>
+                    </>
+                ) : null}
             </div>
         );
     };
@@ -184,28 +274,63 @@ const App = () => {
     );
 };
 
+// مكون لوحة التحكم
 const DashboardView = () => {
-    const [stats, setStats] = useState({ totalSales: 0, totalCollected: 0, pendingDebt: 0, activeCustomers: 0, lowStock: 0, legalCases: 0, netTreasury: 0 });
+    const [stats, setStats] = useState({
+        totalSales: 0,
+        totalCollected: 0,
+        pendingDebt: 0,
+        activeCustomers: 0,
+        lowStock: 0,
+        legalCases: 0,
+        netTreasury: 0
+    });
 
     useEffect(() => {
         let isMounted = true;
         const fetchStats = async () => {
             try {
                 const [invoices, installments, customers, products, legal, expenses] = await Promise.all([
-                    db.getAll('invoices'), db.getAll('installments'), db.getAll('customers'),
-                    db.getAll('products'), db.getAll('legal_cases'), db.getAll('expenses')
+                    db.getAll('invoices').catch(() => []),
+                    db.getAll('installments').catch(() => []),
+                    db.getAll('customers').catch(() => []),
+                    db.getAll('products').catch(() => []),
+                    db.getAll('legal_cases').catch(() => []),
+                    db.getAll('expenses').catch(() => [])
                 ]);
+
                 if (!isMounted) return;
+
                 const sales = (invoices || []).reduce((s, i) => s + (Number(i.total) || 0), 0);
-                const collected = (installments || []).filter(i => i.status === 'paid').reduce((s, i) => s + (Number(i.amount) || 0), 0);
-                const pending = (installments || []).filter(i => i.status === 'pending').reduce((s, i) => s + (Number(i.amount) || 0), 0);
+                const collected = (installments || [])
+                    .filter(i => i.status === 'paid')
+                    .reduce((s, i) => s + (Number(i.amount) || 0), 0);
+                const pending = (installments || [])
+                    .filter(i => i.status === 'pending')
+                    .reduce((s, i) => s + (Number(i.amount) || 0), 0);
                 const totalExpenses = (expenses || []).reduce((s, e) => s + (Number(e.amount) || 0), 0);
-                setStats({ totalSales: sales, totalCollected: collected, pendingDebt: pending, activeCustomers: (customers || []).length, lowStock: (products || []).filter(p => p.stock <= 3).length, legalCases: (legal || []).length, netTreasury: collected - totalExpenses });
-            } catch (err) { console.error("Dashboard Sync Error:", err); }
+
+                setStats({
+                    totalSales: sales,
+                    totalCollected: collected,
+                    pendingDebt: pending,
+                    activeCustomers: (customers || []).length,
+                    lowStock: (products || []).filter(p => p.stock <= 3).length,
+                    legalCases: (legal || []).length,
+                    netTreasury: collected - totalExpenses
+                });
+            } catch (err) {
+                console.error("Dashboard Sync Error:", err);
+            }
         };
+
         fetchStats();
-        const interval = setInterval(fetchStats, 60000);
-        return () => { isMounted = false; clearInterval(interval); };
+        const interval = setInterval(fetchStats, 60000); // تحديث كل دقيقة
+
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
     }, []);
 
     return (
@@ -245,6 +370,7 @@ const DashboardView = () => {
     );
 };
 
+// مكون بطاقة الإحصاء
 const StatBox = ({ label, val, color, icon }) => (
     <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm transition-transform active:scale-95">
         <div className="text-xl mb-3">{icon}</div>
@@ -253,6 +379,7 @@ const StatBox = ({ label, val, color, icon }) => (
     </div>
 );
 
+// شاشة التحميل الأولي
 const LoadingScreen = () => (
     <div className="h-screen flex flex-col items-center justify-center bg-slate-900 text-white">
         <div className="w-16 h-16 border-4 border-slate-800 border-t-blue-500 rounded-full animate-spin mb-6"></div>
@@ -261,5 +388,6 @@ const LoadingScreen = () => (
     </div>
 );
 
+// تشغيل التطبيق
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
