@@ -1,10 +1,10 @@
 /**
- * 🎯 EcoFine Pro V6 - المايسترو (The Maestro)
- * إدارة التنقل، الصلاحيات، وربط جميع موديولات إكس القابضة
+ * 🚀 EcoFine Pro V6 Turbo - المايسترو (The Maestro)
+ * إصدار التحميل الكسول (Lazy Load) - الأسرع والأخف على الأجهزة المحمولة
  * التصميم: Mobile-First (Redmi 10 Optimized) + X-Guard UAC
  */
 
-const { useState, useEffect } = React;
+const { useState, useEffect, useCallback, useMemo } = React;
 
 const App = () => {
     // ==========================================
@@ -14,25 +14,35 @@ const App = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     
-    // المستخدم الحالي (في النسخة النهائية سيتم ربطه بشاشة تسجيل الدخول)
+    // تتبع الملفات التي تم تحميلها لعدم تكرار الطلب
+    const [loadedScripts, setLoadedScripts] = useState(new Set(['dashboard']));
+    
+    // المستخدم الحالي
     const [user] = useState({ name: 'مستر إكس', role: 'CEO' });
 
     // ==========================================
     // 2. التشغيل الأولي (Initialization)
     // ==========================================
     useEffect(() => {
-        // تشغيل قاعدة البيانات المحلية والمحركات الخلفية
+        // إخفاء شاشة التحميل الخاصة بـ HTML (Splash Screen) إن وجدت
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.remove(), 500);
+        }
+
+        // تشغيل المحركات
         if (typeof db !== 'undefined') {
             db.init()
                 .then(() => setIsReady(true))
                 .catch(err => alert("❌ فشل تشغيل محرك إكس القابضة: " + err));
         } else {
-            alert("⚠️ ملف database.js غير موجود أو لم يتم تحميله!");
+            alert("⚠️ ملف database.js غير موجود!");
         }
     }, []);
 
     // ==========================================
-    // 3. خريطة النظام المكتملة (The Strategic Map)
+    // 3. خريطة النظام (The Strategic Map)
     // ==========================================
     const rawMenuGroups = [
         {
@@ -61,8 +71,7 @@ const App = () => {
         {
             group: "التشغيل والمبيعات",
             items: [
-                { id: 'pos', label: 'نقطة البيع (التقسيط)', icon: '💻' },
-                // { id: 'invoices', label: 'العقود والفواتير', icon: '🧾' } // موديول مستقبلي
+                { id: 'pos', label: 'نقطة البيع (التقسيط)', icon: '💻' }
             ]
         },
         {
@@ -77,67 +86,102 @@ const App = () => {
             group: "البيانات والإعدادات",
             items: [
                 { id: 'data_import', label: 'استيراد وتصدير (CSV)', icon: '📥' },
-                { id: 'settings', label: 'المزامنة والسحابة', icon: '⚙️' }
+                { id: 'settings', label: 'المزامنة والطباعة', icon: '⚙️' }
             ]
         }
     ];
 
-    // فلترة القائمة بناءً على صلاحيات المستخدم (X-Guard)
-    const menuGroups = rawMenuGroups.map(group => ({
-        ...group,
-        items: group.items.filter(item => typeof XGuard !== 'undefined' ? XGuard.canAccess(user.role, item.id) : true)
-    })).filter(group => group.items.length > 0);
+    // فلترة القائمة بناءً على الصلاحيات باستخدام useMemo لعدم استهلاك المعالج
+    const menuGroups = useMemo(() => {
+        return rawMenuGroups.map(group => ({
+            ...group,
+            items: group.items.filter(item => typeof XGuard !== 'undefined' ? XGuard.canAccess(user.role, item.id) : true)
+        })).filter(group => group.items.length > 0);
+    }, [user.role]);
 
     // ==========================================
-    // 4. محرك عرض الموديولات (The Switcher)
+    // 4. محرك التحميل الكسول (Lazy Loader Engine)
     // ==========================================
-    const renderModule = (id) => {
-        const modules = {
-            'dashboard': <DashboardView />,
-            'hr': typeof HRModule !== 'undefined' ? <HRModule /> : null,
-            'users': typeof UsersModule !== 'undefined' ? <UsersModule /> : null,
-            'crm': typeof CRMModule !== 'undefined' ? <CRMModule /> : null,
-            'survey': typeof SurveyModule !== 'undefined' ? <SurveyModule /> : null,
-            'inventory': typeof InventoryModule !== 'undefined' ? <InventoryModule /> : null,
-            'suppliers': typeof SuppliersModule !== 'undefined' ? <SuppliersModule /> : null,
-            'purchases': typeof PurchasesModule !== 'undefined' ? <PurchasesModule /> : null,
-            'pos': typeof POSModule !== 'undefined' ? <POSModule /> : null,
-            'collection': typeof CollectionModule !== 'undefined' ? <CollectionModule /> : null,
-            'treasury': typeof TreasuryModule !== 'undefined' ? <TreasuryModule /> : null,
-            'legal': typeof LegalModule !== 'undefined' ? <LegalModule /> : null,
-            'data_import': typeof ImportModule !== 'undefined' ? <ImportModule /> : null,
-            'settings': typeof SettingsModule !== 'undefined' ? <SettingsModule /> : null,
+    const loadModule = useCallback((id) => {
+        if (loadedScripts.has(id)) return;
+        
+        setLoadedScripts(prev => new Set(prev).add(id));
+        
+        const scriptId = `script-module-${id}`;
+        if (!document.getElementById(scriptId)) {
+            const script = document.createElement('script');
+            script.id = scriptId;
+            script.type = 'text/babel';
+            script.src = `${id}.js`;
+            
+            script.onload = () => {
+                // إجبار متصفح الموبايل على ترجمة كود الـ React فور تحميله
+                if (window.Babel) setTimeout(() => window.Babel.transformScriptTags(), 50);
+            };
+            
+            script.onerror = () => {
+                alert(`❌ فشل الاتصال بموديول: ${id}`);
+                setLoadedScripts(prev => { const newSet = new Set(prev); newSet.delete(id); return newSet; });
+            };
+            
+            document.body.appendChild(script);
+        }
+    }, [loadedScripts]);
+
+    // ==========================================
+    // 5. محرك عرض الموديولات (The Switcher)
+    // ==========================================
+    const renderModule = () => {
+        const moduleMap = {
+            'dashboard': DashboardView,
+            'hr': window.HRModule,
+            'users': window.UsersModule,
+            'crm': window.CRMModule,
+            'survey': window.SurveyModule,
+            'inventory': window.InventoryModule,
+            'suppliers': window.SuppliersModule,
+            'purchases': window.PurchasesModule,
+            'pos': window.POSModule,
+            'collection': window.CollectionModule,
+            'treasury': window.TreasuryModule,
+            'legal': window.LegalModule,
+            'data_import': window.ImportModule,
+            'settings': window.SettingsModule,
         };
 
-        const CurrentComponent = modules[id];
+        const Component = moduleMap[activeTab];
 
-        if (CurrentComponent) {
-            return <div className="animate-in fade-in duration-500">{CurrentComponent}</div>;
+        // إذا كان الموديول محمل في الذاكرة (RAM)، اعرضه فوراً
+        if (Component) {
+            return <div className="animate-in fade-in duration-500"><Component /></div>;
         }
 
+        // إذا لم يكن محملاً، اطلب استدعاءه واعرض شاشة انتظار سريعة
+        loadModule(activeTab);
+        
         return (
-            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[2rem] border-2 border-dashed border-slate-200">
-                <div className="text-5xl mb-4 grayscale opacity-50">🏗️</div>
-                <h3 className="font-black text-slate-800 text-lg">موديول {id.toUpperCase()}</h3>
-                <p className="text-xs text-slate-400 mt-2 font-bold">هذا الموديول قيد التجهيز في خطة الدومينو القادمة</p>
+            <div className="flex flex-col items-center justify-center py-32 bg-white rounded-[2rem] border border-slate-100 shadow-sm animate-pulse">
+                <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+                <h3 className="font-black text-slate-800 text-lg">جاري استدعاء الموديول...</h3>
+                <p className="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-widest">ECOFINE TURBO ENGINE</p>
             </div>
         );
     };
 
     // ==========================================
-    // 5. واجهة العرض (The UI Shell)
+    // 6. واجهة العرض (The UI Shell)
     // ==========================================
     if (!isReady) return <LoadingScreen />;
 
     return (
         <div className="h-screen bg-slate-100 flex overflow-hidden" dir="rtl">
             
-            {/* أ) الهيدر العلوي */}
+            {/* الهيدر العلوي */}
             <header className="fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center px-4 z-40 shadow-sm">
                 <button onClick={() => setIsMenuOpen(true)} className="p-2 text-slate-700 text-2xl active:scale-95 transition-transform">☰</button>
                 <div className="mr-3 flex flex-col">
                     <h2 className="font-black text-slate-900 leading-tight">إكس القابضة</h2>
-                    <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">EcoFine V6</span>
+                    <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">EcoFine V6 Turbo</span>
                 </div>
                 <div className="mr-auto flex items-center gap-2">
                     <div className="text-left hidden sm:block">
@@ -148,12 +192,12 @@ const App = () => {
                 </div>
             </header>
 
-            {/* ب) القائمة الجانبية (Sidebar) */}
+            {/* القائمة الجانبية */}
             <aside className={`fixed inset-y-0 right-0 z-[100] w-72 bg-slate-900 text-slate-400 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
                     <div>
                         <span className="text-white font-black text-lg">القائمة الرئيسية</span>
-                        <p className="text-[10px] text-blue-500 font-bold">بوابة العمليات</p>
+                        <p className="text-[10px] text-blue-500 font-bold">بوابة العمليات السريعة</p>
                     </div>
                     <button onClick={() => setIsMenuOpen(false)} className="text-xl text-slate-500 hover:text-white transition-colors">✕</button>
                 </div>
@@ -178,13 +222,13 @@ const App = () => {
                 </nav>
             </aside>
 
-            {/* ج) خلفية التظليل للموبايل */}
+            {/* خلفية التظليل للموبايل */}
             {isMenuOpen && <div className="fixed inset-0 bg-slate-900/60 z-[90] backdrop-blur-sm transition-opacity" onClick={() => setIsMenuOpen(false)}></div>}
 
-            {/* د) منطقة المحتوى (Main Content) */}
+            {/* منطقة المحتوى */}
             <main className="flex-1 pt-20 pb-10 overflow-y-auto w-full px-4 custom-scroll">
                 <div className="max-w-5xl mx-auto">
-                    {renderModule(activeTab)}
+                    {renderModule()}
                 </div>
             </main>
         </div>
@@ -192,7 +236,7 @@ const App = () => {
 };
 
 // ==========================================
-// 6. لوحة القيادة الديناميكية (Dynamic Dashboard)
+// 7. لوحة القيادة الديناميكية (Dynamic Dashboard)
 // ==========================================
 const DashboardView = () => {
     const [stats, setStats] = useState({
@@ -201,12 +245,15 @@ const DashboardView = () => {
     });
 
     useEffect(() => {
+        let isMounted = true;
         const fetchStats = async () => {
             try {
                 const [invoices, installments, customers, products, legal, expenses] = await Promise.all([
                     db.getAll('invoices'), db.getAll('installments'), db.getAll('customers'),
                     db.getAll('products'), db.getAll('legal_cases'), db.getAll('expenses')
                 ]);
+
+                if (!isMounted) return;
 
                 const sales = (invoices || []).reduce((s, i) => s + (Number(i.total) || 0), 0);
                 const collected = (installments || []).filter(i => i.status === 'paid').reduce((s, i) => s + (Number(i.amount) || 0), 0);
@@ -226,8 +273,8 @@ const DashboardView = () => {
         };
         
         fetchStats();
-        const interval = setInterval(fetchStats, 60000); // تحديث كل دقيقة
-        return () => clearInterval(interval);
+        const interval = setInterval(fetchStats, 60000);
+        return () => { isMounted = false; clearInterval(interval); };
     }, []);
 
     return (
@@ -241,14 +288,12 @@ const DashboardView = () => {
                 </div>
             </div>
 
-            {/* الكروت الإحصائية الأربعة */}
+            {/* الكروت الإحصائية */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatBox label="إجمالي المبيعات" val={stats.totalSales} color="blue" icon="📈" />
                 <StatBox label="تم تحصيله" val={stats.totalCollected} color="green" icon="✅" />
-                <wall>
                 <StatBox label="ديون في السوق" val={stats.pendingDebt} color="amber" icon="⏳" />
                 <StatBox label="عملاء نشطين" val={stats.activeCustomers} color="slate" icon="👥" />
-                </wall>
             </div>
 
             {/* التنبيهات الميدانية */}
