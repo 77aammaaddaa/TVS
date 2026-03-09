@@ -113,15 +113,14 @@ const XConfig = {
         reScheduling: true, // تفعيل إعادة الجدولة
         rescheduleLimitYears: 1 // مرة كل سنة
     },
-
     // ==========================================
-    // 8. إعدادات السحابة والمزامنة (Cloud Sync) - 🟢 جديد
+    // 8. إعدادات السحابة والمزامنة (Cloud Sync)
     // ==========================================
     cloud: {
-        url: "https://pyrcpouvcvjkgpjyuafz.supabase.co", // رابط مشروعك على Supabase
-        key: "YOUR_ANON_PUBLIC_KEY" // 👈 استبدل هذا بالمفتاح الحقيقي (Anon Public Key) الخاص بمشروعك
+        url: "https://pyrcpouvcvjkgpjyuafz.supabase.co",
+        key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5cmNwb3V2Y3Zqa2dwanl1YWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0ODc4NDgsImV4cCI6MjA4ODA2Mzg0OH0.vhrkZgIAh4Zp1TjLjwvelU5x31eSZZN5fBaPiaVKHCk"
     }
-};
+
 
 // تثبيت الإعدادات في النطاق العام للوصول إليها من كل الموديولات
 window.XConfig = XConfig;
