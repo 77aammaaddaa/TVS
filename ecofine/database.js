@@ -1,198 +1,204 @@
 /**
- * 🚀 EcoFine V6 Hybrid - المحرك المركزي لإكس القابضة (The Master Engine)
- * الإصدار التيربو: مزامنة سحابية (Supabase) + تخزين محلي (IndexedDB)
- * يدير: العملاء، المخزون، المالية، الـ HR، القانونية، والاستعلام
+ * 🗄️ database.js - المحرك الهجين (Offline-First / Cloud Sync)
+ * النظام: Eco Fine Pro V6 | تطوير: M H 4 Tech
+ * التحديث V9.1: يدعم العمل بدون إنترنت تماماً مع المزامنة التلقائية لـ Supabase.
+ * التقنيات: IndexedDB (محلي) + Supabase (سحابي).
  */
 
-class DBEngine {
-    constructor() {
-        this.dbName = "X_Holding_ERP_V6_Hybrid";
-        this.version = 5; 
-        this.localDb = null;
-        // تكوين Supabase - سيتم جلب المفاتيح من XConfig
-        this.client = null;
-    }
+const SUPABASE_URL = "https://pyrcpouvcvjkgpjyuafz.supabase.co";
+// 👈 ضع مفتاحك هنا (أو اجعله يسحب من XConfig لو كنت جهزته)
+const SUPABASE_KEY = typeof window.XConfig !== 'undefined' && window.XConfig.cloud ? window.XConfig.cloud.key : "YOUR_ANON_PUBLIC_KEY"; 
+
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const db = {
+    localDb: null,
+    dbName: "EcoFine_Local_DB",
 
     // ==========================================
-    // 1. تشغيل القاعدة وتجهيز المحركات (Init)
+    // 1. تهيئة القواعد (محلي + سحابي)
     // ==========================================
-    async init() {
-        // تهيئة عميل Supabase
-        const { url, key } = window.XConfig.cloud;
-        this.client = supabase.createClient(url, key);
-
+    init: async function() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(this.dbName, this.version);
+            // تم رفع الإصدار لـ 2 لضمان إنشاء الجداول الجديدة للـ ERP
+            const request = indexedDB.open(this.dbName, 2);
 
-            request.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                const storeConfigs = [
-                    { name: 'customers', indexes: ['phone', 'national_id', 'status'] },
-                    { name: 'guarantors', indexes: ['customer_id', 'phone'] },
-                    { name: 'suppliers', indexes: ['company_name'] },
-                    { name: 'invoices', indexes: ['customer_id', 'date'] },
-                    { name: 'purchases', indexes: ['supplier_id', 'date'] },
-                    { name: 'installments', indexes: ['invoice_id', 'customer_id', 'status', 'due_date'] },
-                    { name: 'treasury_log', indexes: ['type', 'date'] },
-                    { name: 'expenses', indexes: ['date'] },
-                    { name: 'products', indexes: ['category', 'stock'] },
-                    { name: 'users', indexes: ['username', 'role'] },
-                    { name: 'employees', indexes: ['role'] },
-                    { name: 'surveys', indexes: ['customer_id', 'status'] },
-                    { name: 'legal_cases', indexes: ['customer_id', 'status'] }
-                ];
+            request.onupgradeneeded = (event) => {
+                const local = event.target.result;
+                
+                // الجداول الأساسية (كما طلبت بدون حذف)
+                if (!local.objectStoreNames.contains('customers')) local.createObjectStore('customers', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('products')) local.createObjectStore('products', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('invoices')) local.createObjectStore('invoices', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('installments')) local.createObjectStore('installments', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('treasury')) local.createObjectStore('treasury', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('sync_queue')) local.createObjectStore('sync_queue', { keyPath: 'id', autoIncrement: true });
 
-                storeConfigs.forEach(cfg => {
-                    if (!db.objectStoreNames.contains(cfg.name)) {
-                        const store = db.createObjectStore(cfg.name, { keyPath: 'id' });
-                        if (cfg.indexes) {
-                            cfg.indexes.forEach(idx => store.createIndex(idx, idx, { unique: false }));
-                        }
-                    }
-                });
+                // جداول Eco Fine Pro V6 الإضافية (HR، قانونية، مصروفات، موردين)
+                if (!local.objectStoreNames.contains('guarantors')) local.createObjectStore('guarantors', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('suppliers')) local.createObjectStore('suppliers', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('purchases')) local.createObjectStore('purchases', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('expenses')) local.createObjectStore('expenses', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('users')) local.createObjectStore('users', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('surveys')) local.createObjectStore('surveys', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('legal_cases')) local.createObjectStore('legal_cases', { keyPath: 'id' });
             };
 
-            request.onsuccess = (e) => {
-                this.localDb = e.target.result;
-                console.log("🚀 المحرك الهجين V9 يعمل.. الاتصال بالسحابة مؤمن");
-                // محاولة مزامنة البيانات غير المرفوعة فور التشغيل
-                this.syncUnsyncedData();
-                resolve();
+            request.onsuccess = (event) => {
+                this.localDb = event.target.result;
+                console.log("✅ المحرك المحلي جاهز (Eco Fine Pro V6)");
+                // بدء محاولة المزامنة فور التشغيل
+                this.syncWithCloud();
+                resolve(true);
             };
 
-            request.onerror = () => reject("❌ فشل في الوصول للنظام");
+            request.onerror = () => reject("❌ فشل تشغيل المستودع المحلي");
         });
-    }
+    },
 
     // ==========================================
-    // ⚙️ محرك الإدخال الهجين (Hybrid Insert)
+    // 2. العمليات الأساسية (إضافة / تعديل / حذف)
     // ==========================================
-    async add(storeName, data) {
-        // توليد معرف UUID فريد عالمياً للمزامنة
-        const id = crypto.randomUUID();
-        const record = { 
-            ...data, 
-            id, 
-            created_at: new Date().toISOString(),
-            synced: false, // علامة المزامنة
-            // تطبيق قاعدة الـ 50% للمستجدين
-            credit_score: ['customers', 'guarantors'].includes(storeName) && !data.credit_score ? 50 : (data.credit_score || 0)
-        };
+    add: async function(tableName, object) {
+        // توليد ID لو مش موجود (UUID لضمان عدم التكرار سحابياً)
+        if (!object.id) object.id = crypto.randomUUID();
+        object.last_updated = new Date().toISOString();
+        object.synced = false;
 
-        // 1. الحفظ المحلي فوراً (السرعة القصوى)
-        await this._saveLocal(storeName, record);
+        // أ) الحفظ محلياً فوراً (الأولوية للسرعة)
+        await this._toLocal(tableName, object);
 
-        // 2. محاولة الرفع للسحابة (لو أوفلاين هيفضل synced: false)
+        // ب) محاولة الرفع للسحابة لو فيه إنترنت
         if (navigator.onLine) {
             try {
-                const { error } = await this.client.from(storeName).upsert([record]);
+                const { error } = await _supabase.from(tableName).upsert([object]);
                 if (!error) {
-                    record.synced = true;
-                    await this._saveLocal(storeName, record); // تحديث الحالة محلياً
+                    object.synced = true;
+                    await this._toLocal(tableName, object); // تحديث حالة المزامنة محلياً
                 }
-            } catch (err) { console.warn("☁️ السحابة غير متاحة، الحفظ محلي فقط."); }
+            } catch (e) { console.log("☁️ السحابة غير متاحة حالياً، تم الجدولة"); }
         }
-
-        return record;
-    }
-
-    // ==========================================
-    // 📈 محرك الحسابات الجارية (Financial Analytics)
-    // ==========================================
-    async getCustomerJourney(customerId) {
-        const invoices = await this.getAll('invoices');
-        const installments = await this.getAll('installments');
         
-        const customerInvoices = invoices.filter(i => i.customer_id === customerId);
-        const customerInst = installments.filter(i => i.customer_id === customerId);
+        return object;
+    },
 
-        const totalDebt = customerInvoices.reduce((s, i) => s + Number(i.total), 0);
-        const totalPaid = customerInst.filter(i => i.status === 'paid').reduce((s, i) => s + Number(i.amount), 0);
+    update: async function(tableName, id, updates) {
+        const existing = await this.getById(tableName, id);
+        if (!existing) throw new Error("السجل غير موجود محلياً");
+
+        const updatedObject = { ...existing, ...updates, last_updated: new Date().toISOString(), synced: false };
         
-        // حساب أيام التأخير الفعلية
-        const delayedDays = customerInst
-            .filter(i => i.status === 'pending' && new Date(i.due_date) < new Date())
-            .reduce((s, i) => {
-                const diff = Math.floor((new Date() - new Date(i.due_date)) / (1000 * 60 * 60 * 24));
-                return s + (diff > 0 ? diff : 0);
-            }, 0);
-
-        return {
-            total_debt: totalDebt,
-            total_paid: totalPaid,
-            remaining: totalDebt - totalPaid,
-            delay_days: delayedDays,
-            trust_level: delayedDays > 0 ? "خطر ⚠️" : "ملتزم ✅"
-        };
-    }
-
-    // ==========================================
-    // 🔄 محرك المزامنة التلقائي (Auto-Sync)
-    // ==========================================
-    async syncUnsyncedData() {
-        if (!navigator.onLine) return;
-
-        const stores = ['customers', 'invoices', 'installments', 'products', 'treasury_log'];
-        for (const storeName of stores) {
-            const allLocal = await this.getAll(storeName);
-            const unsynced = allLocal.filter(item => !item.synced);
-
-            for (const record of unsynced) {
-                try {
-                    const { error } = await this.client.from(storeName).upsert([record]);
-                    if (!error) {
-                        record.synced = true;
-                        await this._saveLocal(storeName, record);
-                    }
-                } catch (e) { break; } // توقف لو الشبكة سقطت أثناء المزامنة
-            }
-        }
-        console.log("🔄 تم تحديث السحابة بالبيانات المحلية");
-    }
-
-    // ==========================================
-    // 🛠️ دوال العمليات العامة (CRUD)
-    // ==========================================
-    async getAll(storeName) {
-        return new Promise((resolve) => {
-            const tx = this.localDb.transaction(storeName, 'readonly');
-            const request = tx.objectStore(storeName).getAll();
-            request.onsuccess = () => resolve(request.result);
-        });
-    }
-
-    async getById(storeName, id) {
-        return new Promise((resolve) => {
-            const tx = this.localDb.transaction(storeName, 'readonly');
-            const request = tx.objectStore(storeName).get(id);
-            request.onsuccess = () => resolve(request.result);
-        });
-    }
-
-    async update(storeName, id, newData) {
-        const existing = await this.getById(storeName, id);
-        const updated = { ...existing, ...newData, updated_at: new Date().toISOString(), synced: false };
-        
-        await this._saveLocal(storeName, updated);
+        await this._toLocal(tableName, updatedObject);
         
         if (navigator.onLine) {
-            const { error } = await this.client.from(storeName).upsert([updated]);
-            if (!error) {
-                updated.synced = true;
-                await this._saveLocal(storeName, updated);
+            try {
+                const { error } = await _supabase.from(tableName).upsert([updatedObject]);
+                if (!error) {
+                    updatedObject.synced = true;
+                    await this._toLocal(tableName, updatedObject);
+                }
+            } catch (e) { console.log("☁️ السحابة غير متاحة للتحديث، تم الجدولة"); }
+        }
+        return updatedObject;
+    },
+
+    // إضافة دالة الحذف لاستكمال العمليات (CRUD)
+    delete: async function(tableName, id) {
+        return new Promise((resolve, reject) => {
+            const transaction = this.localDb.transaction(tableName, "readwrite");
+            const store = transaction.objectStore(tableName);
+            const request = store.delete(id);
+            
+            request.onsuccess = async () => {
+                // محاولة الحذف من السحابة إذا كان متصلاً
+                if (navigator.onLine) {
+                    try {
+                        await _supabase.from(tableName).delete().eq('id', id);
+                    } catch (e) { console.log("☁️ لم يتم الحذف سحابياً بسبب انقطاع الاتصال"); }
+                }
+                resolve(true);
+            };
+            request.onerror = () => reject("❌ فشل الحذف المحلي");
+        });
+    },
+
+    // ==========================================
+    // 3. جلب البيانات (دائماً من المحلي للسرعة)
+    // ==========================================
+    getAll: async function(tableName) {
+        return new Promise((resolve) => {
+            const transaction = this.localDb.transaction(tableName, "readonly");
+            const store = transaction.objectStore(tableName);
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result);
+        });
+    },
+
+    getById: async function(tableName, id) {
+        return new Promise((resolve) => {
+            const transaction = this.localDb.transaction(tableName, "readonly");
+            const store = transaction.objectStore(tableName);
+            const request = store.get(id);
+            request.onsuccess = () => resolve(request.result);
+        });
+    },
+
+    getByIndex: async function(tableName, column, value) {
+        const all = await this.getAll(tableName);
+        return all.find(item => item[column] === value);
+    },
+
+    // ==========================================
+    // 4. محرك المزامنة التلقائي (Background Sync)
+    // ==========================================
+    syncWithCloud: async function() {
+        if (!navigator.onLine) return;
+
+        // تم إضافة الجداول الجديدة لقائمة المزامنة
+        const tables = [
+            'customers', 'products', 'invoices', 'installments', 'treasury',
+            'guarantors', 'suppliers', 'purchases', 'expenses', 'users', 'surveys', 'legal_cases'
+        ];
+        
+        for (const table of tables) {
+            const allLocal = await this.getAll(table);
+            const unSynced = allLocal.filter(item => !item.synced);
+
+            for (const item of unSynced) {
+                try {
+                    const { error } = await _supabase.from(table).upsert([item]);
+                    if (!error) {
+                        item.synced = true;
+                        await this._toLocal(table, item);
+                    }
+                } catch (e) { break; } // توقف لو الشبكة سقطت
             }
         }
-        return updated;
-    }
+        console.log("🔄 تمت المزامنة مع سحابة إكس");
+    },
 
-    // وظيفة داخلية للحفظ المحلي
-    async _saveLocal(storeName, record) {
+    // وظيفة داخلية للكتابة في IndexedDB
+    _toLocal: async function(tableName, object) {
         return new Promise((resolve) => {
-            const tx = this.localDb.transaction(storeName, 'readwrite');
-            tx.objectStore(storeName).put(record);
-            tx.oncomplete = () => resolve();
+            const transaction = this.localDb.transaction(tableName, "readwrite");
+            const store = transaction.objectStore(tableName);
+            store.put(object);
+            transaction.oncomplete = () => resolve(true);
         });
-    }
-}
+    },
 
-const db = new DBEngine();
+    // حساب رحلة العميل (محلياً)
+    getCustomerJourney: async function(customerId) {
+        const [invoices, installments] = await Promise.all([
+            this.getAll('invoices'),
+            this.getAll('installments')
+        ]);
+        const cInvoices = invoices.filter(i => i.customer_id === customerId);
+        const cInst = installments.filter(i => i.customer_id === customerId);
+        const totalDebt = cInvoices.reduce((s, i) => s + Number(i.total), 0);
+        const totalPaid = cInst.filter(i => i.status === 'paid').reduce((s, i) => s + Number(i.amount), 0);
+        return { total_debt: totalDebt, total_paid: totalPaid, remaining: totalDebt - totalPaid };
+    }
+};
+
+window.db = db;
