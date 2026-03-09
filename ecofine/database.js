@@ -1,12 +1,12 @@
 /**
  * 🗄️ database.js - المحرك الهجين (Offline-First / Cloud Sync)
- * النظام: Eco Fine Pro V6 | تطوير: M H 4 Tech
- * التحديث V9.1: يدعم العمل بدون إنترنت تماماً مع المزامنة التلقائية لـ Supabase.
+ * النظام: Eco Fine Pro V10.1 Turbo | تطوير: M H 4 Tech
+ * التحديث: دمج جداول الجرد والتصنيفات، ورفع الإصدار لإجبار المتصفح على التحديث.
  * التقنيات: IndexedDB (محلي) + Supabase (سحابي).
  */
 
 const SUPABASE_URL = "https://pyrcpouvcvjkgpjyuafz.supabase.co";
-// 👈 ضع مفتاحك هنا (أو اجعله يسحب من XConfig لو كنت جهزته)
+// 👈 يسحب المفتاح من XConfig أو يستخدم الافتراضي
 const SUPABASE_KEY = typeof window.XConfig !== 'undefined' && window.XConfig.cloud ? window.XConfig.cloud.key : "YOUR_ANON_PUBLIC_KEY"; 
 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -20,13 +20,13 @@ const db = {
     // ==========================================
     init: async function() {
         return new Promise((resolve, reject) => {
-            // تم رفع الإصدار لـ 2 لضمان إنشاء الجداول الجديدة للـ ERP
-            const request = indexedDB.open(this.dbName, 2);
+            // 🚀 تم رفع الإصدار لـ 11 لإجبار المتصفح على إنشاء الجداول الجديدة فوراً
+            const request = indexedDB.open(this.dbName, 11);
 
             request.onupgradeneeded = (event) => {
                 const local = event.target.result;
                 
-                // الجداول الأساسية (كما طلبت بدون حذف)
+                // الجداول الأساسية
                 if (!local.objectStoreNames.contains('customers')) local.createObjectStore('customers', { keyPath: 'id' });
                 if (!local.objectStoreNames.contains('products')) local.createObjectStore('products', { keyPath: 'id' });
                 if (!local.objectStoreNames.contains('invoices')) local.createObjectStore('invoices', { keyPath: 'id' });
@@ -42,11 +42,15 @@ const db = {
                 if (!local.objectStoreNames.contains('users')) local.createObjectStore('users', { keyPath: 'id' });
                 if (!local.objectStoreNames.contains('surveys')) local.createObjectStore('surveys', { keyPath: 'id' });
                 if (!local.objectStoreNames.contains('legal_cases')) local.createObjectStore('legal_cases', { keyPath: 'id' });
+                
+                // 📦 الجداول الجديدة الخاصة بموديول المخازن والجرد
+                if (!local.objectStoreNames.contains('categories')) local.createObjectStore('categories', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('inventory_logs')) local.createObjectStore('inventory_logs', { keyPath: 'id' });
             };
 
             request.onsuccess = (event) => {
                 this.localDb = event.target.result;
-                console.log("✅ المحرك المحلي جاهز (Eco Fine Pro V6)");
+                console.log("✅ المحرك المحلي جاهز (Eco Fine Pro V10.1 Turbo)");
                 // بدء محاولة المزامنة فور التشغيل
                 this.syncWithCloud();
                 resolve(true);
@@ -154,24 +158,32 @@ const db = {
     syncWithCloud: async function() {
         if (!navigator.onLine) return;
 
-        // تم إضافة الجداول الجديدة لقائمة المزامنة
+        // 🚀 تم إضافة جداول المخازن (categories, inventory_logs) لقائمة المزامنة
         const tables = [
             'customers', 'products', 'invoices', 'installments', 'treasury',
-            'guarantors', 'suppliers', 'purchases', 'expenses', 'users', 'surveys', 'legal_cases'
+            'guarantors', 'suppliers', 'purchases', 'expenses', 'users', 'surveys', 'legal_cases',
+            'categories', 'inventory_logs'
         ];
         
         for (const table of tables) {
-            const allLocal = await this.getAll(table);
-            const unSynced = allLocal.filter(item => !item.synced);
+            try {
+                // التحقق من وجود الجدول محلياً قبل محاولة مزامنته لمنع الأخطاء
+                if (!this.localDb.objectStoreNames.contains(table)) continue;
+                
+                const allLocal = await this.getAll(table);
+                const unSynced = allLocal.filter(item => !item.synced);
 
-            for (const item of unSynced) {
-                try {
-                    const { error } = await _supabase.from(table).upsert([item]);
-                    if (!error) {
-                        item.synced = true;
-                        await this._toLocal(table, item);
-                    }
-                } catch (e) { break; } // توقف لو الشبكة سقطت
+                for (const item of unSynced) {
+                    try {
+                        const { error } = await _supabase.from(table).upsert([item]);
+                        if (!error) {
+                            item.synced = true;
+                            await this._toLocal(table, item);
+                        }
+                    } catch (e) { break; } // توقف لو الشبكة سقطت
+                }
+            } catch (err) {
+                console.warn(`تخطي مزامنة جدول ${table} لعدم جاهزيته.`);
             }
         }
         console.log("🔄 تمت المزامنة مع سحابة إكس");
