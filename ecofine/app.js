@@ -1,22 +1,23 @@
 /**
  * 🚀 EcoFine Pro V6 Turbo - المايسترو (The X-Command Center)
- * تم دمج مؤشر حالة الاتصال (Online/Offline) ليدعم محرك البيانات الهجين V9.0.
+ * التحديث V9.5: دمج الحماية الذكية (XGuard)، تتبع الإنترنت، ونظام الجلسات مع زر الخروج الآمن.
  */
 
 const { useState, useEffect, useMemo } = React;
 
 const App = () => {
+    // تم إضافة currentUser لتتبع جلسة الموظف المسجل
+    const [currentUser, setCurrentUser] = useState(null); 
     const [isReady, setIsReady] = useState(false);
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isOnline, setIsOnline] = useState(navigator.onLine); // 👈 تتبع حالة الشبكة
-    const [user] = useState({ name: 'مستر إكس', role: 'CEO' });
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
 
     useEffect(() => {
         // مستمعات حالة الإنترنت
         const handleOnline = () => {
             setIsOnline(true);
-            if (typeof db !== 'undefined' && db.syncUnsyncedData) db.syncUnsyncedData(); // مزامنة فورية عند عودة النت
+            if (typeof db !== 'undefined' && db.syncUnsyncedData) db.syncUnsyncedData();
         };
         const handleOffline = () => setIsOnline(false);
 
@@ -74,14 +75,16 @@ const App = () => {
         ]}
     ];
 
+    // فلترة القائمة بناءً على مصفوفة صلاحيات المستخدم الحالي باستخدام XGuard
     const menuGroups = useMemo(() => {
+        if (!currentUser) return [];
         return rawMenuGroups.map(group => ({
             ...group,
             items: group.items.filter(item => 
-                typeof window.XGuard !== 'undefined' ? window.XGuard.canAccess(user.role, item.id) : true
+                typeof window.XGuard !== 'undefined' ? window.XGuard.canAccess(currentUser, item.id) : true
             )
         })).filter(group => group.items.length > 0);
-    }, [user.role]);
+    }, [currentUser]);
 
     const renderModule = () => {
         const moduleMap = {
@@ -118,6 +121,11 @@ const App = () => {
 
     if (!isReady) return <LoadingScreen />;
 
+    // 🔴 بوابة الدخول: لو مفيش مستخدم مسجل دخول، اعرض شاشة الـ Login الذكية
+    if (!currentUser && typeof window.AuthModule !== 'undefined') {
+        return <window.AuthModule onLoginSuccess={(user) => setCurrentUser(user)} />;
+    }
+
     return (
         <div className="h-screen bg-slate-100 flex overflow-hidden flex-col" dir="rtl">
             
@@ -132,12 +140,20 @@ const App = () => {
                     <h2 className="font-black text-slate-900 leading-tight">Eco Fine Pro</h2>
                     <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">X-Holding V9</span>
                 </div>
-                <div className="mr-auto flex items-center gap-2">
+                <div className="mr-auto flex items-center gap-4">
                     <div className="text-left hidden sm:block">
-                        <p className="text-xs font-black text-slate-800">{user.name}</p>
-                        <p className="text-[9px] font-bold text-slate-400">{user.role}</p>
+                        <p className="text-xs font-black text-slate-800">{currentUser?.username}</p>
+                        <p className="text-[9px] font-bold text-slate-400">{currentUser?.role_title}</p>
                     </div>
                     <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-black shadow-lg">7X</div>
+                    
+                    {/* 🚀 زر تسجيل الخروج الآمن */}
+                    <button 
+                        onClick={() => window.XGuard?.logout()} 
+                        className="text-[10px] font-black text-red-500 bg-red-50 px-3 py-2 rounded-lg hover:bg-red-100 transition-colors hidden sm:block"
+                    >
+                        تسجيل خروج
+                    </button>
                 </div>
             </header>
 
@@ -145,7 +161,7 @@ const App = () => {
                 <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
                     <div>
                         <span className="text-white font-black text-lg">القائمة الرئيسية</span>
-                        <p className="text-[10px] text-blue-500 font-bold">بوابة العمليات السريعة</p>
+                        <p className="text-[10px] text-blue-500 font-bold">{currentUser?.username}</p>
                     </div>
                     <button onClick={() => setIsMenuOpen(false)} className="text-xl text-slate-500 hover:text-white transition-colors">✕</button>
                 </div>
@@ -168,6 +184,16 @@ const App = () => {
                         </div>
                     ))}
                 </nav>
+                
+                {/* زر خروج إضافي للموبايل في القائمة الجانبية */}
+                <div className="p-4 border-t border-slate-800 sm:hidden">
+                    <button 
+                        onClick={() => window.XGuard?.logout()} 
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500/10 text-red-400 font-black text-xs hover:bg-red-500/20"
+                    >
+                        <span>🚪</span> تسجيل خروج
+                    </button>
+                </div>
             </aside>
 
             {isMenuOpen && <div className="fixed inset-0 bg-slate-900/60 z-[90] backdrop-blur-sm transition-opacity" onClick={() => setIsMenuOpen(false)}></div>}
