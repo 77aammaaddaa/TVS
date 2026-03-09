@@ -1,6 +1,6 @@
 /**
  * 🚀 EcoFine Pro V6 Turbo - المايسترو (The X-Command Center)
- * التحديث V9.5: دمج الحماية الذكية (XGuard)، تتبع الإنترنت، ونظام الجلسات مع زر الخروج الآمن.
+ * التحديث V9.6: دمج الحماية الذكية (XGuard)، تتبع الإنترنت، نظام الجلسات، التوقيت الحي، والمهام السريعة.
  */
 
 const { useState, useEffect, useMemo } = React;
@@ -12,8 +12,14 @@ const App = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
+    
+    // ⏰ نظام التوقيت الحي المضاف حديثاً
+    const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
+        // تحديث الساعة كل ثانية
+        const clockTimer = setInterval(() => setCurrentTime(new Date()), 1000);
+
         // مستمعات حالة الإنترنت
         const handleOnline = () => {
             setIsOnline(true);
@@ -41,6 +47,7 @@ const App = () => {
         }
 
         return () => {
+            clearInterval(clockTimer);
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
         };
@@ -107,7 +114,8 @@ const App = () => {
         const Component = moduleMap[activeTab];
 
         if (Component) {
-            return <div className="animate-in fade-in duration-500"><Component /></div>;
+            // تمرير currentUser و setActiveTab كـ Props لتستخدمها لوحة التحكم
+            return <div className="animate-in fade-in duration-500"><Component currentUser={currentUser} setActiveTab={setActiveTab} /></div>;
         }
 
         return (
@@ -140,6 +148,15 @@ const App = () => {
                     <h2 className="font-black text-slate-900 leading-tight">Eco Fine Pro</h2>
                     <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">X-Holding V9</span>
                 </div>
+
+                {/* ⏰ الساعة الحية في المنتصف/اليمين */}
+                <div className="hidden md:flex items-center justify-center flex-1">
+                    <div className="bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full shadow-inner flex items-center gap-2 text-slate-600">
+                        <span className="text-[10px] font-black uppercase tracking-widest">التوقيت المحلي</span>
+                        <span className="text-xs font-black" dir="ltr">{currentTime.toLocaleTimeString('ar-EG')}</span>
+                    </div>
+                </div>
+
                 <div className="mr-auto flex items-center gap-4">
                     <div className="text-left hidden sm:block">
                         <p className="text-xs font-black text-slate-800">{currentUser?.username}</p>
@@ -210,7 +227,7 @@ const App = () => {
 // ==========================================
 // 🎯 لوحة التحكم ومركز القيادة (The Command Center)
 // ==========================================
-const DashboardView = () => {
+const DashboardView = ({ currentUser, setActiveTab }) => {
     const [stats, setStats] = useState({
         totalSales: 0, totalCollected: 0, pendingDebt: 0, 
         activeCustomers: 0, lowStock: 0, legalCases: 0, netTreasury: 0
@@ -254,9 +271,40 @@ const DashboardView = () => {
     const riskRate = stats.totalSales > 0 ? ((stats.pendingDebt / stats.totalSales) * 100).toFixed(1) : 0;
     const liquidityRate = stats.totalSales > 0 ? ((stats.netTreasury / stats.totalSales) * 100).toFixed(1) : 0;
 
+    // 🌟 منطق الترحيب الذكي
+    const currentHour = new Date().getHours();
+    const greeting = currentHour < 12 ? "صباح الخير" : "مساء الخير";
+    const userName = currentUser?.username || 'يا زعيم';
+
     return (
         <div className="space-y-6 animate-in fade-in duration-700">
             
+            {/* 🌟 هيدر الترحيب السريع والأزرار المضافة حديثاً */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <div>
+                    <h2 className="text-2xl font-black text-slate-800 tracking-tight">
+                        {greeting}، <span className="text-blue-600">{userName}</span> 👋
+                    </h2>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">إليك ملخص إمبراطورية العمل اليوم</p>
+                </div>
+                
+                {/* 🚀 أزرار المهام السريعة */}
+                <div className="flex flex-wrap gap-2">
+                    <button onClick={() => setActiveTab && setActiveTab('crm')} className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-4 py-3 rounded-2xl text-[10px] font-black text-slate-700 hover:bg-slate-100 hover:border-slate-300 active:scale-95 transition-all shadow-sm">
+                        <span className="text-base">🤝</span> عميل جديد
+                    </button>
+                    <button onClick={() => setActiveTab && setActiveTab('pos')} className="flex items-center gap-2 bg-slate-900 border border-slate-900 px-4 py-3 rounded-2xl text-[10px] font-black text-white hover:bg-slate-800 active:scale-95 transition-all shadow-lg shadow-slate-900/20">
+                        <span className="text-base">💻</span> عملية بيع
+                    </button>
+                    <button onClick={() => setActiveTab && setActiveTab('treasury')} className="flex items-center gap-2 bg-red-50 border border-red-100 px-4 py-3 rounded-2xl text-[10px] font-black text-red-600 hover:bg-red-100 active:scale-95 transition-all shadow-sm">
+                        <span className="text-base">🏦</span> تسجيل مصروف
+                    </button>
+                    <button onClick={() => setActiveTab && setActiveTab('purchases')} className="flex items-center gap-2 bg-blue-50 border border-blue-100 px-4 py-3 rounded-2xl text-[10px] font-black text-blue-600 hover:bg-blue-100 active:scale-95 transition-all shadow-sm">
+                        <span className="text-base">🛒</span> مشتريات
+                    </button>
+                </div>
+            </div>
+
             {/* 1. بطاقة السيولة النقدية الكبرى */}
             <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
                 <div className="absolute top-[-50%] right-[-10%] w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
