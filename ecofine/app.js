@@ -104,7 +104,9 @@ const App = () => {
                         </div>
                     )}
 
-                    {activeTab === 'crm' && <div id="crm-root">مديول إدارة العملاء سيظهر هنا...</div>}
+                    
+{activeTab === 'crm' && <CRMModule />}
+
                     {activeTab === 'inventory' && <div>مديول المخازن قيد التطوير...</div>}
                     {/* باقي الموديولات ستضاف هنا بنفس الطريقة */}
                 </div>
