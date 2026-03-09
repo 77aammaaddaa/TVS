@@ -1,6 +1,7 @@
 /**
  * 🎛️ X-CONFIG Manager - لوحة تحكم النظام السيادية
- * هذا الملف هو "الريموت كنترول" لكل مؤسسة تستخدم نظام EcoFine.
+ * النظام: Eco Fine Pro V6 | تطوير: M H 4 Tech
+ * هذا الملف هو "الريموت كنترول" لكل مؤسسة تستخدم نظام Eco Fine Pro.
  * تم تصميمه ليكون تراكمياً (Cumulative) بحيث تؤثر الإعدادات على بعضها البعض.
  */
 
@@ -9,10 +10,10 @@ const XConfig = {
     // 1. الهوية التجارية (Branding & Localization)
     // ==========================================
     identity: {
-        storeName: "إكس القابضة للحلول الرقمية", // يتغير حسب العميل
+        storeName: "Eco Fine Pro - النسخة التجارية", // يتغير حسب اسم مؤسسة العميل
         currency: "ج.م", // أو ر.س، د.إ
         language: "ar-EG",
-        themeColor: "#0f172a", // اللون الأساسي للبراند
+        themeColor: "#0f172a", // اللون الأساسي للبراند (Slate 900)
         logoUrl: "./assets/logo.png"
     },
 
@@ -111,6 +112,14 @@ const XConfig = {
         inventoryManagement: true,
         reScheduling: true, // تفعيل إعادة الجدولة
         rescheduleLimitYears: 1 // مرة كل سنة
+    },
+
+    // ==========================================
+    // 8. إعدادات السحابة والمزامنة (Cloud Sync) - 🟢 جديد
+    // ==========================================
+    cloud: {
+        url: "https://pyrcpouvcvjkgpjyuafz.supabase.co", // رابط مشروعك على Supabase
+        key: "YOUR_ANON_PUBLIC_KEY" // 👈 استبدل هذا بالمفتاح الحقيقي (Anon Public Key) الخاص بمشروعك
     }
 };
 
