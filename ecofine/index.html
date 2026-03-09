@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title> EcoFine Pro V6</title>
+    
+    <title>Eco Fine Pro V6 | M H 4 Tech</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
     
@@ -17,23 +20,20 @@
         body { 
             font-family: 'IBM Plex Sans Arabic', sans-serif; 
             background: #f8fafc; 
-            overscroll-behavior-y: contain; /* لمنع السحب لأسفل في المتصفح */
+            overscroll-behavior-y: contain; 
         }
         
-        /* تحسين استجابة اللمس على الأجهزة المحمولة */
         * { -webkit-tap-highlight-color: transparent; outline: none; }
         
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
-        /* أنيميشن النوافذ والموديولات */
         .animate-in { animation: slideUp 0.4s ease-out forwards; }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* شاشة التحميل الأولية الذكية */
         #splash-screen {
             position: fixed; inset: 0; background: #0f172a;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -44,14 +44,15 @@
 <body>
 
     <div id="splash-screen">
-        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <h1 class="text-white font-black mt-4 tracking-widest text-sm">X-CORE V6</h1>
-        <p class="text-xs text-slate-400 mt-2 font-bold">جاري تحميل وتشغيل الأنظمة الكاملة...</p>
+        <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <h1 class="text-white font-black mt-6 tracking-widest text-xl">Eco Fine Pro</h1>
+        <div class="bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded mt-2 uppercase tracking-widest">Version 6.0</div>
+        <p class="text-[10px] text-slate-400 mt-6 font-bold uppercase tracking-widest">Powered by <span class="text-white">M H 4 Tech</span></p>
     </div>
 
     <div id="root"></div>
 
-    <script type="text/babel" src="database.js"></script>
+    <script type="text/babel" src="XConfig.js"></script> <script type="text/babel" src="database.js"></script>
     <script type="text/babel" src="XCore.js"></script>
     <script type="text/babel" src="auth.js"></script>
 
@@ -68,21 +69,9 @@
     <script type="text/babel" src="treasury.js"></script>
 
     <script type="text/babel" src="hr.js"></script>
-    <script type="text/babel" src="users.js"></script>
-    
-    <script type="text/babel" src="data_bridge.js"></script>
-
-
+    <script type="text/babel" src="users.js"></script> <script type="text/babel" src="data_bridge.js"></script>
     <script type="text/babel" src="settings.js"></script>
-
-
     <script type="text/babel" src="feedback.js"></script>
-
-<script type="text/babel" src="users.js"></script>
-
-
-
-
 
     <script type="text/babel" src="app.js"></script>
 
