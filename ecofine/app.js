@@ -1,6 +1,6 @@
 /**
  * 🚀 EcoFine Pro V6 Turbo - المايسترو (The X-Command Center)
- * تم دمج مركز القيادة المبسط (النسب الذهبية الثلاثة) لاتخاذ القرارات اللحظية.
+ * تم دمج مؤشر حالة الاتصال (Online/Offline) ليدعم محرك البيانات الهجين V9.0.
  */
 
 const { useState, useEffect, useMemo } = React;
@@ -9,15 +9,28 @@ const App = () => {
     const [isReady, setIsReady] = useState(false);
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isOnline, setIsOnline] = useState(navigator.onLine); // 👈 تتبع حالة الشبكة
     const [user] = useState({ name: 'مستر إكس', role: 'CEO' });
 
     useEffect(() => {
+        // مستمعات حالة الإنترنت
+        const handleOnline = () => {
+            setIsOnline(true);
+            if (typeof db !== 'undefined' && db.syncUnsyncedData) db.syncUnsyncedData(); // مزامنة فورية عند عودة النت
+        };
+        const handleOffline = () => setIsOnline(false);
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        // إزالة شاشة التحميل الأولية
         const splash = document.getElementById('splash-screen');
         if (splash) {
             splash.style.opacity = '0';
             setTimeout(() => splash?.remove(), 500);
         }
 
+        // تشغيل محرك البيانات الهجين
         if (typeof db !== 'undefined') {
             db.init()
                 .then(() => setIsReady(true))
@@ -25,6 +38,11 @@ const App = () => {
         } else {
             alert("⚠️ ملف database.js غير موجود!");
         }
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
     }, []);
 
     const rawMenuGroups = [
@@ -43,7 +61,7 @@ const App = () => {
             { id: 'purchases', label: 'المشتريات والتوريد', icon: '🛒' }
         ]},
         { group: "التشغيل والمبيعات", items: [
-            { id: 'pos', label: 'نقطة البيع ', icon: '💻' }
+            { id: 'pos', label: 'نقطة البيع', icon: '💻' }
         ]},
         { group: "المالية والقانون", items: [
             { id: 'collection', label: 'وحدة التحصيل', icon: '💰' },
@@ -101,12 +119,18 @@ const App = () => {
     if (!isReady) return <LoadingScreen />;
 
     return (
-        <div className="h-screen bg-slate-100 flex overflow-hidden" dir="rtl">
-            <header className="fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center px-4 z-40 shadow-sm">
+        <div className="h-screen bg-slate-100 flex overflow-hidden flex-col" dir="rtl">
+            
+            {/* 🔴 شريط الحالة (Online/Offline Radar) */}
+            <div className={`shrink-0 w-full text-center py-1 text-[9px] font-black tracking-widest uppercase transition-colors duration-500 z-50 ${isOnline ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                {isOnline ? '🟢 متصل بالسحابة (يتم المزامنة)' : '🔴 وضع الأوفلاين (تخزين محلي فقط)'}
+            </div>
+
+            <header className="shrink-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center px-4 z-40 shadow-sm">
                 <button onClick={() => setIsMenuOpen(true)} className="p-2 text-slate-700 text-2xl active:scale-95 transition-transform">☰</button>
                 <div className="mr-3 flex flex-col">
-                    <h2 className="font-black text-slate-900 leading-tight">Eco Fine Pro </h2>
-                    <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">EcoFine V6 Turbo</span>
+                    <h2 className="font-black text-slate-900 leading-tight">Eco Fine Pro</h2>
+                    <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">X-Holding V9</span>
                 </div>
                 <div className="mr-auto flex items-center gap-2">
                     <div className="text-left hidden sm:block">
@@ -148,7 +172,7 @@ const App = () => {
 
             {isMenuOpen && <div className="fixed inset-0 bg-slate-900/60 z-[90] backdrop-blur-sm transition-opacity" onClick={() => setIsMenuOpen(false)}></div>}
 
-            <main className="flex-1 pt-20 pb-10 overflow-y-auto w-full px-4 custom-scroll">
+            <main className="flex-1 pt-6 pb-10 overflow-y-auto w-full px-4 custom-scroll">
                 <div className="max-w-5xl mx-auto">
                     {renderModule()}
                 </div>
@@ -170,6 +194,7 @@ const DashboardView = () => {
         let isMounted = true;
         const fetchStats = async () => {
             try {
+                // جلب الداتا دايماً من الـ IndexedDB المحلي (سريع جداً)
                 const [invoices, installments, customers, products, legal, expenses] = await Promise.all([
                     db.getAll('invoices').catch(() => []), db.getAll('installments').catch(() => []),
                     db.getAll('customers').catch(() => []), db.getAll('products').catch(() => []),
@@ -192,7 +217,8 @@ const DashboardView = () => {
         };
 
         fetchStats();
-        const interval = setInterval(fetchStats, 60000);
+        // التحديث كل 10 ثواني بدل دقيقة ليعكس التغيرات أسرع
+        const interval = setInterval(fetchStats, 10000); 
         return () => { isMounted = false; clearInterval(interval); };
     }, []);
 
@@ -286,7 +312,7 @@ const LoadingScreen = () => (
     <div className="h-screen flex flex-col items-center justify-center bg-slate-900 text-white">
         <div className="w-16 h-16 border-4 border-slate-800 border-t-blue-500 rounded-full animate-spin mb-6"></div>
         <h2 className="text-xl font-black tracking-widest">ECOFINE <span className="text-blue-500">V6</span></h2>
-        <p className="text-xs font-bold text-slate-500 mt-2">جاري تجهيز غرفة العمليات...</p>
+        <p className="text-xs font-bold text-slate-500 mt-2">جاري تجهيز محركات إكس القابضة...</p>
     </div>
 );
 
