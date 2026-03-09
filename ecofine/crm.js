@@ -1,7 +1,7 @@
 /**
- * 🤝 crm.js - مديول إدارة العملاء المطور (V7 - XCore Integrated)
- * الإصدار السيادي: دمج التقييم اللحظي (Live Scoring)، الرقابة الصارمة على الأرقام القومية،
- * الفلترة المزدوجة للمشتري والضامن، وحساب الأوزان النسبية للـ 100%.
+ * 🤝 crm.js - مديول إدارة العملاء المطور (V7.5 - Full-Screen Mobile UI)
+ * الإصدار السيادي: تم حل مشكلة الشاشة المنبثقة وتحويلها لواجهة تطبيق أصلية (Native App Feel).
+ * دمج التقييم اللحظي، الفلترة المزدوجة، وحساب الأوزان النسبية للـ 100%.
  */
 
 const { useState, useEffect, useMemo, useCallback } = React;
@@ -22,8 +22,9 @@ const parseNationalId = (nationalId) => {
     };
 };
 
+// مودال التأكيد الصغير (مرفوع الـ z-index ليظهر فوق كل شيء)
 const ConfirmModal = ({ message, onConfirm, onCancel }) => (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
         <div className="bg-white p-6 rounded-3xl shadow-2xl max-w-sm w-full animate-in fade-in slide-in-from-bottom-4">
             <div className="text-4xl text-center mb-4">🔍</div>
             <p className="text-sm font-bold text-center text-slate-800 mb-6 leading-relaxed">{message}</p>
@@ -46,7 +47,7 @@ const CRMModule = () => {
     const [formData, setFormData] = useState({
         full_name: '', national_id: '', phone: '', whatsapp: '',
         province: '', area: '', address_details: '',
-        job: '', job_type: 'قطاع خاص', income_verified: false, // الحقول الجديدة للتقييم
+        job: '', job_type: 'قطاع خاص', income_verified: false,
         marital_status: 'متزوج', qualification: '',
         monthly_income: '', income_source: '', housing_type: 'إيجار',
         birth_date: '', gender: '', guarantors: [] 
@@ -80,13 +81,11 @@ const CRMModule = () => {
     const liveScore = useMemo(() => {
         if (!window.XCore) return { score: 0, isEligible: false };
 
-        // 1. تقييم الضامنين الموجودين في الفورم بشكل فردي أولاً
         const evaluatedGuarantors = formData.guarantors.map(g => {
-            const gScore = window.XCore.calculateCreditScore(g, []).score; // نقيم الضامن كشخص مستقل
+            const gScore = window.XCore.calculateCreditScore(g, []).score; 
             return { ...g, credit_score: gScore };
         });
 
-        // 2. تقييم المشتري النهائي مع ضامنيه
         return window.XCore.calculateCreditScore(formData, evaluatedGuarantors);
     }, [formData]);
 
@@ -102,9 +101,8 @@ const CRMModule = () => {
                 return;
             }
             if (check.requiresMultiInvoiceCheck) {
-                showNotification('success', '💡 عميل حالي: سيخضع لشرط تعدد الفواتير (سداد 50%) عند المبيعات.');
+                showNotification('success', '💡 عميل حالي: سيخضع لشرط سداد 50% عند نقطة البيع.');
             }
-            // استخراج البيانات
             const parsed = parseNationalId(value);
             if (parsed) setPendingNationalIdConfirm({ nationalId: value, parsed });
         }
@@ -150,14 +148,12 @@ const CRMModule = () => {
 
     const handleGuarantorNationalIdBlur = async (index, value) => {
         if (/^\d{14}$/.test(value) && window.XCore) {
-            // منع إضافة نفس الشخص كمشتري وضامن في نفس الفورم
             if (value === formData.national_id) {
                 showNotification('error', '🚫 لا يمكن للمشتري أن يضمن نفسه!');
                 updateGuarantor(index, 'national_id', '');
                 return;
             }
 
-            // فحص إكس كور الصارم لأهلية الضامن
             const check = await window.XCore.checkPersonEligibility(value, 'guarantor');
             if (!check.eligible) {
                 showNotification('error', check.msg);
@@ -182,18 +178,16 @@ const CRMModule = () => {
     };
 
     // ==========================================
-    // 💾 حفظ البيانات (Execution)
+    // 💾 حفظ البيانات
     // ==========================================
     const handleSave = async (e) => {
         e.preventDefault();
 
-        // 1. فلترة إكس كور (هل تخطى 50%؟)
         if (!liveScore.isEligible) {
-            showNotification('error', `🚫 غير مؤهل للتسجيل. تقييمه الحالي ${liveScore.score}% (الحد الأدنى 50%). يرجى تقوية البيانات أو الضامنين.`);
+            showNotification('error', `🚫 غير مؤهل للتسجيل. التقييم الحالي ${liveScore.score}% (الحد الأدنى 50%).`);
             return;
         }
 
-        // 2. التحقق من الضامنين أنفسهم
         for (let i = 0; i < formData.guarantors.length; i++) {
             const g = formData.guarantors[i];
             const gScoreObj = window.XCore.calculateCreditScore(g, []);
@@ -201,7 +195,7 @@ const CRMModule = () => {
                 showNotification('error', `🚫 الضامن ${i+1} غير مؤهل (تقييمه ${gScoreObj.score}%). يجب تغييره.`);
                 return;
             }
-            g.credit_score = gScoreObj.score; // حفظ سكور الضامن
+            g.credit_score = gScoreObj.score; 
         }
 
         try {
@@ -209,7 +203,7 @@ const CRMModule = () => {
                 ...formData,
                 status: 'active',
                 credit_score: liveScore.score,
-                survey_status: 'pending', // بانتظار الاستعلام الميداني لرفع السكور لاحقاً
+                survey_status: 'pending',
                 created_at: new Date().toISOString(),
                 legal_ban_until: null
             };
@@ -231,7 +225,6 @@ const CRMModule = () => {
         }
     };
 
-    // فلترة العرض
     const filteredCustomers = useMemo(() => {
         if (!searchTerm) return customers;
         const term = searchTerm.toLowerCase();
@@ -242,7 +235,7 @@ const CRMModule = () => {
     }, [customers, searchTerm]);
 
     return (
-        <div className="space-y-6 animate-in">
+        <div className="space-y-6 animate-in relative">
             {notification && (
                 <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-[300] px-8 py-4 rounded-2xl shadow-2xl text-white font-black text-xs md:text-sm tracking-wide ${
                     notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'
@@ -251,7 +244,7 @@ const CRMModule = () => {
                 </div>
             )}
 
-            {/* شريط الإجراءات */}
+            {/* شريط الإجراءات والبحث */}
             <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white p-4 rounded-3xl shadow-sm border border-slate-200">
                 <input 
                     type="text" 
@@ -303,8 +296,8 @@ const CRMModule = () => {
                                 <span className="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-black">
                                     🛡️ ضامنين: {c.guarantors?.length || 0}
                                 </span>
-                                <span className={`text-[9px] px-2 py-1 rounded font-black ${c.legal_ban_until ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                                    {c.legal_ban_until ? 'محظور قانونياً' : 'متاح للتعامل'}
+                                <span className={`text-[9px] px-2 py-1 rounded font-black ${c.legal_ban_until && new Date(c.legal_ban_until) > new Date() ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                    {c.legal_ban_until && new Date(c.legal_ban_until) > new Date() ? 'محظور قانونياً' : 'متاح للتعامل'}
                                 </span>
                             </div>
                         </div>
@@ -312,162 +305,160 @@ const CRMModule = () => {
                 </div>
             )}
 
-            {/* مودال تسجيل العميل مع التقييم اللحظي */}
+            {/* مودال تسجيل العميل (Full-Screen Native App Design) */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[110] flex items-end md:items-center justify-center bg-slate-900/80 backdrop-blur-sm p-0 md:p-4">
-                    <div className="bg-white rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-4xl h-[90vh] md:h-[85vh] overflow-hidden flex flex-col animate-slide-up">
-                        
-                        {/* الهيدر وشريط التقييم المباشر (The Live Score Bar) */}
-                        <div className="bg-slate-900 p-6 text-white shrink-0 relative overflow-hidden">
-                            <div className="relative z-10 flex justify-between items-center mb-4">
-                                <div>
-                                    <h3 className="text-lg font-black">غرفة الاستعلام الذكي</h3>
-                                    <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">يتم الفحص والتقييم آلياً بواسطة X-CORE</p>
-                                </div>
-                                <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-all">✕</button>
+                <div className="fixed inset-0 z-[200] bg-slate-50 flex flex-col animate-in slide-in-from-bottom-full">
+                    
+                    {/* الهيدر العلوي الثابت وشريط التقييم */}
+                    <div className="shrink-0 bg-slate-900 p-4 md:p-6 text-white shadow-xl z-20 relative">
+                        <div className="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 className="text-lg font-black">غرفة الاستعلام الذكي</h3>
+                                <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">فحص وتقييم آلي (X-CORE)</p>
                             </div>
-                            
-                            {/* شريط الألوان المباشر */}
-                            <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700">
-                                <div className="flex justify-between items-end mb-2">
-                                    <span className="text-xs font-bold text-slate-400">التقييم الائتماني الحي:</span>
-                                    <span className={`text-2xl font-black ${liveScore.isEligible ? 'text-green-400' : 'text-red-400'}`}>{liveScore.score}%</span>
-                                </div>
-                                <div className="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-700">
-                                    <div className={`h-full transition-all duration-700 ease-out ${liveScore.score >= 75 ? 'bg-green-500' : liveScore.score >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${liveScore.score}%` }}></div>
-                                </div>
-                                <div className="flex justify-between mt-2 text-[8px] font-bold text-slate-500 uppercase">
-                                    <span>بيانات (20%)</span><span>مالية (30%)</span><span>سكن (10%)</span><span>ضامنين (40%)</span>
-                                </div>
-                                {!liveScore.isEligible && (
-                                    <p className="text-[10px] text-red-400 mt-2 font-bold animate-pulse">⚠️ التقييم أقل من 50%. غير مؤهل لفتح تعاقد حالياً.</p>
-                                )}
-                            </div>
+                            <button type="button" onClick={() => setIsModalOpen(false)} className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-lg hover:bg-slate-700 transition-colors">✕</button>
                         </div>
                         
-                        {/* جسم الفورم */}
-                        <form onSubmit={handleSave} className="p-6 space-y-8 overflow-y-auto flex-1 custom-scroll bg-slate-50/50">
-                            
-                            {/* القسم 1: البيانات الشخصية */}
-                            <section className="bg-white p-6 rounded-[2rem] border shadow-sm space-y-4">
-                                <h5 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b pb-3">1. الهوية والبيانات الأساسية</h5>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="md:col-span-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase">الاسم الرباعي</label>
-                                        <input required className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-bold" 
-                                               value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-400 uppercase">الرقم القومي (الفحص الفوري)</label>
-                                        <input required type="text" maxLength="14" className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500" 
-                                               value={formData.national_id} 
-                                               onChange={e => setFormData({ ...formData, national_id: e.target.value, birth_date: '', gender: '' })}
-                                               onBlur={(e) => handleBuyerNationalIdBlur(e.target.value)} />
-                                        {formData.birth_date && <p className="text-[9px] text-green-600 font-bold mt-2 bg-green-50 p-2 rounded-lg">✅ {formData.birth_date} | {formData.gender}</p>}
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-400 uppercase">رقم الهاتف (أساسي)</label>
-                                        <input required type="tel" className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-bold" 
-                                               value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase">العنوان الفعلي بالتفصيل</label>
-                                        <input required className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-bold" 
-                                               value={formData.address_details} onChange={e => setFormData({...formData, address_details: e.target.value})} />
-                                    </div>
+                        <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                            <div className="flex justify-between items-end mb-2">
+                                <span className="text-xs font-bold text-slate-400">التقييم الائتماني الحي:</span>
+                                <span className={`text-2xl font-black ${liveScore.isEligible ? 'text-green-400' : 'text-red-400'}`}>{liveScore.score}%</span>
+                            </div>
+                            <div className="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-700">
+                                <div className={`h-full transition-all duration-700 ease-out ${liveScore.score >= 75 ? 'bg-green-500' : liveScore.score >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${liveScore.score}%` }}></div>
+                            </div>
+                            <div className="flex justify-between mt-2 text-[8px] font-bold text-slate-500 uppercase">
+                                <span>بيانات (20%)</span><span>مالية (30%)</span><span>سكن (10%)</span><span>ضامنين (40%)</span>
+                            </div>
+                            {!liveScore.isEligible && (
+                                <p className="text-[10px] text-red-400 mt-2 font-bold animate-pulse">⚠️ التقييم أقل من 50%. غير مؤهل لفتح تعاقد حالياً.</p>
+                            )}
+                        </div>
+                    </div>
+                    
+                    {/* جسم الفورم (السكرول الطبيعي هنا) */}
+                    <form id="crm-form" onSubmit={handleSave} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 pb-32 custom-scroll">
+                        
+                        {/* القسم 1: البيانات الشخصية */}
+                        <section className="bg-white p-6 rounded-[2rem] border shadow-sm space-y-4">
+                            <h5 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b pb-3">1. الهوية والبيانات الأساسية</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="md:col-span-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase">الاسم الرباعي</label>
+                                    <input required className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-bold" 
+                                           value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} />
                                 </div>
-                            </section>
-
-                            {/* القسم 2: القدرة المالية والسكن (مؤثرات السكور) */}
-                            <section className="bg-white p-6 rounded-[2rem] border shadow-sm space-y-4">
-                                <h5 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b pb-3">2. القدرة المالية والسكن</h5>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-400 uppercase">جهة العمل</label>
-                                        <select className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-bold" 
-                                                value={formData.job_type} onChange={e => setFormData({...formData, job_type: e.target.value})}>
-                                            <option value="قطاع خاص">قطاع خاص</option>
-                                            <option value="حكومي">موظف حكومي (أعلى تقييم)</option>
-                                            <option value="أعمال حرة">أعمال حرة</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-400 uppercase">متوسط الدخل الشهري</label>
-                                        <input required type="number" className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-black text-blue-600" 
-                                               value={formData.monthly_income} onChange={e => setFormData({...formData, monthly_income: e.target.value})} />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-400 uppercase">نوع السكن</label>
-                                        <select className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-bold" 
-                                                value={formData.housing_type} onChange={e => setFormData({...formData, housing_type: e.target.value})}>
-                                            <option value="إيجار">إيجار</option>
-                                            <option value="تمليك">تمليك (أعلى تقييم)</option>
-                                            <option value="عائلي">عائلي</option>
-                                        </select>
-                                    </div>
-                                    <div className="md:col-span-3 flex items-center p-4 bg-blue-50 border border-blue-100 rounded-2xl gap-3">
-                                        <input type="checkbox" className="w-5 h-5 accent-blue-600 rounded" 
-                                               checked={formData.income_verified} onChange={e => setFormData({...formData, income_verified: e.target.checked})} />
-                                        <span className="text-xs font-black text-blue-800">يوجد إثبات دخل موثق (مفردات مرتب / كشف حساب) - يرفع التقييم</span>
-                                    </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase">الرقم القومي (فحص فوري)</label>
+                                    <input required type="text" maxLength="14" className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500" 
+                                           value={formData.national_id} 
+                                           onChange={e => setFormData({ ...formData, national_id: e.target.value, birth_date: '', gender: '' })}
+                                           onBlur={(e) => handleBuyerNationalIdBlur(e.target.value)} />
+                                    {formData.birth_date && <p className="text-[9px] text-green-600 font-bold mt-2 bg-green-50 p-2 rounded-lg">✅ {formData.birth_date} | {formData.gender}</p>}
                                 </div>
-                            </section>
-
-                            {/* القسم 3: شبكة الضامنين */}
-                            <section className="bg-white p-6 rounded-[2rem] border shadow-sm space-y-4">
-                                <div className="flex justify-between items-center border-b pb-3">
-                                    <h5 className="text-xs font-black text-slate-800 uppercase tracking-widest">3. شبكة الضمان (40% من التقييم)</h5>
-                                    <button type="button" onClick={addGuarantor} className="bg-slate-900 text-white text-[10px] font-black px-4 py-2 rounded-xl active:scale-95">
-                                        + إضافة ضامن
-                                    </button>
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase">رقم الهاتف (أساسي)</label>
+                                    <input required type="tel" className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-bold" 
+                                           value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
                                 </div>
-                                
-                                {formData.guarantors.map((g, idx) => (
-                                    <div key={idx} className="bg-slate-50 p-5 rounded-[1.5rem] border relative mt-4">
-                                        <button type="button" onClick={() => removeGuarantor(idx)} className="absolute top-4 left-4 w-8 h-8 bg-red-100 text-red-600 rounded-full flex justify-center items-center text-xs font-bold">✕</button>
-                                        <h6 className="font-black text-sm text-slate-800 mb-4">الضامن {idx+1}</h6>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <div className="md:col-span-2">
-                                                <input required placeholder="الاسم الرباعي" className="w-full p-3 bg-white border rounded-xl text-xs font-bold" value={g.full_name} onChange={e => updateGuarantor(idx, 'full_name', e.target.value)} />
-                                            </div>
-                                            <div>
-                                                <input required type="text" maxLength="14" placeholder="الرقم القومي (فحص أهليته فوراً)" className="w-full p-3 bg-white border rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500" 
-                                                       value={g.national_id} 
-                                                       onChange={e => { updateGuarantor(idx, 'national_id', e.target.value); updateGuarantor(idx, 'birth_date', ''); updateGuarantor(idx, 'gender', ''); }}
-                                                       onBlur={(e) => handleGuarantorNationalIdBlur(idx, e.target.value)} />
-                                                {g.birth_date && <p className="text-[8px] text-green-600 font-bold mt-1">✅ {g.birth_date}</p>}
-                                            </div>
-                                            <div>
-                                                <input required type="tel" placeholder="رقم الهاتف" className="w-full p-3 bg-white border rounded-xl text-xs font-bold" value={g.phone} onChange={e => updateGuarantor(idx, 'phone', e.target.value)} />
-                                            </div>
-                                            <div>
-                                                <select className="w-full p-3 bg-white border rounded-xl text-xs font-bold" value={g.job_type} onChange={e => updateGuarantor(idx, 'job_type', e.target.value)}>
-                                                    <option value="قطاع خاص">عمل: قطاع خاص</option><option value="حكومي">عمل: حكومي</option><option value="أعمال حرة">عمل: حر</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <select className="w-full p-3 bg-white border rounded-xl text-xs font-bold" value={g.housing_type} onChange={e => updateGuarantor(idx, 'housing_type', e.target.value)}>
-                                                    <option value="إيجار">سكن: إيجار</option><option value="تمليك">سكن: تمليك</option><option value="عائلي">سكن: عائلي</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                                {formData.guarantors.length === 0 && (
-                                    <div className="text-center p-8 bg-slate-50 rounded-2xl border border-dashed">
-                                        <p className="text-xs font-bold text-slate-400">إضافة الضامنين ترفع تقييم العميل وتفتح له سقف ائتمان أعلى.</p>
-                                    </div>
-                                )}
-                            </section>
+                                <div className="md:col-span-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase">العنوان الفعلي بالتفصيل</label>
+                                    <input required className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-bold" 
+                                           value={formData.address_details} onChange={e => setFormData({...formData, address_details: e.target.value})} />
+                                </div>
+                            </div>
+                        </section>
 
-                            {/* زر الإنهاء أسفل الفورم */}
-                            <div className="sticky bottom-0 bg-slate-50/90 backdrop-blur-md p-4 -mx-6 -mb-6 border-t">
-                                <button type="submit" disabled={!liveScore.isEligible} className={`w-full py-4 rounded-2xl font-black text-sm shadow-xl transition-all active:scale-95 ${liveScore.isEligible ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}`}>
-                                    {liveScore.isEligible ? 'حفظ واعتماد ملف العميل 🚀' : 'العميل غير مؤهل للاعتماد (السكور < 50%)'}
+                        {/* القسم 2: القدرة المالية والسكن */}
+                        <section className="bg-white p-6 rounded-[2rem] border shadow-sm space-y-4">
+                            <h5 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b pb-3">2. القدرة المالية والسكن</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase">جهة العمل</label>
+                                    <select className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-bold" 
+                                            value={formData.job_type} onChange={e => setFormData({...formData, job_type: e.target.value})}>
+                                        <option value="قطاع خاص">قطاع خاص</option>
+                                        <option value="حكومي">موظف حكومي (أعلى تقييم)</option>
+                                        <option value="أعمال حرة">أعمال حرة</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase">متوسط الدخل الشهري</label>
+                                    <input required type="number" className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-black text-blue-600" 
+                                           value={formData.monthly_income} onChange={e => setFormData({...formData, monthly_income: e.target.value})} />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase">نوع السكن</label>
+                                    <select className="w-full p-4 mt-1 bg-slate-50 border rounded-2xl text-xs font-bold" 
+                                            value={formData.housing_type} onChange={e => setFormData({...formData, housing_type: e.target.value})}>
+                                        <option value="إيجار">إيجار</option>
+                                        <option value="تمليك">تمليك (أعلى تقييم)</option>
+                                        <option value="عائلي">عائلي</option>
+                                    </select>
+                                </div>
+                                <div className="md:col-span-3 flex items-center p-4 bg-blue-50 border border-blue-100 rounded-2xl gap-3">
+                                    <input type="checkbox" className="w-5 h-5 accent-blue-600 rounded" 
+                                           checked={formData.income_verified} onChange={e => setFormData({...formData, income_verified: e.target.checked})} />
+                                    <span className="text-xs font-black text-blue-800">إثبات دخل موثق (مفردات مرتب / كشف حساب) - يرفع التقييم</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* القسم 3: شبكة الضامنين */}
+                        <section className="bg-white p-6 rounded-[2rem] border shadow-sm space-y-4">
+                            <div className="flex justify-between items-center border-b pb-3">
+                                <h5 className="text-xs font-black text-slate-800 uppercase tracking-widest">3. شبكة الضمان (40% من التقييم)</h5>
+                                <button type="button" onClick={addGuarantor} className="bg-slate-900 text-white text-[10px] font-black px-4 py-2 rounded-xl active:scale-95">
+                                    + إضافة ضامن
                                 </button>
                             </div>
-                        </form>
+                            
+                            {formData.guarantors.map((g, idx) => (
+                                <div key={idx} className="bg-slate-50 p-5 rounded-[1.5rem] border relative mt-4 shadow-inner">
+                                    <button type="button" onClick={() => removeGuarantor(idx)} className="absolute top-4 left-4 w-8 h-8 bg-red-100 text-red-600 rounded-full flex justify-center items-center text-xs font-bold">✕</button>
+                                    <h6 className="font-black text-sm text-slate-800 mb-4">الضامن {idx+1}</h6>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div className="md:col-span-2">
+                                            <input required placeholder="الاسم الرباعي" className="w-full p-3 bg-white border rounded-xl text-xs font-bold" value={g.full_name} onChange={e => updateGuarantor(idx, 'full_name', e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <input required type="text" maxLength="14" placeholder="الرقم القومي (فحص أهليته فوراً)" className="w-full p-3 bg-white border rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500" 
+                                                   value={g.national_id} 
+                                                   onChange={e => { updateGuarantor(idx, 'national_id', e.target.value); updateGuarantor(idx, 'birth_date', ''); updateGuarantor(idx, 'gender', ''); }}
+                                                   onBlur={(e) => handleGuarantorNationalIdBlur(idx, e.target.value)} />
+                                            {g.birth_date && <p className="text-[8px] text-green-600 font-bold mt-1">✅ {g.birth_date}</p>}
+                                        </div>
+                                        <div>
+                                            <input required type="tel" placeholder="رقم الهاتف" className="w-full p-3 bg-white border rounded-xl text-xs font-bold" value={g.phone} onChange={e => updateGuarantor(idx, 'phone', e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <select className="w-full p-3 bg-white border rounded-xl text-xs font-bold" value={g.job_type} onChange={e => updateGuarantor(idx, 'job_type', e.target.value)}>
+                                                <option value="قطاع خاص">عمل: قطاع خاص</option><option value="حكومي">عمل: حكومي</option><option value="أعمال حرة">عمل: حر</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <select className="w-full p-3 bg-white border rounded-xl text-xs font-bold" value={g.housing_type} onChange={e => updateGuarantor(idx, 'housing_type', e.target.value)}>
+                                                <option value="إيجار">سكن: إيجار</option><option value="تمليك">سكن: تمليك</option><option value="عائلي">سكن: عائلي</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            {formData.guarantors.length === 0 && (
+                                <div className="text-center p-8 bg-slate-50 rounded-2xl border border-dashed">
+                                    <p className="text-xs font-bold text-slate-400">إضافة الضامنين ترفع تقييم العميل وتفتح له سقف ائتمان أعلى.</p>
+                                </div>
+                            )}
+                        </section>
+                    </form>
+
+                    {/* زر الحفظ العائم في الأسفل (Sticky Bottom Action Bar) */}
+                    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-4 z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+                        <button form="crm-form" type="submit" disabled={!liveScore.isEligible} className={`w-full max-w-4xl mx-auto block py-4 rounded-2xl font-black text-sm shadow-xl transition-all active:scale-95 ${liveScore.isEligible ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}`}>
+                            {liveScore.isEligible ? 'حفظ واعتماد ملف العميل 🚀' : 'العميل غير مؤهل للاعتماد (السكور < 50%)'}
+                        </button>
                     </div>
+
                 </div>
             )}
 
