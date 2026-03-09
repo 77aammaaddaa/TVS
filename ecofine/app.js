@@ -101,11 +101,24 @@ const App = () => {
             <main className="flex-1 pt-16 overflow-y-auto w-full">
                 <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
                     {/* الموديولات */}
-                    {activeTab === 'crm' && (
-                        <div className="animate-in fade-in duration-500">
-                            <CRMModule />
-                        </div>
-                    )}
+                  
+
+// داخل ملف app.js في الجزء الخاص بعرض الموديولات
+{activeTab === 'crm' && (
+    <div className="animate-in fade-in duration-500">
+        {typeof CRMModule !== 'undefined' ? (
+            <CRMModule />
+        ) : (
+            <div className="p-10 text-center bg-white rounded-2xl border">
+                <p className="font-bold text-red-500">جاري تحميل مديول العملاء...</p>
+                <p className="text-xs text-slate-400 mt-2">إذا استمرت هذه الرسالة، تأكد من وجود ملف crm.js بجانب index.html</p>
+            </div>
+        )}
+    </div>
+)}
+
+
+
 
                     {activeTab === 'dashboard' && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
