@@ -103,7 +103,9 @@ const App = () => {
                     {/* الموديولات */}
                   
 
-// داخل ملف app.js في الجزء الخاص بعرض الموديولات
+
+
+
 {activeTab === 'crm' && (
     <div className="animate-in fade-in duration-500">
         {typeof CRMModule !== 'undefined' ? (
