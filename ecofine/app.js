@@ -43,7 +43,7 @@ const App = () => {
             { id: 'purchases', label: 'المشتريات والتوريد', icon: '🛒' }
         ]},
         { group: "التشغيل والمبيعات", items: [
-            { id: 'pos', label: 'نقطة البيع (التقسيط)', icon: '💻' }
+            { id: 'pos', label: 'نقطة البيع ', icon: '💻' }
         ]},
         { group: "المالية والقانون", items: [
             { id: 'collection', label: 'وحدة التحصيل', icon: '💰' },
