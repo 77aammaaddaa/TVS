@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> EcoFine Pro ERP V6</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>إكس القابضة | EcoFine Pro V6</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -13,35 +13,40 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <style>
-        :root {
-            --primary-dark: #0f172a;
-            --accent-blue: #2563eb;
-        }
+        :root { --primary-dark: #0f172a; --accent-blue: #2563eb; }
         body { 
             font-family: 'IBM Plex Sans Arabic', sans-serif; 
             background: #f8fafc; 
-            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: contain; /* لمنع السحب لأسفل في المتصفح */
         }
         
-        /* تحسينات الواجهة للأجهزة المحمولة (ريدمي 10) */
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        /* تحسين استجابة اللمس على الريدمي 10 */
+        * { -webkit-tap-highlight-color: transparent; outline: none; }
+        
+        .custom-scroll::-webkit-scrollbar { width: 3px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-        
-        /* أنيميشن الدخول للموديولات */
+        /* أنيميشن الدومينو للموديولات */
+        .module-enter { animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-module { animation: slideUp 0.4s ease-out forwards; }
+
+        /* شاشة التحميل الأولية الذكية */
+        #splash-screen {
+            position: fixed; inset: 0; background: #0f172a;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; transition: opacity 0.5s ease;
+        }
     </style>
 </head>
 <body>
+
+    <div id="splash-screen">
+        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <h1 class="text-white font-black mt-4 tracking-widest text-sm">X-CORE V6</h1>
+    </div>
 
     <div id="root"></div>
 
@@ -49,25 +54,7 @@
     <script type="text/babel" src="XCore.js"></script>
     <script type="text/babel" src="auth.js"></script>
 
-    <script type="text/babel" src="crm.js"></script>
-    <script type="text/babel" src="survey.js"></script>
-    <script type="text/babel" src="legal.js"></script>
-
-    <script type="text/babel" src="inventory.js"></script>
-    <script type="text/babel" src="suppliers.js"></script>
-    <script type="text/babel" src="purchases.js"></script>
-
-    <script type="text/babel" src="pos.js"></script>
-    <script type="text/babel" src="collection.js"></script>
-    <script type="text/babel" src="treasury.js"></script>
-
-    <script type="text/babel" src="hr.js"></script>
-    <script type="text/babel" src="users.js"></script>
-    
-    <script type="text/babel" src="data_bridge.js"></script>
-    <script type="text/babel" src="settings.js"></script>
-
     <script type="text/babel" src="app.js"></script>
 
-</body>
+    </body>
 </html>
