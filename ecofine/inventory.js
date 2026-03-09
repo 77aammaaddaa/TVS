@@ -1,7 +1,7 @@
 /**
  * 📦 inventory.js - مديول المخازن والجرد الشامل (Eco Fine Pro V6 Turbo)
  * المطور: M H 4 Tech
- * التحديث V9.9.5: Mobile-Optimized UI, Logic Validation, Fallback Categories.
+ * التحديث V9.9.6: حل نهائي لمشكلة الكيبورد وتداخل الواجهة على شاشات الموبايل (Flex Fix).
  */
 
 const { useState, useEffect } = React;
@@ -283,7 +283,6 @@ const InventoryModule = () => {
                         </div>
                         <span className="text-lg">📋</span>
                     </div>
-                    {/* الحاوية دي مهمة عشان الجدول ميبوظش الشاشة */}
                     <div className="overflow-x-auto w-full">
                         <table className="w-full text-right text-xs whitespace-nowrap">
                             <thead className="bg-slate-50 text-slate-400 font-black uppercase text-[9px]">
@@ -322,11 +321,11 @@ const InventoryModule = () => {
                 </div>
             )}
 
-            {/* 📱 نافذة إضافة/تعديل صنف (Full-Screen Native UI) */}
+            {/* 📱 نافذة إضافة/تعديل صنف (Flex Layout Fix) */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[500] bg-slate-50 flex flex-col animate-in slide-in-from-bottom duration-300">
                     
-                    {/* هيدر النافذة */}
+                    {/* هيدر النافذة (shrink-0) */}
                     <div className="bg-slate-900 p-5 pt-6 text-white shrink-0 flex justify-between items-center shadow-md relative z-20 rounded-b-[2rem]">
                         <div>
                             <h3 className="font-black text-lg">{editMode ? 'تحديث بيانات الصنف' : 'صنف جديد'}</h3>
@@ -334,8 +333,8 @@ const InventoryModule = () => {
                         <button type="button" onClick={() => setIsModalOpen(false)} className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-lg">✕</button>
                     </div>
 
-                    {/* جسم الفورم (pb-32 عشان الشريط السفلي) */}
-                    <form id="product-form" onSubmit={handleSaveProduct} className="flex-1 overflow-y-auto p-4 space-y-4 pb-32 custom-scroll">
+                    {/* جسم الفورم (flex-1 يملأ المساحة المتاحة فقط، قابل للتمرير) */}
+                    <form id="product-form" onSubmit={handleSaveProduct} className="flex-1 overflow-y-auto p-4 space-y-4 custom-scroll">
                         
                         <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
                             <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-2">1. البيانات الأساسية</h4>
@@ -349,7 +348,7 @@ const InventoryModule = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
+                        <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-4 mb-4">
                             <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-2 flex justify-between items-center">
                                 <span>2. التسعير والجرد</span>
                                 <span className="text-[8px] text-red-400">تكلفة &lt; جملة &lt; كاش &lt; قسط</span>
@@ -368,8 +367,8 @@ const InventoryModule = () => {
 
                     </form>
 
-                    {/* زر الحفظ العائم (Bottom Fixed Bar) */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-4 z-30 rounded-t-[2rem]">
+                    {/* الفوتر وزر الحفظ (shrink-0 يرتفع مع الكيبورد ولا يغطي المحتوى) */}
+                    <div className="bg-white border-t border-slate-200 p-4 shrink-0 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-20">
                         <button 
                             form="product-form"
                             type="submit" 
