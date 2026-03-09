@@ -161,4 +161,9 @@ const CRMModule = () => {
 };
 
 // جعل المديول متاحاً لـ app.js
+// في نهاية ملف crm.js
+
 window.CRMModule = CRMModule;
+
+
+
