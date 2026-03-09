@@ -1,184 +1,200 @@
 /**
- * 🧠 X-Core Engine V7.0 - العقل المفكر لنظام إكس القابضة
- * الوصف: المحرك المركزي لإدارة المخاطر، الائتمان، الحسابات الشرعية، والشؤون القانونية.
- * تم تصميمه للعمل بكفاءة قصوى (Turbo) على متصفحات الأجهزة المحمولة (Redmi 10).
+ * 🧠 X-CORE Engine V7.5 - إكس القابضة
+ * المحرك المركزي لاتخاذ القرار - "عقل النظام"
+ * تم البرمجة بناءً على دستور مستر إكس للتقسيط الشرعي وإدارة المخاطر.
  */
 
 const XCore = {
-    // =====================================================================
-    // 1. محرك الأوزان النسبية والتقييم (The 100% Weighted Matrix)
-    // =====================================================================
-    calculateCreditScore: (buyerData, guarantors = []) => {
-        // أ) محور بيانات المشتري (الوزن: 20%)
-        // يعتمد على اكتمال وصحة البيانات (الرقم القومي، الهاتف، العنوان)
-        const isDataComplete = buyerData.national_id && buyerData.phone && buyerData.address_details;
-        const buyerBase = isDataComplete ? 100 : 40; 
-        const scoreA = buyerBase * 0.20;
+    // ==========================================
+    // 1. محرك التقييم الائتماني (Score & Eligibility)
+    // ==========================================
+    evaluateCustomer: async (customerData) => {
+        let score = 0; // العميل يبدأ من 0% (يجب أن يحقق 50% للتأهل)
+        let messages = [];
 
-        // ب) محور القدرة المالية والوظيفة (الوزن: 30%)
-        let financeBase = 50; // نقطة أساس
-        if (buyerData.job_type === 'حكومي') financeBase += 30;
-        if (buyerData.income_verified) financeBase += 20; // التوثيق يكمل الـ 100
-        const scoreB = Math.min(financeBase, 100) * 0.30;
-
-        // ج) محور الاستعلام والسكن (الوزن: 10%)
-        let housingBase = 50;
-        if (buyerData.housing_type === 'تمليك') housingBase += 30;
-        if (buyerData.survey_status === 'recommended') housingBase += 20;
-        const scoreC = Math.min(housingBase, 100) * 0.10;
-
-        // د) محور درع الضمان (الوزن: 40%)
-        let scoreD = 0;
-        if (guarantors.length > 0) {
-            // حساب متوسط تقييم الضامنين
-            const totalGScore = guarantors.reduce((sum, g) => sum + (Number(g.credit_score) || 0), 0);
-            let avgGScore = totalGScore / 3; // القسمة على 3 (العدد المثالي للضامنين)
-            
-            // عقوبة المخاطرة إذا كان عدد الضامنين أقل من 3 (باستثناء الموظف الحكومي)
-            if (guarantors.length < 3 && buyerData.job_type !== 'حكومي') {
-                avgGScore = avgGScore * (guarantors.length / 3); 
+        // أ) قوة الضامنين (الحد الأدنى 1 والحد الأقصى 3)
+        const guarantors = customerData.guarantors || [];
+        if (guarantors.length < 1) {
+            return { approved: false, score: 0, msg: "❌ غير مؤهل: يجب وجود ضامن واحد على الأقل." };
+        }
+        
+        // فحص أهلية كل ضامن (سكور الضامن يجب أن يكون >= 50)
+        for(let g of guarantors) {
+            if(g.credit_score < 50) {
+                 return { approved: false, score: 0, msg: `❌ مرفوض: الضامن ${g.full_name} تقييمه أقل من 50%.` };
             }
-            scoreD = Math.min(avgGScore, 100) * 0.40;
         }
 
-        // حساب المجموع النهائي والتأكد من عدم تخطي الـ 100%
-        const finalScore = Math.round(scoreA + scoreB + scoreC + scoreD);
-        
+        score += (guarantors.length * 15); // كل ضامن مؤهل يرفع السكور بـ 15%
+        messages.push(`الضامنين (${guarantors.length}): +${guarantors.length * 15}%`);
+
+        // ب) توثيق الدخل (حكومي/بنكي)
+        if (customerData.income_verified) {
+            score += 20;
+            messages.push("توثيق الدخل (حكومي/رسمي): +20%");
+        }
+
+        // ج) الموقع الجغرافي والسمعة (الاستعلام الميداني)
+        if (customerData.survey_status === 'verified') {
+            score += 15;
+            messages.push("تحقق العنوان والسمعة ميدانياً: +15%");
+        }
+
+        // د) سجل الالتزام (خصم النقاط)
+        if (customerData.past_delays > 10) {
+            score -= 10;
+            messages.push("سجل تأخير سابق (أكثر من 10 أيام): -10%");
+        }
+
+        const finalScore = Math.min(score, 100);
+        const approved = finalScore >= 50;
+
         return {
-            score: Math.min(finalScore, 100),
-            isEligible: finalScore >= 50,
-            breakdown: { data: scoreA, finance: scoreB, housing: scoreC, guarantors: scoreD },
-            msg: finalScore >= 50 ? '✅ مؤهل للتقسيط' : '🚫 غير مؤهل (أقل من 50%)'
+            approved,
+            finalScore,
+            msg: approved ? "✅ العميل مؤهل لنظام التقسيط" : "❌ العميل غير مؤهل (التقييم تحت 50%)",
+            breakdown: messages
         };
     },
 
-    // =====================================================================
-    // 2. محرك وحدانية الدور وأهلية الضامن (Identity & Eligibility Engine)
-    // =====================================================================
-    checkPersonEligibility: async (nationalId, roleRequested = 'buyer') => {
-        const customers = await db.getAll('customers') || [];
-        const invoices = await db.getAll('invoices') || [];
+    // ==========================================
+    // 2. محرك تعدد الفواتير والسقف الائتماني
+    // ==========================================
+    canOpenNewInvoice: async (customerId, newInvoiceAmount) => {
+        const customer = await db.getById('customers', customerId);
+        const journey = await db.getCustomerJourney(customerId);
         
-        // أ) التحقق من وجود حظر قانوني (فترة التبريد 6 شهور)
-        const personData = customers.find(c => c.national_id === nationalId);
-        if (personData?.legal_ban_until && new Date(personData.legal_ban_until) > new Date()) {
-            return { eligible: false, msg: `🚫 محظور من التعامل حتى ${personData.legal_ban_until}` };
+        // أ) فحص فترة الحظر (6 شهور بعد القضايا)
+        if (customer.ban_until && new Date(customer.ban_until) > new Date()) {
+            return { can: false, msg: `🚫 محظور من التعامل حتى ${customer.ban_until}` };
         }
 
-        // ب) فحص التواجد في عمليات نشطة (كمشتري أو ضامن)
-        let isActiveBuyer = false;
-        let isActiveGuarantor = false;
-
-        invoices.filter(inv => inv.status === 'active').forEach(inv => {
-            if (inv.customer_national_id === nationalId) isActiveBuyer = true;
-            if (inv.guarantors?.some(g => g.national_id === nationalId)) isActiveGuarantor = true;
-        });
-
-        // تطبيق قواعد المنع الصارمة
-        if (isActiveBuyer && roleRequested === 'buyer') {
-            // يمكن أن يكون مشتري مرة ثانية فقط إذا تم اجتياز شروط "تعدد الفواتير" (يُفحص لاحقاً)
-            return { eligible: true, requiresMultiInvoiceCheck: true };
-        }
-        
-        if (isActiveBuyer && roleRequested === 'guarantor') {
-            return { eligible: true, msg: "✅ مسموح له بالضمان بجانب فاتورته المفتوحة." };
+        // ب) شرط سداد 50% من المديونية الحالية
+        const hasPaidHalf = journey.total_debt === 0 || (journey.total_paid >= (0.5 * journey.total_debt));
+        if (!hasPaidHalf) {
+            return { can: false, msg: "⚠️ يجب سداد 50% على الأقل من مديونيتك الحالية لفتح فاتورة جديدة." };
         }
 
-        if (isActiveGuarantor && roleRequested === 'guarantor') {
-            return { eligible: false, msg: "🚫 مرفوض: يضمن شخصاً آخر حالياً، لا يمكنه ضمان شخصين." };
+        // ج) حساب سقف الائتمان بناءً على التقييم
+        // المعادلة: (الدخل) * (السكور كنسبة) * (معامل 5)
+        const creditLimit = customer.monthly_income * (customer.credit_score / 100) * 5;
+        const currentLiability = journey.remaining;
+
+        if ((currentLiability + newInvoiceAmount) > creditLimit) {
+            return { can: false, msg: `⚠️ الفاتورة تتخطى سقف ائتمانك (${creditLimit.toLocaleString()} ج).` };
         }
 
-        // ج) لو الدور المطلوب ضامن، يجب التحقق من سكوره التاريخي
-        if (roleRequested === 'guarantor' && personData && personData.credit_score < 50) {
-            return { eligible: false, msg: `🚫 مرفوض: تقييم الضامن (${personData.credit_score}%) أقل من 50%.` };
-        }
-
-        return { eligible: true, msg: "✅ متاح ومؤهل." };
+        return { can: true, msg: "✅ العميل مؤهل لفتح الفاتورة." };
     },
 
-    // =====================================================================
-    // 3. محرك تعدد الفواتير والسقف الائتماني (Multi-Invoice & Credit Limit)
-    // =====================================================================
-    canOpenMultiInvoice: (customerScore, monthlyIncome, currentDebt, totalPaid, newAmount) => {
-        // أ) شرط السداد (يجب أن يكون قد سدد 50% على الأقل من مديونيته الحالية)
-        const isPaidEnough = totalPaid >= (currentDebt * 0.5);
-        if (!isPaidEnough) return { can: false, msg: "⚠️ يجب سداد 50% من المديونية الحالية لفتح فاتورة جديدة." };
+    // ==========================================
+    // 3. محرك أهلية الضامن (The Iron Guarantor)
+    // ==========================================
+    checkGuarantorEligibility: async (nationalId) => {
+        const person = await db.getByIndex('customers', 'national_id', nationalId);
+        
+        // 1. لو الشخص غير مسجل إطلاقاً (أول مرة يدخل السيستم)
+        if (!person) return { eligible: true, msg: "✅ ضامن جديد (تحت الاستعلام)." };
 
-        // ب) حساب الحد الائتماني (Multiplier = 5 months as default)
-        const creditLimit = monthlyIncome * (customerScore / 100) * 5; 
-        const projectedDebt = (currentDebt - totalPaid) + newAmount;
-
-        if (projectedDebt > creditLimit) {
-            return { can: false, msg: `⚠️ تتخطى الحد الائتماني. المتاح لك: ${Math.max(0, creditLimit - (currentDebt - totalPaid))} ج.` };
+        // 2. فحص السكور (يجب أن يكون >= 50)
+        if (person.credit_score < 50) {
+            return { eligible: false, msg: "❌ مرفوض: تقييم الضامن أقل من 50%." };
         }
 
-        return { can: true, msg: "✅ مؤهل لفتح الفاتورة الإضافية." };
+        // 3. فحص "وحدانية الضمانة" (ضامن لفاتورة واحدة فقط في المرة)
+        const allActiveInvoices = await db.getAll('invoices');
+        const isAlreadyGuarantor = allActiveInvoices.some(inv => 
+            inv.status === 'active' && 
+            inv.guarantors?.some(g => g.national_id === nationalId)
+        );
+
+        if (isAlreadyGuarantor) {
+            return { eligible: false, msg: "❌ مرفوض: الشخص ضامن بالفعل في فاتورة أخرى مفتوحة." };
+        }
+
+        return { eligible: true, msg: "✅ الضامن مؤهل." };
     },
 
-    // =====================================================================
-    // 4. المحرك المالي والشرعي (Financial & Sharia Logic)
-    // =====================================================================
-    calculateSaleTerms: (totalAmount, saleType, installmentValue) => {
-        // أ) القيود الأساسية
-        if (totalAmount < 2500) throw new Error("⚠️ الحد الأدنى للفاتورة 2500 ج.");
-        if (saleType === 'daily' && (installmentValue < 50 || installmentValue > 1000)) throw new Error("⚠️ القسط اليومي يجب أن يكون بين 50 و 1000 ج.");
-        if (saleType === 'monthly' && installmentValue < 500) throw new Error("⚠️ القسط الشهري لا يقل عن 500 ج.");
-
-        // ب) المدد القصوى
-        const maxMonths = totalAmount >= 100000 ? 15 : 10;
-        const requestedMonths = (totalAmount / installmentValue) / (saleType === 'daily' ? 30 : 1);
-        
-        if (requestedMonths < 2) throw new Error("⚠️ الحد الأدنى لمدة التقسيط شهرين.");
-        if (requestedMonths > maxMonths) throw new Error(`⚠️ تتخطى الحد الأقصى للمدة (${maxMonths} شهور).`);
-
-        // ج) حساب التقديمة (Down Payment) بناءً على يوم الشراء
+    // ==========================================
+    // 4. محرك الحسابات المالية (Down Payment & Limits)
+    // ==========================================
+    calculateFinancing: (totalAmount, saleType, dailyAmount, monthlyAmount) => {
         const purchaseDay = new Date().getDate();
-        let downPayment = saleType === 'daily' ? (installmentValue * purchaseDay) : installmentValue;
+        let downPayment = 0;
 
-        // د) تحديد الوثائق القانونية المطلوبة
-        const docs = totalAmount >= 100000 ? { type: 'شيكات', count: 5 } : { type: 'وصلات أمانة', count: 6 };
-
-        return { downPayment, maxMonths, docs, isApproved: true };
-    },
-
-    // =====================================================================
-    // 5. محرك الرقابة والتأخير (The Delay & Legal Tracker)
-    // =====================================================================
-    processDelaysAndLegal: (saleType, delayDays, currentLiability, maxLiability) => {
-        let action = 'NONE';
-        let penaltyDays = delayDays; // عدد الأيام التي تُضاف لمدة العقد
-
-        // توقف العداد إذا وصلت المديونية للحد الأقصى
-        if (currentLiability >= maxLiability) {
-            penaltyDays = 0; // يتوقف العداد
-            return { action: 'CAPPED', penaltyDays, msg: "وصل للحد الأقصى للمديونية، تم إيقاف العداد." };
+        // أ) حساب التقديمة (بدون فوائد تأخير إضافية)
+        if (saleType === 'daily') {
+            downPayment = dailyAmount * purchaseDay;
+        } else {
+            downPayment = monthlyAmount; // شهر مقدم
         }
 
-        // نقاط التحول القانوني
-        if (saleType === 'daily' && delayDays > 35) action = 'LEGAL_ACTION';
-        if (saleType === 'monthly' && delayDays > 63) action = 'LEGAL_ACTION';
+        // ب) قيود المبالغ والمدد
+        const isEligible = totalAmount >= 2500;
+        const maxMonths = totalAmount > 100000 ? 15 : 10;
 
-        // نظام التحذيرات
-        if (action !== 'LEGAL_ACTION' && delayDays > 0 && delayDays % 10 === 0) {
-            action = 'WARNING';
-        }
-
-        return { action, penaltyDays };
+        return {
+            isEligible,
+            downPayment,
+            maxMonths,
+            minDaily: 50,
+            maxDaily: 1000,
+            minMonthly: 500
+        };
     },
 
-    // =====================================================================
-    // 6. محرك الجدولة (Reschedule Guard)
-    // =====================================================================
-    canReschedule: (lastRescheduleDate) => {
-        if (!lastRescheduleDate) return true; // لم يقم بالجدولة من قبل
+    // ==========================================
+    // 5. محرك الرقابة القانونية (The 35/63 Rule)
+    // ==========================================
+    monitorLegalStatus: (installments, type, creditLimit) => {
+        const today = new Date();
+        const pending = installments.filter(i => i.status === 'pending');
         
-        const lastDate = new Date(lastRescheduleDate);
+        if (pending.length === 0) return { status: 'SAFE' };
+
+        // جلب أقدم قسط لم يدفع
+        const oldestInst = pending.sort((a,b) => new Date(a.due_date) - new Date(b.due_date))[0];
+        const delayDays = Math.floor((today - new Date(oldestInst.due_date)) / (1000 * 60 * 60 * 24));
+
+        if (delayDays <= 0) return { status: 'SAFE', days: 0 };
+
+        // حساب إجمالي المديونية الحالية
+        const totalOwed = pending.reduce((sum, inst) => sum + Number(inst.amount), 0);
+
+        // سقف المديونية: التوقف عن زيادة عداد التأخير إذا وصلنا للسقف
+        if (totalOwed >= creditLimit) {
+            return { status: 'CAPPED', days: oldestInst.last_recorded_delay || delayDays };
+        }
+
+        // تحديد الحالة القانونية
+        if (type === 'daily' && delayDays >= 35) return { status: 'LEGAL', days: delayDays };
+        if (type === 'monthly' && delayDays >= 63) return { status: 'LEGAL', days: delayDays };
+
+        return { status: 'OVERDUE', days: delayDays };
+    },
+
+    // ==========================================
+    // 6. محرك القضايا والجدولة (Final Constraints)
+    // ==========================================
+    getSecurityConfig: (totalAmount) => {
+        const config = totalAmount > 100000 
+            ? { type: 'شيك بريدي/بنكي', count: 5 } 
+            : { type: 'وصل أمانة', count: 6 };
+        
+        return {
+            ...config,
+            maxCasesPerPerson: 6, // 6 قضايا لكل فاتورة
+            absoluteMaxPerId: 12  // 6 كمشتري + 6 كضامن
+        };
+    },
+
+    canReschedule: (customer) => {
+        if (!customer.last_reschedule) return true;
+        const lastDate = new Date(customer.last_reschedule);
         const oneYearAgo = new Date();
         oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-        
-        return lastDate <= oneYearAgo; // يسمح إذا مر عام كامل
+        return lastDate < oneYearAgo; // مرة واحدة كل سنة
     }
 };
 
-// تثبيت المحرك في النطاق العام للمتصفح
 window.XCore = XCore;
