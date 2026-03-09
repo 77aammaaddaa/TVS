@@ -454,4 +454,16 @@ const POSModule = () => {
                         >
                             {isProcessingSale ? (
                                 <span className="animate-pulse">جاري إصدار الفاتورة...</span>
-                            ) :
+                            ) : (
+                                <>تأكيد العملية وإصدار الفاتورة <span className="text-xl">🖨️</span></>
+                            )}
+                        </button>
+                    </div>
+
+                </div>
+            )}
+        </div>
+    );
+};
+
+window.POSModule = POSModule;
