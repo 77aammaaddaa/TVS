@@ -21,7 +21,7 @@ const App = () => {
         if (typeof db !== 'undefined') {
             db.init()
                 .then(() => setIsReady(true))
-                .catch(err => alert("❌ فشل تشغيل محرك إكس القابضة: " + err));
+                .catch(err => alert("❌ فشل تشغيل محرك إكس : " + err));
         } else {
             alert("⚠️ ملف database.js غير موجود!");
         }
@@ -105,7 +105,7 @@ const App = () => {
             <header className="fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center px-4 z-40 shadow-sm">
                 <button onClick={() => setIsMenuOpen(true)} className="p-2 text-slate-700 text-2xl active:scale-95 transition-transform">☰</button>
                 <div className="mr-3 flex flex-col">
-                    <h2 className="font-black text-slate-900 leading-tight">إكس القابضة</h2>
+                    <h2 className="font-black text-slate-900 leading-tight">Eco Fine Pro </h2>
                     <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">EcoFine V6 Turbo</span>
                 </div>
                 <div className="mr-auto flex items-center gap-2">
