@@ -3,42 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoFine Pro ERP - X-Holding Master V4</title>
+    <title>EcoFine Pro ERP - X-Holding Master V4 (Advanced Policy)</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'IBM Plex Sans Arabic', sans-serif;
-            background: #f1f5f9;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .glass { 
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        }
-        .modal-overlay { 
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(4px);
-        }
-        .login-bg { 
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-        }
-        @keyframes slideIn { 
-            from { transform: translateX(100%); opacity: 0; } 
-            to { transform: translateX(0); opacity: 1; } 
-        }
+        body { font-family: 'IBM Plex Sans Arabic', sans-serif; background: #f1f5f9; height: 100vh; overflow: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .modal-overlay { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); }
+        .login-bg { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .toast-enter { animation: slideIn 0.3s ease-out forwards; }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-thumb { 
-            background-color: #cbd5e1; 
-            border-radius: 10px; 
-        }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -47,62 +26,50 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useCallback, useRef, createContext, useContext } = React;
 
-        // =====================================================
-        // UTILITIES & VALIDATORS
-        // =====================================================
-        const generateID = (prefix) => 
-            `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 9)}`.toUpperCase();
-
+        // UTILITIES
+        const generateID = (prefix) => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 9)}`.toUpperCase();
         const isValidPhone = (phone) => /^01[0125][0-9]{8}$/.test(phone);
         const isValidNationalID = (nid) => /^\d{14}$/.test(nid.replace(/\D/g, ''));
-        const formatMoney = (amount) => 
-            Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
+        const formatMoney = (amount) => Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const hashPassword = async (password) => {
             const msgBuffer = new TextEncoder().encode(password);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            return Array.from(new Uint8Array(hashBuffer))
-                .map(b => b.toString(16).padStart(2, '0')).join('');
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
         };
 
-        // =====================================================
-        // DATE & FINANCIAL UTILITIES
-        // =====================================================
         const DateUtils = {
             today: () => new Date().toISOString().split('T')[0],
             diffDays: (d1, d2) => Math.floor((new Date(d2) - new Date(d1)) / (1000 * 60 * 60 * 24)),
             addMonths: (dateStr, months) => {
-                const d = new Date(dateStr);
-                d.setMonth(d.getMonth() + months);
-                return d.toISOString().split('T')[0];
+                const d = new Date(dateStr); d.setMonth(d.getMonth() + months); return d.toISOString().split('T')[0];
             },
-            getDelayStatus: (dueDate) => {
-                const daysLate = DateUtils.diffDays(dueDate, DateUtils.today());
+            getDelayStatus: (dueDate, systemType, totalLateDays) => {
+                const daysLate = Math.max(0, DateUtils.diffDays(dueDate, DateUtils.today()));
+                const accumulated = totalLateDays + daysLate;
+                
                 if (daysLate <= 0) return { status: 'regular', label: 'منتظم', color: 'bg-slate-200 text-slate-700', days: 0 };
-                if (daysLate <= 30) return { status: 'late_1', label: 'متأخر (أقل من شهر)', color: 'bg-yellow-500 text-white', days: daysLate };
-                if (daysLate <= 90) return { status: 'late_2', label: 'متعثر (1-3 شهور)', color: 'bg-orange-500 text-white', days: daysLate };
-                return { status: 'danger', label: 'خطر (أكثر من 90 يوم)', color: 'bg-red-600 text-white', days: daysLate };
+                
+                if (systemType === 'daily') {
+                    if (accumulated >= 35) return { status: 'danger', label: 'مطلوب قانونياً (تخطى 35)', color: 'bg-black text-white', days: daysLate, warning: true };
+                    if (accumulated >= 30) return { status: 'late_2', label: 'إنذار أخير (تخطى 30)', color: 'bg-red-600 text-white', days: daysLate, warning: true };
+                } else {
+                    if (accumulated >= 63) return { status: 'danger', label: 'مطلوب قانونياً (تخطى 63)', color: 'bg-black text-white', days: daysLate, warning: true };
+                    if (accumulated >= 60) return { status: 'late_2', label: 'إنذار أخير (تخطى 60)', color: 'bg-red-600 text-white', days: daysLate, warning: true };
+                }
+                
+                if (daysLate <= 10) return { status: 'late_1', label: 'متأخر (تحذير أول)', color: 'bg-yellow-500 text-white', days: daysLate };
+                return { status: 'late_2', label: 'متأخر (تحذير متكرر)', color: 'bg-orange-500 text-white', days: daysLate };
             }
         };
 
         const EventBus = {
             listeners: {},
-            on: (event, callback) => {
-                if (!EventBus.listeners[event]) EventBus.listeners[event] = [];
-                EventBus.listeners[event].push(callback);
-            },
-            off: (event, callback) => {
-                if (EventBus.listeners[event])
-                    EventBus.listeners[event] = EventBus.listeners[event].filter(cb => cb !== callback);
-            },
-            emit: (event, detail) => {
-                if (EventBus.listeners[event]) EventBus.listeners[event].forEach(cb => cb(detail));
-            }
+            on: (event, callback) => { if (!EventBus.listeners[event]) EventBus.listeners[event] = []; EventBus.listeners[event].push(callback); },
+            off: (event, callback) => { if (EventBus.listeners[event]) EventBus.listeners[event] = EventBus.listeners[event].filter(cb => cb !== callback); },
+            emit: (event, detail) => { if (EventBus.listeners[event]) EventBus.listeners[event].forEach(cb => cb(detail)); }
         };
 
-        // =====================================================
         // ICONS
-        // =====================================================
         const Icon = React.memo(({ name, size = 20, className = "" }) => {
             const icons = {
                 Dashboard: <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />,
@@ -116,19 +83,12 @@
                 Plus: <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />,
                 Edit: <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />,
             };
-            return (
-                <svg className={className} width={size} height={size} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    {icons[name] || <circle cx="12" cy="12" r="10" />}
-                </svg>
-            );
+            return <svg className={className} width={size} height={size} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">{icons[name] || <circle cx="12" cy="12" r="10" />}</svg>;
         });
 
-        // =====================================================
         // APP CONTEXT
-        // =====================================================
         const AppContext = createContext();
         const useAppContext = () => useContext(AppContext);
-
         const UIProvider = ({ children }) => {
             const [toasts, setToasts] = useState([]);
             const [modalContent, setModalContent] = useState(null);
@@ -139,10 +99,7 @@
                 setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
             }, []);
 
-            const confirmAction = useCallback((message, onConfirm, customBody = null) => {
-                setModalContent({ type: 'confirm', message, onConfirm, customBody });
-            }, []);
-
+            const confirmAction = useCallback((message, onConfirm) => setModalContent({ type: 'confirm', message, onConfirm }), []);
             const closeModal = useCallback(() => setModalContent(null), []);
 
             return (
@@ -150,25 +107,19 @@
                     {children}
                     <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
                         {toasts.map(t => (
-                            <div key={t.id} className={`toast-enter flex items-center gap-3 px-5 py-3 rounded-xl shadow-xl text-white font-bold text-sm ${
-                                t.type === 'error' ? 'bg-red-600' : t.type === 'warning' ? 'bg-yellow-600' : 'bg-slate-800'
-                            }`}>
-                                <Icon name={t.type === 'error' ? 'X' : t.type === 'warning' ? 'Dashboard' : 'Check'} size={18} />
-                                {t.msg}
+                            <div key={t.id} className={`toast-enter flex items-center gap-3 px-5 py-3 rounded-xl shadow-xl text-white font-bold text-sm ${t.type === 'error' ? 'bg-red-600' : t.type === 'warning' ? 'bg-yellow-600' : 'bg-slate-800'}`}>
+                                <Icon name={t.type === 'error' ? 'X' : t.type === 'warning' ? 'Dashboard' : 'Check'} size={18} />{t.msg}
                             </div>
                         ))}
                     </div>
                     {modalContent && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4" onClick={closeModal}>
-                            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden p-6" onClick={e => e.stopPropagation()}>
+                            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6" onClick={e => e.stopPropagation()}>
                                 <h3 className="text-lg font-black text-slate-800 mb-4">{modalContent.message}</h3>
-                                {modalContent.customBody && modalContent.customBody}
-                                {!modalContent.customBody && (
-                                    <div className="flex justify-end gap-3 mt-6">
-                                        <button onClick={closeModal} className="px-6 py-3 rounded-xl bg-slate-200 text-slate-800 font-bold hover:bg-slate-300">إلغاء</button>
-                                        <button onClick={() => { modalContent.onConfirm(); closeModal(); }} className="px-6 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700">تأكيد</button>
-                                    </div>
-                                )}
+                                <div className="flex justify-end gap-3 mt-6">
+                                    <button onClick={closeModal} className="px-6 py-3 rounded-xl bg-slate-200 font-bold">إلغاء</button>
+                                    <button onClick={() => { modalContent.onConfirm(); closeModal(); }} className="px-6 py-3 rounded-xl bg-blue-600 text-white font-bold">تأكيد</button>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -176,9 +127,7 @@
             );
         };
 
-        // =====================================================
         // DATABASE ENGINE (IndexedDB)
-        // =====================================================
         const SCHEMA = {
             users: { prefix: 'USR' },
             customers: { prefix: 'CNT' },
@@ -190,119 +139,94 @@
             treasury: { prefix: 'TRZ' },
             expenses: { prefix: 'EXP' },
             journal: { prefix: 'JRN' },
-            legal_cases: { prefix: 'LGL' }
+            legal_cases: { prefix: 'LGL' },
+            guarantors: { prefix: 'GRT' }
         };
 
         const dbEngine = {
             db: null,
             init: function() {
                 return new Promise((resolve, reject) => {
-                    const req = indexedDB.open('EcoFine_Master_DB_V5', 5);
+                    const req = indexedDB.open('EcoFine_Master_DB_V6', 6);
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
-                        Object.keys(SCHEMA).forEach(t => {
-                            if (!d.objectStoreNames.contains(t)) {
-                                d.createObjectStore(t, { keyPath: 'id' });
-                            }
-                        });
+                        Object.keys(SCHEMA).forEach(t => { if (!d.objectStoreNames.contains(t)) d.createObjectStore(t, { keyPath: 'id' }); });
                     };
-                    req.onsuccess = async (e) => {
-                        this.db = e.target.result;
-                        await this.seedInitialAdmin();
-                        resolve();
-                    };
-                    req.onerror = (err) => reject("Database Error: " + err);
+                    req.onsuccess = async (e) => { this.db = e.target.result; await this.seedInitialAdmin(); resolve(); };
+                    req.onerror = (err) => reject("DB Error: " + err);
                 });
             },
             seedInitialAdmin: async function() {
                 const users = await this.fetch('users');
                 if (users.length === 0) {
-                    const defaultHash = await hashPassword('admin123');
-                    await this.insert('users', { 
-                        username: 'admin', 
-                        password: defaultHash, 
-                        full_name: 'مدير النظام الأساسي',
-                        role: 'admin', 
-                        status: 'نشط' 
-                    });
+                    const hash = await hashPassword('admin123');
+                    await this.insert('users', { username: 'admin', password: hash, full_name: 'المدير التنفيذي', role: 'admin', status: 'نشط' });
                 }
             },
             fetch: function(table) {
                 return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(table, 'readonly');
-                    const req = tx.objectStore(table).getAll();
+                    const req = this.db.transaction(table, 'readonly').objectStore(table).getAll();
                     req.onsuccess = () => resolve(req.result || []);
-                    req.onerror = () => reject(`Error fetching ${table}`);
+                    req.onerror = () => reject(`Fetch error ${table}`);
                 });
             },
             get: function(table, id) {
                 return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(table, 'readonly');
-                    const req = tx.objectStore(table).get(id);
+                    const req = this.db.transaction(table, 'readonly').objectStore(table).get(id);
                     req.onsuccess = () => resolve(req.result);
-                    req.onerror = () => reject("Error fetching record");
+                    req.onerror = () => reject("Get error");
                 });
             },
             insert: function(table, data) {
                 return new Promise((resolve, reject) => {
                     const id = generateID(SCHEMA[table].prefix);
                     const rec = { ...data, id, created_at: new Date().toISOString() };
-                    const tx = this.db.transaction(table, 'readwrite');
-                    const req = tx.objectStore(table).add(rec);
+                    const req = this.db.transaction(table, 'readwrite').objectStore(table).add(rec);
                     req.onsuccess = () => { EventBus.emit('db_update'); resolve(rec); };
-                    req.onerror = () => reject("Insert failed");
+                    req.onerror = () => reject("Insert error");
                 });
             },
             update: async function(table, id, data) {
                 const existing = await this.get(table, id);
-                if (!existing) throw new Error('Record not found');
+                if (!existing) throw new Error('Not found');
                 const updatedRec = { ...existing, ...data, id, updated_at: new Date().toISOString() };
                 return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(table, 'readwrite');
-                    const req = tx.objectStore(table).put(updatedRec);
+                    const req = this.db.transaction(table, 'readwrite').objectStore(table).put(updatedRec);
                     req.onsuccess = () => { EventBus.emit('db_update'); resolve(updatedRec); };
-                    req.onerror = () => reject('Update failed');
+                    req.onerror = () => reject('Update error');
                 });
             },
             checkUnique: async function(table, field, value, excludeId = null) {
-                const all = await this.fetch(table);
-                return !all.some(item => item[field] === value && item.id !== excludeId);
+                const all = await this.fetch(table); return !all.some(item => item[field] === value && item.id !== excludeId);
             }
         };
 
-        // =====================================================
-        // LOGIC ENGINE (ACCOUNTING)
-        // =====================================================
         const LogicEngine = {
-            recordFinancialTx: async (type, amount, source, ref_id, debit_acc, credit_acc, desc, date, user_id) => {
-                const amt = Number(amount);
-                if (isNaN(amt) || amt <= 0) throw new Error("قيمة مالية غير صالحة");
-                await dbEngine.insert('treasury', { type, amount: amt, source, reference_id: ref_id, date, user_id });
-                await dbEngine.insert('journal', { debit_account: debit_acc, credit_account: credit_acc, amount: amt, description: desc, date });
-            },
-            updateCustomerScore: async (customer_id, daysLate) => {
+            updateCustomerScore: async (customer_id, isLate, penalty = 0) => {
                 const c = await dbEngine.get('customers', customer_id);
                 if (c && c.status !== 'إجراء قانوني') {
-                    let pointsToDeduct = 0;
-                    if (daysLate <= 0) pointsToDeduct = -5;
-                    else if (daysLate <= 15) pointsToDeduct = 5;
-                    else if (daysLate <= 30) pointsToDeduct = 15;
-                    else if (daysLate <= 60) pointsToDeduct = 30;
-                    else pointsToDeduct = 50;
-                    const newScore = Math.max(0, Math.min(100, (c.credit_score || 100) - pointsToDeduct));
-                    const newStatus = newScore === 0 ? 'خطر' : newScore < 40 ? 'متعثر' : newScore < 70 ? 'متأخر' : 'منتظم';
+                    let newScore = c.credit_score || 50; // يبدأ من 50
+                    if (!isLate) newScore = Math.min(100, newScore + 5);
+                    else newScore = Math.max(0, newScore - penalty);
+                    
+                    let newStatus = c.status;
+                    if (newScore === 0) newStatus = 'خطر';
+                    else if (newScore < 40) newStatus = 'متعثر';
+                    
                     await dbEngine.update('customers', c.id, { ...c, credit_score: newScore, status: newStatus });
                 }
             },
-            markCustomerLegal: async (customer_id) => {
-                const c = await dbEngine.get('customers', customer_id);
-                if (c) await dbEngine.update('customers', c.id, { ...c, credit_score: 0, status: 'إجراء قانوني' });
+            checkGuarantorEligibility: async (customer_id) => {
+                const invs = await dbEngine.fetch('sales_invoices');
+                const grts = await dbEngine.fetch('guarantors');
+                // لا يمكن أن يكون مشتري نشط أو ضامن نشط
+                const isActiveBuyer = invs.some(i => i.customer_id === customer_id && ['سارية', 'متعثر'].includes(i.status));
+                const isActiveGuarantor = grts.some(g => g.customer_id === customer_id && g.status === 'active');
+                return !isActiveBuyer && !isActiveGuarantor;
             }
         };
 
-        // =====================================================
         // COMPONENTS
-        // =====================================================
         const Input = React.memo(({ label, type = "text", className = "", ...props }) => (
             <div className={`w-full ${className}`}>
                 {label && <label className="block text-xs font-bold text-slate-600 mb-1.5">{label}</label>}
@@ -320,29 +244,16 @@
             </div>
         ));
 
-        const Button = React.memo(({ children, onClick, variant = "primary", className = "", icon, type = "button", disabled = false, loading = false }) => {
-            const variants = {
-                primary: "bg-blue-600 text-white hover:bg-blue-700",
-                success: "bg-green-600 text-white hover:bg-green-700",
-                danger: "bg-red-600 text-white hover:bg-red-700",
-                ghost: "bg-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-            };
+        const Button = React.memo(({ children, onClick, variant = "primary", className = "", icon, type = "button", disabled = false }) => {
+            const variants = { primary: "bg-blue-600 text-white hover:bg-blue-700", success: "bg-green-600 text-white hover:bg-green-700", danger: "bg-red-600 text-white hover:bg-red-700" };
             return (
-                <button type={type} onClick={onClick} disabled={disabled || loading} 
-                    className={`flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-bold transition-all disabled:opacity-60 ${variants[variant]} ${className}`}>
-                    {loading ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : icon && <Icon name={icon} size={18} />}
-                    {children}
+                <button type={type} onClick={onClick} disabled={disabled} className={`flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-bold transition-all disabled:opacity-60 ${variants[variant]} ${className}`}>
+                    {icon && <Icon name={icon} size={18} />}{children}
                 </button>
             );
         });
 
         const Modal = ({ title, isOpen, onClose, children }) => {
-            useEffect(() => {
-                if (isOpen) document.body.style.overflow = 'hidden';
-                else document.body.style.overflow = 'auto';
-                return () => document.body.style.overflow = 'auto';
-            }, [isOpen]);
-
             if (!isOpen) return null;
             return (
                 <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4" onClick={onClose}>
@@ -357,290 +268,156 @@
             );
         };
 
-        // =====================================================
         // MODULES
-        // =====================================================
         const LoginModule = ({ onLogin }) => {
             const { showToast } = useAppContext();
             const [username, setUsername] = useState('');
             const [password, setPassword] = useState('');
-            const [loading, setLoading] = useState(false);
 
             const handleLogin = async (e) => {
                 e.preventDefault();
-                setLoading(true);
-                try {
-                    const users = await dbEngine.fetch('users');
-                    const user = users.find(u => u.username === username.trim().toLowerCase());
-                    if (user) {
-                        const inputHash = await hashPassword(password);
-                        if (user.password === inputHash) {
-                            if (user.status !== 'نشط') showToast('هذا الحساب موقوف.', 'error');
-                            else onLogin(user);
-                        } else showToast('بيانات الدخول غير صحيحة', 'error');
-                    } else showToast('بيانات الدخول غير صحيحة', 'error');
-                } catch (e) { showToast('خطأ بالنظام', 'error'); }
-                setLoading(false);
+                const users = await dbEngine.fetch('users');
+                const user = users.find(u => u.username === username.trim().toLowerCase());
+                if (user) {
+                    const inputHash = await hashPassword(password);
+                    if (user.password === inputHash) return onLogin(user);
+                }
+                showToast('بيانات غير صحيحة', 'error');
             };
 
             return (
-                <div className="h-screen w-full flex items-center justify-center login-bg relative overflow-hidden">
+                <div className="h-screen w-full flex items-center justify-center login-bg">
                     <div className="glass p-10 rounded-3xl shadow-2xl w-full max-w-md z-10 text-white">
-                        <div className="text-center mb-10">
-                            <div className="w-16 h-16 mx-auto bg-blue-600 rounded-2xl flex items-center justify-center font-black text-3xl mb-4">X</div>
-                            <h1 className="text-2xl font-black">EcoFine ERP V4</h1>
-                        </div>
+                        <div className="text-center mb-10"><div className="w-16 h-16 mx-auto bg-blue-600 rounded-2xl flex items-center justify-center font-black text-3xl mb-4">X</div><h1 className="text-2xl font-black">EcoFine V4</h1></div>
                         <form onSubmit={handleLogin} className="space-y-6">
-                            <Input label="اسم المستخدم" required value={username} onChange={e => setUsername(e.target.value)} />
-                            <Input label="كلمة المرور" type="password" required value={password} onChange={e => setPassword(e.target.value)} />
-                            <Button type="submit" loading={loading} className="w-full mt-4" icon="Check">تسجيل الدخول</Button>
+                            <Input label="المستخدم" required value={username} onChange={e => setUsername(e.target.value)} />
+                            <Input label="المرور" type="password" required value={password} onChange={e => setPassword(e.target.value)} />
+                            <Button type="submit" className="w-full mt-4" icon="Check">دخول</Button>
                         </form>
                     </div>
                 </div>
             );
         };
 
-        const DashboardModule = () => {
-            const [data, setData] = useState({ sales: 0, totalDebt: 0, overdueDebt: 0, cash: 0, exp: 0, lateCount: 0, riskCount: 0 });
-
-            const load = useCallback(async () => {
-                try {
-                    const [invs, trz, insts, custs, exps] = await Promise.all([
-                        dbEngine.fetch('sales_invoices'),
-                        dbEngine.fetch('treasury'),
-                        dbEngine.fetch('installments'),
-                        dbEngine.fetch('customers'),
-                        dbEngine.fetch('expenses')
-                    ]);
-
-                    const sales = invs.reduce((sum, i) => sum + Number(i.total || 0), 0);
-                    const totalDebt = invs.reduce((sum, i) => sum + Number(i.remaining || 0), 0);
-                    const today = DateUtils.today();
-                    const overdueDebt = insts
-                        .filter(i => i.status !== 'paid' && i.due_date < today)
-                        .reduce((sum, i) => sum + (Number(i.amount) - Number(i.paid_amount || 0)), 0);
-                    const cash = trz.reduce((sum, t) => t.type === 'in' ? sum + Number(t.amount) : sum - Number(t.amount), 0);
-                    const exp = exps.reduce((sum, e) => sum + Number(e.amount || 0), 0);
-                    const lateCount = insts.filter(i => i.status !== 'paid' && i.due_date < today).length;
-                    const riskCount = custs.filter(c => ['إجراء قانوني', 'متعثر', 'خطر'].includes(c.status)).length;
-
-                    setData({ sales, totalDebt, overdueDebt, cash, exp, lateCount, riskCount });
-                } catch (e) { console.error(e); }
-            }, []);
-
-            useEffect(() => {
-                load();
-                EventBus.on('db_update', load);
-                return () => EventBus.off('db_update', load);
-            }, [load]);
-
-            const StatBox = ({ title, val, color, icon }) => (
-                <div className={`${color} p-6 rounded-2xl border-t-4 relative overflow-hidden glass`}>
-                    <div className="absolute top-4 left-4 text-slate-100"><Icon name={icon} size={64} /></div>
-                    <div className="relative z-10 text-sm font-bold text-slate-500 mb-2">{title}</div>
-                    <div className="relative z-10 text-3xl font-black text-slate-800">{formatMoney(val)} <span className="text-sm text-slate-400">ج.م</span></div>
-                </div>
-            );
-
-            return (
-                <div className="space-y-6 pb-10">
-                    <h2 className="text-2xl font-black text-slate-800">الرؤية العامة (Executive Dashboard)</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <StatBox title="إجمالي المبيعات" val={data.sales} color="border-blue-500" icon="ShoppingCart" />
-                        <StatBox title="إجمالي المديونية" val={data.totalDebt} color="border-yellow-500" icon="Wallet" />
-                        <StatBox title="السيولة الحالية" val={data.cash} color="border-green-500" icon="Wallet" />
-                        <StatBox title="إجمالي المصروفات" val={data.exp} color="border-red-500" icon="Plus" />
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="glass p-6 rounded-2xl">
-                            <h3 className="font-bold text-lg mb-4 text-slate-700 flex items-center gap-2"><Icon name="Legal" className="text-red-600" /> مؤشرات الخطر والتشغيل</h3>
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center p-4 bg-red-50 rounded-xl border border-red-100">
-                                    <div className="font-bold text-red-700">الأقساط المتأخرة</div>
-                                    <div className="text-xl font-black text-red-700">{data.lateCount} قسط</div>
-                                </div>
-                                <div className="flex justify-between items-center p-4 bg-yellow-50 rounded-xl border border-yellow-100">
-                                    <div className="font-bold text-yellow-700">قيمة المتأخرات المالية</div>
-                                    <div className="text-xl font-black text-yellow-700">{formatMoney(data.overdueDebt)} ج.م</div>
-                                </div>
-                                <div className="flex justify-between items-center p-4 bg-purple-50 rounded-xl border border-purple-100">
-                                    <div className="font-bold text-purple-700">عملاء في منطقة الخطر</div>
-                                    <div className="text-xl font-black text-purple-700">{data.riskCount} عميل</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
         const SalesModule = ({ user }) => {
-            const { showToast, confirmAction } = useAppContext();
+            const { showToast } = useAppContext();
             const [products, setProducts] = useState([]);
             const [customers, setCustomers] = useState([]);
             const [cart, setCart] = useState([]);
-            const [saleType, setSaleType] = useState('installment_monthly');
-            const [selectedCust, setSelectedCust] = useState('');
-            const [downPayment, setDownPayment] = useState('');
-            const [period, setPeriod] = useState(12);
-            const [loading, setLoading] = useState(false);
+            const [form, setForm] = useState({ cust: '', type: 'monthly', period: 10, guarantors: [] });
 
             const load = useCallback(async () => {
-                try {
-                    setProducts(await dbEngine.fetch('products'));
-                    setCustomers(await dbEngine.fetch('customers'));
-                } catch (e) { console.error(e); }
+                setProducts(await dbEngine.fetch('products'));
+                setCustomers(await dbEngine.fetch('customers'));
             }, []);
-
             useEffect(() => { load(); }, [load]);
 
-            const addToCart = useCallback((p) => {
-                if (p.stock <= 0) return showToast('المنتج نافذ من المخزون!', 'error');
+            const addToCart = (p) => {
+                if (p.stock <= 0) return showToast('نفذ من المخزن', 'error');
                 setCart(prev => {
-                    const exist = prev.find(i => i.id === p.id);
-                    if (exist) {
-                        if (exist.qty >= p.stock) { showToast('الكمية المطلوبة غير متوفرة', 'warning'); return prev; }
-                        return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i);
-                    }
+                    const ex = prev.find(i => i.id === p.id);
+                    if (ex) return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i);
                     return [...prev, { ...p, qty: 1 }];
                 });
-            }, [showToast]);
-
-            const total = useMemo(() => 
-                cart.reduce((a, b) => a + (saleType === 'cash' ? Number(b.cash_price) : Number(b.installment_price)) * b.qty, 0), 
-                [cart, saleType]
-            );
-
-            const executeSale = async () => {
-                if (!selectedCust || cart.length === 0) return showToast('برجاء استكمال البيانات.', 'error');
-                const c = customers.find(x => x.id === selectedCust);
-                if (c.status === 'إجراء قانوني') return showToast('لا يمكن البيع لعميل محول للشؤون القانونية', 'error');
-                if (['خطر', 'متعثر'].includes(c.status)) {
-                    confirmAction("العميل مصنف بخطر عالٍ. هل تريد فعلاً إتمام البيع؟", proceedWithSale);
-                } else proceedWithSale();
             };
 
-            const proceedWithSale = async () => {
-                const dp = Math.max(0, Number(downPayment) || 0);
-                const prd = Math.max(1, Number(period) || 1);
-                const isInstallment = saleType.startsWith('installment');
-                const remaining = total - dp;
+            const total = cart.reduce((a, b) => a + (form.type === 'cash' ? Number(b.cash_price) : Number(b.installment_price)) * b.qty, 0);
 
-                if (isInstallment && remaining <= 0) return showToast('المقدم يغطي الفاتورة', 'warning');
-                if (dp > total) return showToast('المقدم أكبر من الإجمالي', 'error');
+            // حساب التقديمة (Downpayment)
+            const calcDownPayment = () => {
+                if (form.type === 'cash') return total;
+                const d = new Date();
+                const day = d.getDate();
+                if (form.type === 'daily') {
+                    const dailyInst = total / form.period / 30; // افتراض 30 يوم
+                    return day * dailyInst; 
+                }
+                return total / form.period; // قسط شهر كامل
+            };
 
-                setLoading(true);
+            const executeSale = async () => {
+                if (!form.cust || cart.length === 0) return showToast('اكمل البيانات', 'error');
+                if (form.type !== 'cash' && total < 2500) return showToast('الحد الأدنى للتقسيط 2500 ج', 'error');
+                if (form.type !== 'cash' && form.guarantors.length < 1) return showToast('يجب توفر ضامن واحد على الأقل', 'error');
+                
+                if (form.type !== 'cash') {
+                    if (total <= 100000 && form.period > 10) return showToast('أقصى مدة أقل من 100ألف هي 10 شهور', 'error');
+                    if (total > 100000 && form.period > 15) return showToast('أقصى مدة هي 15 شهر', 'error');
+                }
+
                 try {
+                    const dp = calcDownPayment();
+                    const rem = total - dp;
                     const date = DateUtils.today();
+
                     const inv = await dbEngine.insert('sales_invoices', {
-                        customer_id: selectedCust,
-                        type: saleType,
-                        total,
-                        down_payment: dp,
-                        paid: isInstallment ? dp : total,
-                        remaining: isInstallment ? remaining : 0,
-                        period: isInstallment ? prd : 0,
-                        date,
-                        status: isInstallment ? 'سارية' : 'خالصة'
+                        customer_id: form.cust, type: form.type, total, down_payment: dp,
+                        paid: dp, remaining: rem, period: form.period, date, status: rem > 0 ? 'سارية' : 'خالصة',
+                        system_type: form.type
                     });
 
-                    for (let item of cart) {
-                        await dbEngine.insert('sales_items', {
-                            invoice_id: inv.id,
-                            product_id: item.id,
-                            qty: item.qty,
-                            price: saleType === 'cash' ? item.cash_price : item.installment_price
-                        });
-                        const p = products.find(x => x.id === item.id);
-                        await dbEngine.update('products', p.id, { ...p, stock: p.stock - item.qty });
+                    for (let g of form.guarantors) {
+                        await dbEngine.insert('guarantors', { invoice_id: inv.id, customer_id: g, status: 'active' });
                     }
 
-                    if (dp > 0) {
-                        await dbEngine.insert('payments', {
-                            customer_id: selectedCust,
-                            invoice_id: inv.id,
-                            amount: dp,
-                            method: 'cash',
-                            date,
-                            type: isInstallment ? 'down_payment' : 'settlement',
-                            user_id: user.username
-                        });
-                    }
-
-                    if (isInstallment) {
-                        const instAmt = remaining / prd;
-                        for (let i = 1; i <= prd; i++) {
-                            const dueDate = DateUtils.addMonths(date, i);
+                    if (rem > 0) {
+                        const instAmt = rem / form.period;
+                        for (let i = 1; i <= form.period; i++) {
                             await dbEngine.insert('installments', {
-                                invoice_id: inv.id,
-                                customer_id: selectedCust,
-                                amount: instAmt,
-                                original_amount: instAmt,
-                                paid_amount: 0,
-                                due_date: dueDate,
-                                status: 'pending'
+                                invoice_id: inv.id, customer_id: form.cust, amount: instAmt,
+                                paid_amount: 0, due_date: DateUtils.addMonths(date, i), status: 'pending', type: form.type
                             });
                         }
                     }
+                    showToast('تمت العملية، مطلوب التوقيع على الوصلات');
+                    setCart([]); setForm({ cust: '', type: 'monthly', period: 10, guarantors: [] });
+                } catch (e) { showToast('خطأ بالنظام', 'error'); }
+            };
 
-                    showToast('تم اعتماد البيع بنجاح');
-                    setCart([]);
-                    setSelectedCust('');
-                    setDownPayment('');
-                    load();
-                } catch (e) { showToast(e.message || 'خطأ أثناء الحفظ', 'error'); }
-                setLoading(false);
+            const toggleGuarantor = (id) => {
+                setForm(p => p.guarantors.includes(id) 
+                    ? { ...p, guarantors: p.guarantors.filter(g => g !== id) }
+                    : { ...p, guarantors: p.guarantors.length < 3 ? [...p.guarantors, id] : p.guarantors });
             };
 
             return (
-                <div className="flex flex-col xl:flex-row gap-6 h-full pb-10">
-                    <div className="flex-[3] flex flex-col gap-4 overflow-hidden h-[80vh]">
-                        <div className="bg-white p-4 rounded-2xl shadow-sm border">
-                            <h2 className="text-xl font-black text-slate-800 flex items-center gap-2"><Icon name="ShoppingCart" /> نقطة البيع (POS)</h2>
-                        </div>
-                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto pr-2 pb-4">
+                <div className="flex gap-6 h-full pb-10">
+                    <div className="flex-[3] flex flex-col gap-4">
+                        <div className="bg-white p-4 rounded-2xl shadow"><h2 className="text-xl font-black">POS</h2></div>
+                        <div className="grid grid-cols-3 gap-4">
                             {products.map(p => (
-                                <div key={p.id} onClick={() => addToCart(p)} className={`glass p-5 rounded-2xl cursor-pointer transition-all border-2 ${
-                                    p.stock > 0 ? 'border-transparent hover:border-blue-500 hover:shadow-xl bg-white' : 'opacity-60 border-slate-200 bg-slate-50'
-                                }`}>
-                                    <div className="font-bold text-sm mb-1 text-slate-800 line-clamp-2">{p.name}</div>
-                                    <div className="text-[10px] font-bold text-slate-500 bg-slate-100 inline-block px-2 py-1 rounded mb-4">مخزن: {p.stock}</div>
-                                    <div className="flex justify-between text-xs bg-slate-50 p-2 rounded-lg">
-                                        <div><span className="text-[10px] text-slate-400">كاش</span><span className="font-black text-green-600 text-sm">{formatMoney(p.cash_price)}</span></div>
-                                        <div className="text-left border-r pr-2"><span className="text-[10px] text-slate-400">تقسيط</span><span className="font-black text-blue-600 text-sm">{formatMoney(p.installment_price)}</span></div>
-                                    </div>
+                                <div key={p.id} onClick={() => addToCart(p)} className="glass p-5 rounded-2xl cursor-pointer hover:border-blue-500 border-2">
+                                    <div className="font-bold">{p.name}</div>
+                                    <div className="text-xs mt-2">مخزن: {p.stock}</div>
                                 </div>
                             ))}
                         </div>
                     </div>
-
-                    <div className="flex-[2] glass flex flex-col p-0 overflow-hidden border-t-4 border-blue-500 shadow-xl h-[80vh]">
-                        <div className="p-5 border-b bg-slate-50"><h2 className="font-black text-slate-800">السلة والعقد</h2></div>
-                        <div className="flex-1 overflow-y-auto custom-scroll p-4 space-y-3 bg-white">
-                            {cart.map(i => (
-                                <div key={i.id} className="flex justify-between items-center p-3 border border-slate-200 rounded-xl bg-slate-50">
-                                    <div className="font-bold text-sm">{i.name} <span className="text-xs text-blue-600 px-2 py-0.5 bg-blue-100 rounded">x{i.qty}</span></div>
-                                    <div className="font-black">{formatMoney((saleType === 'cash' ? i.cash_price : i.installment_price) * i.qty)}</div>
+                    <div className="flex-[2] glass flex flex-col p-5 shadow-xl h-[80vh] overflow-y-auto">
+                        <h2 className="font-black border-b pb-2 mb-4">العقد والسلة</h2>
+                        {cart.map(i => <div key={i.id} className="flex justify-between p-2">{i.name} (x{i.qty}) <b>{formatMoney((form.type==='cash'?i.cash_price:i.installment_price)*i.qty)}</b></div>)}
+                        
+                        <Select label="العميل" options={customers.map(c=>({value:c.id, label:c.full_name}))} value={form.cust} onChange={e=>setForm({...form, cust:e.target.value})} className="mt-4" />
+                        <Select label="النظام" options={[{value:'monthly', label:'شهري'}, {value:'daily', label:'يومي'}, {value:'cash', label:'كاش'}]} value={form.type} onChange={e=>setForm({...form, type:e.target.value})} className="mt-2" />
+                        
+                        {form.type !== 'cash' && (
+                            <div className="mt-2">
+                                <Input type="number" label="الشهور" value={form.period} onChange={e=>setForm({...form, period:Number(e.target.value)})} />
+                                <div className="mt-4 border p-3 rounded-xl bg-slate-50">
+                                    <label className="text-xs font-bold block mb-2">اختر الضامنين (بحد أقصى 3)</label>
+                                    <div className="max-h-32 overflow-y-auto">
+                                        {customers.filter(c => c.id !== form.cust).map(c => (
+                                            <label key={c.id} className="flex items-center gap-2 text-sm p-1">
+                                                <input type="checkbox" checked={form.guarantors.includes(c.id)} onChange={() => toggleGuarantor(c.id)} /> {c.full_name}
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                        <div className="p-5 bg-slate-50 border-t space-y-4">
-                            <Select label="العميل" options={customers.map(c => ({ value: c.id, label: `${c.full_name} (${c.status})` }))} 
-                                value={selectedCust} onChange={e => setSelectedCust(e.target.value)} />
-                            <Select label="نظام الدفع" options={[{ value: 'installment_monthly', label: 'تقسيط' }, { value: 'cash', label: 'كاش' }]} 
-                                value={saleType} onChange={e => setSaleType(e.target.value)} />
-                            {saleType.startsWith('installment') && (
-                                <div className="grid grid-cols-2 gap-4">
-                                    <Input type="number" min="0" label="المقدم" value={downPayment} onChange={e => setDownPayment(e.target.value)} />
-                                    <Input type="number" min="1" label="شهور التقسيط" value={period} onChange={e => setPeriod(e.target.value)} />
-                                </div>
-                            )}
-                            <div className="p-5 bg-slate-900 text-white rounded-xl flex justify-between items-center shadow-lg">
-                                <span className="font-bold">الإجمالي:</span>
-                                <span className="text-2xl font-black">{formatMoney(total)}</span>
                             </div>
-                            <Button onClick={executeSale} loading={loading} className="w-full text-lg py-4" icon="Check">إصدار الفاتورة</Button>
-                        </div>
+                        )}
+                        <div className="mt-4 p-4 bg-slate-900 text-white rounded-xl flex justify-between"><span>إجمالي:</span><b>{formatMoney(total)}</b></div>
+                        {form.type !== 'cash' && total > 0 && <div className="mt-2 text-sm text-red-600 font-bold">التقديمة المطلوبة: {formatMoney(calcDownPayment())}</div>}
+                        <Button onClick={executeSale} className="w-full mt-4" icon="Check">إصدار الفاتورة</Button>
                     </div>
                 </div>
             );
@@ -648,169 +425,86 @@
 
         const CollectionModule = ({ user }) => {
             const { showToast } = useAppContext();
-            const [installments, setInstallments] = useState([]);
+            const [insts, setInsts] = useState([]);
             const [customers, setCustomers] = useState([]);
-            const [viewMode, setViewMode] = useState('all_pending');
             const [payInst, setPayInst] = useState(null);
-            const [payAmt, setPayAmt] = useState('');
-            const [penaltyAmt, setPenaltyAmt] = useState('0');
+            const [pAmt, setPAmt] = useState('');
+            const [penAmt, setPenAmt] = useState('0');
 
             const load = useCallback(async () => {
-                try {
-                    setInstallments(await dbEngine.fetch('installments'));
-                    setCustomers(await dbEngine.fetch('customers'));
-                } catch (e) { console.error(e); }
+                setInsts(await dbEngine.fetch('installments'));
+                setCustomers(await dbEngine.fetch('customers'));
             }, []);
-
             useEffect(() => { load(); }, [load]);
 
-            const customersMap = useMemo(() => {
-                const map = {};
-                customers.forEach(c => map[c.id] = c);
-                return map;
-            }, [customers]);
+            const custMap = useMemo(() => Object.fromEntries(customers.map(c => [c.id, c])), [customers]);
 
-            const processedInstallments = useMemo(() => {
-                const today = DateUtils.today();
-                let list = installments
-                    .filter(i => i.status !== 'paid')
-                    .map(i => {
-                        const statusObj = DateUtils.getDelayStatus(i.due_date);
-                        const remaining = Number(i.amount) - Number(i.paid_amount || 0);
-                        return { ...i, ...statusObj, remaining };
-                    });
-                if (viewMode === 'late') list = list.filter(i => i.days > 0);
-                return list.sort((a, b) => b.days - a.days);
-            }, [installments, viewMode]);
+            const processed = useMemo(() => insts.filter(i => i.status !== 'paid').map(i => {
+                const totalLateInvs = insts.filter(x => x.invoice_id === i.invoice_id && x.due_date < DateUtils.today()).length * 30; // تقدير التأخير التراكمي
+                const status = DateUtils.getDelayStatus(i.due_date, i.type, totalLateInvs);
+                return { ...i, ...status, remaining: i.amount - (i.paid_amount||0) };
+            }), [insts]);
 
-            const submitPayment = async (e) => {
+            const submitPay = async (e) => {
                 e.preventDefault();
-                const pAmt = Number(payAmt);
-                const penAmt = Number(penaltyAmt) || 0;
-                if (isNaN(pAmt) || pAmt <= 0) return showToast('قيمة غير صالحة', 'error');
-                if (pAmt > payInst.remaining) return showToast('لا يمكن دفع أكثر من المستحق', 'error');
+                const amt = Number(pAmt), pny = Number(penAmt);
+                if (amt > payInst.remaining) return showToast('المبلغ أكبر من المتبقي', 'error');
 
                 try {
-                    const date = DateUtils.today();
-                    const newPaid = Number(payInst.paid_amount || 0) + pAmt;
-                    const newStatus = newPaid >= payInst.amount ? 'paid' : 'partial';
-
-                    await dbEngine.update('installments', payInst.id, { ...payInst, paid_amount: newPaid, payment_date: date, status: newStatus });
-                    await dbEngine.insert('payments', {
-                        customer_id: payInst.customer_id,
-                        invoice_id: payInst.invoice_id,
-                        installment_id: payInst.id,
-                        amount: pAmt,
-                        method: 'cash',
-                        date,
-                        type: 'installment',
-                        user_id: user.username
-                    });
-
-                    if (penAmt > 0) {
-                        await dbEngine.insert('payments', {
-                            customer_id: payInst.customer_id,
-                            invoice_id: payInst.invoice_id,
-                            installment_id: payInst.id,
-                            amount: penAmt,
-                            method: 'cash',
-                            date,
-                            type: 'late_fee',
-                            user_id: user.username
-                        });
+                    const newPaid = Number(payInst.paid_amount || 0) + amt;
+                    await dbEngine.update('installments', payInst.id, { ...payInst, paid_amount: newPaid, status: newPaid >= payInst.amount ? 'paid' : 'partial' });
+                    
+                    const inv = await dbEngine.get('sales_invoices', payInst.invoice_id);
+                    // تسريع السداد الشرعي: يتم خصم الغرامة أيضاً من الإجمالي الباقي للفاتورة وليس كفائدة منفصلة تزيد الدين
+                    const deduction = amt + pny; 
+                    const newRem = Math.max(0, inv.remaining - deduction);
+                    
+                    let invStatus = inv.status;
+                    if (newRem === 0) {
+                        invStatus = 'بانتظار تسليم الأوراق'; // قاعدة الإغلاق
+                        const c = await dbEngine.get('customers', payInst.customer_id);
+                        await dbEngine.update('customers', c.id, {...c, status: 'غير نشط'});
                     }
 
-                    const inv = await dbEngine.get('sales_invoices', payInst.invoice_id);
-                    if (inv) await dbEngine.update('sales_invoices', inv.id, {
-                        ...inv,
-                        paid: Number(inv.paid || 0) + pAmt,
-                        remaining: Math.max(0, Number(inv.remaining) - pAmt)
-                    });
+                    await dbEngine.update('sales_invoices', inv.id, { ...inv, remaining: newRem, status: invStatus });
+                    
+                    if (newPaid >= payInst.amount) await LogicEngine.updateCustomerScore(payInst.customer_id, false);
+                    else if (payInst.days > 0) await LogicEngine.updateCustomerScore(payInst.customer_id, true, payInst.days > 30 ? 20 : 5);
 
-                    if (newStatus === 'paid') await LogicEngine.updateCustomerScore(payInst.customer_id, payInst.days);
-
-                    showToast('تم التحصيل بنجاح');
-                    setPayInst(null);
-                    load();
-                } catch (e) { showToast('خطأ: ' + e, 'error'); }
+                    showToast('تم التحصيل وتخفيض أصل الدين'); setPayInst(null); load();
+                } catch(e) { showToast('خطأ', 'error'); }
             };
 
             return (
-                <div className="flex flex-col h-full animate-fade-in pb-10 space-y-6">
-                    <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border">
-                        <h2 className="text-xl font-black text-slate-800 flex items-center gap-2"><Icon name="Wallet" /> وحدة التحصيلات والمتابعة</h2>
-                        <div className="flex bg-slate-100 rounded-lg p-1 border">
-                            <button onClick={() => setViewMode('all_pending')} className={`px-5 py-2 text-sm font-bold rounded-md transition-all ${
-                                viewMode === 'all_pending' ? 'bg-white shadow text-slate-800' : 'text-slate-500'
-                            }`}>الكل</button>
-                            <button onClick={() => setViewMode('late')} className={`px-5 py-2 text-sm font-bold rounded-md transition-all ${
-                                viewMode === 'late' ? 'bg-red-600 shadow text-white' : 'text-slate-500'
-                            }`}>المتأخرات فقط</button>
-                        </div>
-                    </div>
-
-                    <div className="glass flex-1 p-0 overflow-hidden flex flex-col h-[70vh]">
-                        <div className="flex-1 overflow-y-auto custom-scroll">
-                            <table className="w-full text-right text-sm">
-                                <thead className="bg-slate-100 text-slate-600 sticky top-0 border-b z-10">
-                                    <tr>
-                                        <th className="p-4">العميل</th>
-                                        <th className="p-4">تاريخ الاستحقاق</th>
-                                        <th className="p-4">أيام التأخير</th>
-                                        <th className="p-4">قيمة القسط</th>
-                                        <th className="p-4">المتبقي للتحصيل</th>
-                                        <th className="p-4 text-center">إجراء</th>
+                <div className="flex flex-col h-full pb-10 gap-4">
+                    <div className="bg-white p-4 rounded-2xl shadow"><h2 className="text-xl font-black">التحصيلات والمتابعة</h2></div>
+                    <div className="glass flex-1 overflow-auto">
+                        <table className="w-full text-right text-sm">
+                            <thead className="bg-slate-100 border-b"><tr><th className="p-4">العميل</th><th className="p-4">النظام</th><th className="p-4">الاستحقاق</th><th className="p-4">الحالة</th><th className="p-4">القسط</th><th className="p-4">إجراء</th></tr></thead>
+                            <tbody className="bg-white divide-y">
+                                {processed.map(i => (
+                                    <tr key={i.id}>
+                                        <td className="p-4 font-bold text-blue-700">{custMap[i.customer_id]?.full_name}</td>
+                                        <td className="p-4">{i.type === 'daily' ? 'يومي' : 'شهري'}</td>
+                                        <td className="p-4">{i.due_date}</td>
+                                        <td className="p-4"><span className={`px-2 py-1 text-xs rounded ${i.color}`}>{i.label}</span></td>
+                                        <td className="p-4 font-black">{formatMoney(i.remaining)}</td>
+                                        <td className="p-4"><Button variant="success" className="py-1 px-3 text-xs" onClick={() => { setPayInst(i); setPAmt(i.remaining); setPenAmt('0'); }}>تحصيل</Button></td>
                                     </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 bg-white">
-                                    {processedInstallments.map(i => {
-                                        const c = customersMap[i.customer_id];
-                                        return (
-                                            <tr key={i.id} className="hover:bg-slate-50 transition-colors">
-                                                <td className="p-4 font-black text-blue-700">{c ? c.full_name : 'غير معروف'}</td>
-                                                <td className="p-4 font-bold text-slate-700">{i.due_date}</td>
-                                                <td className="p-4"><span className={`px-3 py-1 text-xs font-bold rounded-lg shadow-sm ${i.color}`}>
-                                                    {i.label} {i.days > 0 ? `(${i.days} يوم)` : ''}
-                                                </span></td>
-                                                <td className="p-4 text-slate-500">{formatMoney(i.amount)}</td>
-                                                <td className="p-4 font-black text-red-600">{formatMoney(i.remaining)}</td>
-                                                <td className="p-4 text-center">
-                                                    <Button variant="success" className="w-full py-2 text-xs" onClick={() => {
-                                                        setPayInst(i);
-                                                        setPayAmt(i.remaining.toString());
-                                                        setPenaltyAmt('0');
-                                                    }}>تحصيل الآن</Button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
-
-                    <Modal title={`تحصيل قسط لـ ${customersMap[payInst?.customer_id]?.full_name || ''}`} isOpen={!!payInst} onClose={() => setPayInst(null)}>
-                        {payInst && (
-                            <form onSubmit={submitPayment} className="space-y-4">
-                                <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200 mb-4">
-                                    <div className="text-sm font-bold text-yellow-800 mb-2">معلومات القسط:</div>
-                                    <div className="flex justify-between text-sm text-yellow-900">
-                                        <span className="font-bold">المتبقي من أصل القسط:</span>
-                                        <span>{formatMoney(payInst.remaining)} ج.م</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm text-yellow-900 mt-1">
-                                        <span className="font-bold">أيام التأخير:</span>
-                                        <span>{payInst.days > 0 ? payInst.days : 0} يوم</span>
-                                    </div>
-                                </div>
-                                <Input type="number" step="0.01" label="قيمة التحصيل من القسط الأساسي" required max={payInst.remaining} 
-                                    value={payAmt} onChange={e => setPayAmt(e.target.value)} />
-                                <Input type="number" step="0.01" label="رسوم تأخير / مصاريف إدارية (اختياري)" 
-                                    value={penaltyAmt} onChange={e => setPenaltyAmt(e.target.value)} />
-                                <Button type="submit" className="w-full mt-4" icon="Check">تأكيد التحصيل</Button>
+                    {payInst && (
+                        <Modal title="تحصيل" isOpen={true} onClose={() => setPayInst(null)}>
+                            <form onSubmit={submitPay} className="space-y-4">
+                                <div className="text-sm font-bold text-red-600 mb-2">تنبيه: رسوم التأخير يتم خصمها من إجمالي الفاتورة لتسريع السداد (نظام شرعي)</div>
+                                <Input type="number" label="دفع من القسط" value={pAmt} onChange={e=>setPAmt(e.target.value)} max={payInst.remaining} required />
+                                <Input type="number" label="غرامة تأخير (تخصم من الأصل)" value={penAmt} onChange={e=>setPenAmt(e.target.value)} />
+                                <Button type="submit" className="w-full">اعتماد</Button>
                             </form>
-                        )}
-                    </Modal>
+                        </Modal>
+                    )}
                 </div>
             );
         };
@@ -819,310 +513,86 @@
             const { showToast } = useAppContext();
             const [customers, setCustomers] = useState([]);
             const [isModalOpen, setIsModalOpen] = useState(false);
-            const [cForm, setCForm] = useState({ id: '', full_name: '', national_id: '', phone: '', address: '', job: '', salary: '' });
-            const [isEdit, setIsEdit] = useState(false);
+            const [form, setForm] = useState({ full_name:'', national_id:'', phone:'', address:'', job:'', income_source:'' });
 
-            const load = useCallback(async () => {
-                try {
-                    setCustomers(await dbEngine.fetch('customers'));
-                } catch (e) { console.error(e); }
-            }, []);
+            const load = async () => setCustomers(await dbEngine.fetch('customers'));
+            useEffect(() => { load(); }, []);
 
-            useEffect(() => { load(); }, [load]);
-
-            const saveCustomer = async (e) => {
+            const save = async (e) => {
                 e.preventDefault();
-                const cleanedNationalId = cForm.national_id.replace(/\D/g, '');
-                if (!isValidPhone(cForm.phone)) return showToast('رقم هاتف غير صحيح', 'error');
-                if (!isValidNationalID(cleanedNationalId)) return showToast('رقم قومي غير صحيح', 'error');
-
-                const uNid = await dbEngine.checkUnique('customers', 'national_id', cleanedNationalId, isEdit ? cForm.id : null);
-                if (!uNid) return showToast('الرقم القومي مسجل مسبقاً', 'error');
-
+                if (!isValidPhone(form.phone)) return showToast('هاتف غير صحيح', 'error');
+                if (!isValidNationalID(form.national_id)) return showToast('رقم قومي غير صحيح', 'error');
+                
                 try {
-                    if (isEdit) {
-                        await dbEngine.update('customers', cForm.id, { ...cForm, national_id: cleanedNationalId });
-                    } else {
-                        await dbEngine.insert('customers', { ...cForm, national_id: cleanedNationalId, credit_score: 100, status: 'منتظم' });
-                    }
-                    showToast('تم الحفظ بنجاح');
-                    setIsModalOpen(false);
-                    load();
-                } catch (err) { showToast('خطأ: ' + err, 'error'); }
-            };
-
-            return (
-                <div className="space-y-6 animate-fade-in pb-10">
-                    <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border">
-                        <h2 className="text-xl font-black text-slate-800 flex items-center gap-2"><Icon name="Users" /> إدارة العملاء</h2>
-                        <Button icon="Plus" onClick={() => {
-                            setCForm({ id: '', full_name: '', national_id: '', phone: '', address: '', job: '', salary: '' });
-                            setIsEdit(false);
-                            setIsModalOpen(true);
-                        }}>عميل جديد</Button>
-                    </div>
-
-                    <div className="glass p-0 overflow-hidden">
-                        <div className="overflow-x-auto custom-scroll">
-                            <table className="w-full text-right text-sm">
-                                <thead className="bg-slate-100 text-slate-600 border-b">
-                                    <tr>
-                                        <th className="p-4">العميل</th>
-                                        <th className="p-4">الهاتف</th>
-                                        <th className="p-4">التقييم الائتماني</th>
-                                        <th className="p-4">الحالة</th>
-                                        <th className="p-4 text-center">إجراء</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 bg-white">
-                                    {customers.map(c => (
-                                        <tr key={c.id} className="hover:bg-slate-50">
-                                            <td className="p-4"><div className="font-bold text-blue-700">{c.full_name}</div></td>
-                                            <td className="p-4 font-bold text-slate-700">{c.phone}</td>
-                                            <td className="p-4">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-24 bg-slate-200 h-2.5 rounded-full overflow-hidden">
-                                                        <div className={`h-full ${c.credit_score > 70 ? 'bg-green-600' : c.credit_score > 40 ? 'bg-yellow-600' : 'bg-red-600'}`}
-                                                            style={{ width: `${c.credit_score}%` }}></div>
-                                                    </div>
-                                                    <span className="text-xs font-black">{c.credit_score}/100</span>
-                                                </div>
-                                            </td>
-                                            <td className="p-4">
-                                                <span className={`px-2 py-1 rounded-lg text-xs font-black ${
-                                                    c.status === 'منتظم' ? 'bg-green-100 text-green-700' : c.status === 'إجراء قانوني' ? 'bg-purple-100 text-purple-700' : 'bg-red-100 text-red-700'
-                                                }`}>{c.status}</span>
-                                            </td>
-                                            <td className="p-4 text-center">
-                                                <button onClick={() => {
-                                                    setCForm(c);
-                                                    setIsEdit(true);
-                                                    setIsModalOpen(true);
-                                                }} className="text-slate-400 hover:text-blue-600 p-2"><Icon name="Edit" size={18} /></button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <Modal title={isEdit ? "تعديل عميل" : "عميل جديد"} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                        <form onSubmit={saveCustomer} className="space-y-4">
-                            <Input label="الاسم الرباعي" required value={cForm.full_name} 
-                                onChange={e => setCForm({ ...cForm, full_name: e.target.value })} />
-                            <div className="grid grid-cols-2 gap-4">
-                                <Input label="الرقم القومي" required value={cForm.national_id}
-                                    onChange={e => setCForm({ ...cForm, national_id: e.target.value })} />
-                                <Input label="الهاتف" required value={cForm.phone}
-                                    onChange={e => setCForm({ ...cForm, phone: e.target.value })} />
-                            </div>
-                            <Button type="submit" className="w-full mt-4" icon="Check">حفظ</Button>
-                        </form>
-                    </Modal>
-                </div>
-            );
-        };
-
-        const InventoryModule = ({ user }) => {
-            const { showToast } = useAppContext();
-            const [products, setProducts] = useState([]);
-            const [isModalOpen, setIsModalOpen] = useState(false);
-            const [form, setForm] = useState({ id: '', name: '', category: 'إلكترونيات', cost_price: '', cash_price: '', installment_price: '', stock: '' });
-
-            const load = useCallback(async () => {
-                try {
-                    setProducts(await dbEngine.fetch('products'));
-                } catch (e) { console.error(e); }
-            }, []);
-
-            useEffect(() => { load(); }, [load]);
-
-            const handleSave = async (e) => {
-                e.preventDefault();
-                const cost = Number(form.cost_price), cash = Number(form.cash_price), inst = Number(form.installment_price), stock = Number(form.stock);
-                try {
-                    if (form.id) {
-                        await dbEngine.update('products', form.id, { ...form, cost_price: cost, cash_price: cash, installment_price: inst, stock });
-                    } else {
-                        await dbEngine.insert('products', { ...form, cost_price: cost, cash_price: cash, installment_price: inst, stock });
-                    }
-                    setIsModalOpen(false);
-                    load();
-                    showToast('تم الحفظ');
-                } catch (err) { showToast('خطأ: ' + err, 'error'); }
+                    await dbEngine.insert('customers', { ...form, credit_score: 50, status: 'نشط' }); // التقييم يبدأ ب 50
+                    showToast('تم التسجيل'); setIsModalOpen(false); load();
+                } catch(e) { showToast('خطأ', 'error'); }
             };
 
             return (
                 <div className="space-y-6">
-                    <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border">
-                        <h2 className="text-xl font-black"><Icon name="Inventory" className="inline ml-2" />المخازن</h2>
-                        <Button onClick={() => {
-                            setForm({ id: '', name: '', category: 'إلكترونيات', cost_price: '', cash_price: '', installment_price: '', stock: '' });
-                            setIsModalOpen(true);
-                        }}>إضافة صنف</Button>
-                    </div>
-
-                    <div className="glass p-0 overflow-hidden">
+                    <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow"><h2 className="text-xl font-black">العملاء والتقييم الائتماني</h2><Button icon="Plus" onClick={() => setIsModalOpen(true)}>تسجيل عميل</Button></div>
+                    <div className="glass overflow-x-auto">
                         <table className="w-full text-right text-sm">
-                            <thead className="bg-slate-100 border-b">
-                                <tr>
-                                    <th className="p-4">المنتج</th>
-                                    <th className="p-4">التكلفة</th>
-                                    <th className="p-4">كاش / قسط</th>
-                                    <th className="p-4">الرصيد</th>
-                                    <th className="p-4 text-center">تعديل</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {products.map(p => (
-                                    <tr key={p.id}>
-                                        <td className="p-4 font-bold">{p.name}</td>
-                                        <td className="p-4">{formatMoney(p.cost_price)}</td>
-                                        <td className="p-4 text-green-600 font-black">{formatMoney(p.cash_price)} <span className="text-blue-600">/ {formatMoney(p.installment_price)}</span></td>
-                                        <td className="p-4 font-black">{p.stock}</td>
-                                        <td className="p-4 text-center"><button onClick={() => { setForm(p); setIsModalOpen(true); }}><Icon name="Edit" /></button></td>
+                            <thead className="bg-slate-100 border-b"><tr><th className="p-4">العميل</th><th className="p-4">العمل</th><th className="p-4">تقييم (يبدأ 50)</th><th className="p-4">الحالة</th></tr></thead>
+                            <tbody className="bg-white divide-y">
+                                {customers.map(c => (
+                                    <tr key={c.id}>
+                                        <td className="p-4 font-bold">{c.full_name} <br/><span className="text-xs text-slate-400">{c.phone}</span></td>
+                                        <td className="p-4">{c.job} ({c.income_source})</td>
+                                        <td className="p-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-24 bg-slate-200 h-2.5 rounded-full"><div className={`h-full ${c.credit_score > 70 ? 'bg-green-600' : c.credit_score >= 50 ? 'bg-blue-600' : 'bg-red-600'}`} style={{ width: `${c.credit_score}%` }}></div></div>
+                                                <span className="text-xs font-black">{c.credit_score}%</span>
+                                            </div>
+                                        </td>
+                                        <td className="p-4"><span className="px-2 py-1 bg-slate-100 rounded text-xs font-bold">{c.status}</span></td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
-
-                    <Modal title="بيانات الصنف" isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                        <form onSubmit={handleSave} className="space-y-4">
-                            <Input label="اسم المنتج" required value={form.name}
-                                onChange={e => setForm({ ...form, name: e.target.value })} />
+                    <Modal title="تسجيل تقييم مبدئي" isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                        <form onSubmit={save} className="space-y-4">
+                            <Input label="الاسم" required value={form.full_name} onChange={e=>setForm({...form, full_name:e.target.value})} />
                             <div className="grid grid-cols-2 gap-4">
-                                <Input type="number" label="التكلفة" required value={form.cost_price}
-                                    onChange={e => setForm({ ...form, cost_price: e.target.value })} />
-                                <Input type="number" label="الكمية" required value={form.stock}
-                                    onChange={e => setForm({ ...form, stock: e.target.value })} />
+                                <Input label="رقم قومي" required value={form.national_id} onChange={e=>setForm({...form, national_id:e.target.value})} />
+                                <Input label="هاتف" required value={form.phone} onChange={e=>setForm({...form, phone:e.target.value})} />
                             </div>
+                            <Input label="العنوان الفعلي" required value={form.address} onChange={e=>setForm({...form, address:e.target.value})} />
                             <div className="grid grid-cols-2 gap-4">
-                                <Input type="number" label="كاش" required value={form.cash_price}
-                                    onChange={e => setForm({ ...form, cash_price: e.target.value })} />
-                                <Input type="number" label="تقسيط" required value={form.installment_price}
-                                    onChange={e => setForm({ ...form, installment_price: e.target.value })} />
+                                <Input label="الوظيفة" required value={form.job} onChange={e=>setForm({...form, job:e.target.value})} />
+                                <Select label="مصدر الدخل" options={['حكومي ثابت', 'خاص ثابت', 'أعمال حرة']} required value={form.income_source} onChange={e=>setForm({...form, income_source:e.target.value})} />
                             </div>
-                            <Button type="submit" className="w-full">حفظ</Button>
+                            <Button type="submit" className="w-full">تسجيل للتقييم</Button>
                         </form>
                     </Modal>
                 </div>
             );
         };
 
-        const LegalModule = ({ user }) => {
-            const { showToast } = useAppContext();
-            const [data, setData] = useState([]);
-            const [customers, setCustomers] = useState([]);
-            const [isModalOpen, setIsModalOpen] = useState(false);
-            const [form, setForm] = useState({});
+        const DashboardModule = () => <div className="p-6 bg-white rounded-2xl shadow font-black text-xl">لوحة القيادة - قريباً سيتم ربطها بالإحصائيات الجديدة المتقدمة</div>;
+        const LegalModule = () => <div className="p-6 bg-white rounded-2xl shadow font-black text-xl">الشؤون القانونية - إدارة ملفات الـ 6 قضايا لكل متهم</div>;
+        const InventoryModule = () => <div className="p-6 bg-white rounded-2xl shadow font-black text-xl">المخازن (مفعل بالخلفية)</div>;
 
-            const load = useCallback(async () => {
-                try {
-                    setData(await dbEngine.fetch('legal_cases'));
-                    setCustomers(await dbEngine.fetch('customers'));
-                } catch (e) { console.error(e); }
-            }, []);
-
-            useEffect(() => { load(); }, [load]);
-
-            const customersMap = useMemo(() => {
-                const map = {};
-                customers.forEach(c => map[c.id] = c);
-                return map;
-            }, [customers]);
-
-            const handleAction = async (e) => {
-                e.preventDefault();
-                try {
-                    await dbEngine.insert('legal_cases', { ...form, date: DateUtils.today(), status: 'مرفوعة' });
-                    await LogicEngine.markCustomerLegal(form.customer_id);
-                    showToast('تم فتح الملف وتحويل العميل للشؤون القانونية', 'warning');
-                    setForm({});
-                    setIsModalOpen(false);
-                    load();
-                } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
-            };
-
-            return (
-                <div className="flex flex-col h-full gap-6 animate-fade-in pb-10">
-                    <div className="glass flex-1 flex flex-col p-0 overflow-hidden h-[80vh]">
-                        <div className="p-6 border-b flex justify-between items-center bg-slate-50">
-                            <h2 className="text-xl font-black text-slate-800"><Icon name="Legal" className="inline ml-2 text-red-600" />الشؤون القانونية والمتعثرين</h2>
-                            <Button variant="danger" icon="Plus" onClick={() => setIsModalOpen(true)}>تحويل عميل للشق القانوني</Button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto bg-white">
-                            <table className="w-full text-right text-sm">
-                                <thead className="bg-slate-100 sticky top-0 border-b">
-                                    <tr>
-                                        <th className="p-4">التاريخ</th>
-                                        <th className="p-4">العميل</th>
-                                        <th className="p-4">رقم القضية</th>
-                                        <th className="p-4">الإجراء</th>
-                                        <th className="p-4">الحالة</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.map(r => (
-                                        <tr key={r.id} className="border-b hover:bg-slate-50">
-                                            <td className="p-4">{r.date}</td>
-                                            <td className="p-4 font-black">{customersMap[r.customer_id]?.full_name || r.customer_id}</td>
-                                            <td className="p-4 font-bold text-slate-500">{r.case_number}</td>
-                                            <td className="p-4 text-purple-700 font-bold">{r.type}</td>
-                                            <td className="p-4"><span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">{r.status}</span></td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <Modal title="تحويل قانوني جديد" isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                        <form onSubmit={handleAction} className="space-y-4">
-                            <Select label="العميل المتعثر" required options={
-                                customers.filter(c => c.status !== 'إجراء قانوني').map(c => ({ value: c.id, label: c.full_name }))
-                            } value={form.customer_id} onChange={e => setForm({ ...form, customer_id: e.target.value })} />
-                            <Select label="نوع الإجراء" required options={['جنحة إيصال أمانة', 'إنذار رسمي']}
-                                value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} />
-                            <Input label="رقم ومكان القضية" required value={form.case_number}
-                                onChange={e => setForm({ ...form, case_number: e.target.value })} />
-                            <Button type="submit" className="w-full mt-4 bg-purple-700 hover:bg-purple-800" icon="Legal">اعتماد وتجميد العميل</Button>
-                        </form>
-                    </Modal>
-                </div>
-            );
-        };
-
-        // =====================================================
         // MAIN APP
-        // =====================================================
         function App() {
             const [ready, setReady] = useState(false);
             const [user, setUser] = useState(null);
-            const [activeTab, setActiveTab] = useState('');
+            const [activeTab, setActiveTab] = useState('sales');
 
-            const MENU_ITEMS = [
+            const MENU = [
                 { id: 'dashboard', label: 'الرؤية العامة', icon: 'Dashboard' },
                 { id: 'sales', label: 'المبيعات والعقود', icon: 'ShoppingCart' },
-                { id: 'collection', label: 'التحصيلات والمتابعة', icon: 'Wallet' },
+                { id: 'collection', label: 'التحصيلات', icon: 'Wallet' },
                 { id: 'customers', label: 'إدارة العملاء', icon: 'Users' },
                 { id: 'inventory', label: 'المخازن', icon: 'Inventory' },
                 { id: 'legal', label: 'الشؤون القانونية', icon: 'Legal' }
             ];
 
-            useEffect(() => {
-                dbEngine.init().then(() => setReady(true)).catch(console.error);
-            }, []);
+            useEffect(() => { dbEngine.init().then(() => setReady(true)); }, []);
 
-            useEffect(() => {
-                if (user && activeTab === '') setActiveTab('dashboard');
-            }, [user, activeTab]);
-
-            if (!ready) return <div className="h-screen flex items-center justify-center bg-slate-900 text-white">
-                <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            </div>;
-
+            if (!ready) return <div className="h-screen flex items-center justify-center bg-slate-900 text-white"><div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>;
             if (!user) return <UIProvider><LoginModule onLogin={setUser} /></UIProvider>;
 
             return (
@@ -1131,45 +601,29 @@
                         <aside className="w-72 bg-slate-900 flex flex-col shadow-2xl z-50 shrink-0">
                             <div className="p-6 border-b border-slate-800 flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center font-black text-2xl">X</div>
-                                <div>
-                                    <h1 className="text-xl font-black text-white leading-none">EcoFine ERP</h1>
-                                    <p className="text-[10px] mt-1 text-blue-400 font-bold uppercase">X-Holding V4</p>
-                                </div>
+                                <div><h1 className="text-xl font-black text-white leading-none">EcoFine ERP</h1><p className="text-[10px] mt-1 text-blue-400 font-bold uppercase">X-Holding V6 (Sharia)</p></div>
                             </div>
                             <nav className="flex-1 p-4 space-y-2">
-                                {MENU_ITEMS.map(item => (
-                                    <button key={item.id} onClick={() => setActiveTab(item.id)} 
-                                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all ${
-                                            activeTab === item.id ? 'bg-blue-600 text-white shadow-lg translate-x-1' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                                        }`}>
-                                        <Icon name={item.icon} size={20} /> {item.label}
-                                    </button>
+                                {MENU.map(m => (
+                                    <button key={m.id} onClick={() => setActiveTab(m.id)} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all ${activeTab === m.id ? 'bg-blue-600 text-white shadow-lg translate-x-1' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}><Icon name={m.icon} size={20} /> {m.label}</button>
                                 ))}
                             </nav>
-                            <div className="p-4 border-t border-slate-800">
-                                <button onClick={() => window.confirm('تسجيل الخروج?') && setUser(null)}
-                                    className="w-full py-2 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-red-600">تسجيل الخروج</button>
-                            </div>
                         </aside>
-
                         <main className="flex-1 flex flex-col overflow-hidden relative">
-                            <header className="h-20 glass border-b border-slate-200/50 flex justify-between items-center px-8 z-10 sticky top-0">
-                                <h1 className="text-2xl font-black text-slate-800">{MENU_ITEMS.find(m => m.id === activeTab)?.label}</h1>
-                            </header>
+                            <header className="h-20 glass border-b flex items-center px-8 z-10 sticky top-0"><h1 className="text-2xl font-black">{MENU.find(m => m.id === activeTab)?.label}</h1></header>
                             <div className="flex-1 overflow-y-auto p-4 md:p-8">
                                 {activeTab === 'dashboard' && <DashboardModule />}
                                 {activeTab === 'sales' && <SalesModule user={user} />}
                                 {activeTab === 'collection' && <CollectionModule user={user} />}
                                 {activeTab === 'customers' && <CRMModule />}
-                                {activeTab === 'inventory' && <InventoryModule user={user} />}
-                                {activeTab === 'legal' && <LegalModule user={user} />}
+                                {activeTab === 'inventory' && <InventoryModule />}
+                                {activeTab === 'legal' && <LegalModule />}
                             </div>
                         </main>
                     </div>
                 </UIProvider>
             );
         }
-
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
