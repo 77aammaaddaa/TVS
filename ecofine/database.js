@@ -1,16 +1,19 @@
 /**
- * 🧠 EcoFine V5 - المحرك المركزي لإكس القابضة
- * محرك قاعدة البيانات الائتمانية والمحاسبية الشاملة
- * يدير: العملاء، الضامنين، الموردين، المخزون، والرحلة المالية
+ * 🧠 EcoFine V6 - المحرك المركزي لإكس القابضة (The Master Engine)
+ * محرك قاعدة البيانات الائتمانية والمحاسبية الشاملة (الإصدار النهائي)
+ * يدير: العملاء، المخزون، المالية، الـ HR، القانونية، والاستعلام
  */
 
 class DBEngine {
     constructor() {
-        this.dbName = "X_Holding_ERP_V5";
-        this.version = 3; // رفع الإصدار لتحديث الهيكل الشامل
+        this.dbName = "X_Holding_ERP_V6";
+        this.version = 4; // تم الرفع لـ 4 لفتح الجداول الجديدة (HR, Legal, Survey...)
         this.db = null;
     }
 
+    // ==========================================
+    // 1. تشغيل القاعدة وتجهيز كافة المخازن (Stores & Indexes)
+    // ==========================================
     async init() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(this.dbName, this.version);
@@ -18,41 +21,52 @@ class DBEngine {
             request.onupgradeneeded = (e) => {
                 const db = e.target.result;
 
-                // 1. قاعدة بيانات الأشخاص (مركزية الائتمان)
-                const peopleStores = [
-                    'customers',  // العميل: (الاسم، البطاقة، التقييم الائتماني، المديونية)
-                    'guarantors', // الضامنين: (صلة القرابة، تقييم الضمان، تاريخه)
-                    'suppliers'   // الموردين: (بيانات الشركة، الحساب الجاري)
+                // جميع مواسير النظام مقسمة حسب القطاع
+                const storeConfigs = [
+                    // قطاع الأشخاص
+                    { name: 'customers', indexes: ['phone', 'national_id', 'status'] },
+                    { name: 'guarantors', indexes: ['customer_id', 'phone'] },
+                    { name: 'suppliers', indexes: ['company_name'] },
+                    
+                    // قطاع المالية والعمليات
+                    { name: 'invoices', indexes: ['customer_id', 'date'] },
+                    { name: 'purchases', indexes: ['supplier_id', 'date'] },
+                    { name: 'installments', indexes: ['invoice_id', 'customer_id', 'status', 'due_date'] },
+                    { name: 'treasury_log', indexes: ['type', 'date'] },
+                    { name: 'expenses', indexes: ['date'] }, // تمت الإضافة (للخزينة)
+                    { name: 'credit_logs', indexes: ['customer_id'] },
+                    
+                    // قطاع المخازن
+                    { name: 'products', indexes: ['category', 'stock'] },
+                    { name: 'categories', indexes: ['name'] }, // تمت الإضافة (للتصنيفات)
+                    { name: 'inventory_logs', indexes: ['product_id', 'type', 'date'] },
+                    
+                    // قطاع الموارد البشرية (HR) - تمت الإضافة
+                    { name: 'users', indexes: ['username', 'role'] },
+                    { name: 'employees', indexes: ['role'] },
+                    { name: 'salary_points', indexes: ['emp_id', 'date'] },
+                    
+                    // قطاع الرقابة والقانونية - تمت الإضافة
+                    { name: 'surveys', indexes: ['customer_id', 'status'] },
+                    { name: 'legal_cases', indexes: ['customer_id', 'status'] },
+                    { name: 'logs', indexes: ['userId', 'action'] }
                 ];
 
-                // 2. قاعدة بيانات العمليات (الرحلة المالية)
-                const transactionStores = [
-                    'invoices',     // مبيعات: (رقم العقد، العميل، الضامن، الإجمالي)
-                    'purchases',    // مشتريات: (المورد، الأصناف، التكلفة)
-                    'installments', // الأقساط: (تاريخ، مبلغ، حالة، غرامة تأخير)
-                    'credit_logs',  // محرك التقييم: (تغير سكور العميل بناءً على التزامه)
-                    'treasury_log'  // حركة الخزينة: (كل مليم دخل أو خرج)
-                ];
-
-                // 3. قاعدة بيانات المخزون والأمان
-                const inventoryStores = [
-                    'products',       // الأصناف: (سعر الشراء، الجملة، الكاش، القسط)
-                    'inventory_logs', // حركة الصنف: (وارد، منصرف، تالف، جرد)
-                    'users',          // الموظفين: (صلاحيات، نقاط الأداء)
-                    'logs'            // سجل النظام: (مين عمل إيه وإمتى)
-                ];
-
-                // تنفيذ إنشاء الجداول (Stores)
-                [...peopleStores, ...transactionStores, ...inventoryStores].forEach(store => {
-                    if (!db.objectStoreNames.contains(store)) {
-                        db.createObjectStore(store, { keyPath: 'id' });
+                storeConfigs.forEach(cfg => {
+                    if (!db.objectStoreNames.contains(cfg.name)) {
+                        const store = db.createObjectStore(cfg.name, { keyPath: 'id' });
+                        // إنشاء الفهارس لتسريع البحث بشكل خيالي
+                        if (cfg.indexes) {
+                            cfg.indexes.forEach(idx => store.createIndex(idx, idx, { unique: false }));
+                        }
+                        console.log(`✅ تم بناء ماسورة: ${cfg.name}`);
                     }
                 });
             };
 
             request.onsuccess = (e) => {
                 this.db = e.target.result;
-                console.log("🚀 محرك V5 المركزي يعمل الآن.. جاهز لإدارة الإمبراطورية");
+                console.log("🚀 محرك V6 المركزي يعمل بكامل طاقته.. الإمبراطورية جاهزة");
                 resolve();
             };
 
@@ -69,19 +83,19 @@ class DBEngine {
             const store = transaction.objectStore(storeName);
             
             const prefix = storeName.substring(0, 3).toUpperCase();
-            const id = `${prefix}-${Date.now()}-${Math.floor(Math.random() * 100)}`;
+            const id = `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
             
             const record = { 
                 ...data, 
                 id, 
                 created_at: new Date().toISOString(),
                 // منطق الائتمان المبدئي (50% للعميل والضامن الجديد)
-                credit_score: ['customers', 'guarantors'].includes(storeName) ? (data.credit_score || 50) : undefined
+                credit_score: ['customers', 'guarantors'].includes(storeName) && !data.credit_score ? 50 : (data.credit_score || 0)
             };
 
             const request = store.add(record);
             request.onsuccess = () => resolve(record);
-            request.onerror = () => reject("Error in X-Insert");
+            request.onerror = () => reject(`Error adding to ${storeName}`);
         });
     }
 
@@ -89,20 +103,19 @@ class DBEngine {
     // 📈 محرك الحسابات الجارية (Financial Journey)
     // ==========================================
     async getCustomerJourney(customerId) {
-        // هذه الدالة تجمع "رحلة العميل" من 3 جداول مختلفة في لحظة واحدة
+        // حساب رحلة العميل المالية الشاملة في جزء من الثانية
         const invoices = await this.getAll('invoices');
         const installments = await this.getAll('installments');
         
         const customerInvoices = invoices.filter(i => i.customer_id === customerId);
         const customerInst = installments.filter(i => i.customer_id === customerId);
 
-        const totalDebt = customerInvoices.reduce((s, i) => s + i.total, 0);
-        const totalPaid = customerInst.filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0);
+        const totalDebt = customerInvoices.reduce((s, i) => s + Number(i.total), 0);
+        const totalPaid = customerInst.filter(i => i.status === 'paid').reduce((s, i) => s + Number(i.amount), 0);
         
-        // حساب مدة التأخير (بالأيام)
         const delayedDays = customerInst
             .filter(i => i.status === 'pending' && new Date(i.due_date) < new Date())
-            .reduce((s, i) => s + Math.floor((new Date() - new Date(i.due_date)) / (1000*60*60*24)), 0);
+            .reduce((s, i) => s + Math.floor((new Date() - new Date(i.due_date)) / (1000 * 60 * 60 * 24)), 0);
 
         return {
             total_debt: totalDebt,
@@ -114,36 +127,53 @@ class DBEngine {
     }
 
     // ==========================================
-    // 🛠️ دوال العمليات العامة
+    // 🛠️ دوال العمليات العامة (CRUD)
     // ==========================================
     async getAll(storeName) {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             const tx = this.db.transaction(storeName, 'readonly');
             const request = tx.objectStore(storeName).getAll();
             request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(`Error reading ${storeName}`);
+        });
+    }
+
+    // البحث المتقدم باستخدام الفهارس (Indexes)
+    async getByIndex(storeName, indexName, value) {
+        return new Promise((resolve, reject) => {
+            const tx = this.db.transaction(storeName, 'readonly');
+            const index = tx.objectStore(storeName).index(indexName);
+            const request = index.getAll(value);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(`Error searching in ${storeName}`);
         });
     }
 
     async update(storeName, id, newData) {
-        const tx = this.db.transaction(storeName, 'readwrite');
-        const store = tx.objectStore(storeName);
-        const oldData = await new Promise(r => {
-            const req = store.get(id);
-            req.onsuccess = () => r(req.result);
-        });
-        
-        const updated = { ...oldData, ...newData, updated_at: new Date().toISOString() };
-        return new Promise(r => {
-            const req = store.put(updated);
-            req.onsuccess = () => r(updated);
+        return new Promise((resolve, reject) => {
+            const tx = this.db.transaction(storeName, 'readwrite');
+            const store = tx.objectStore(storeName);
+            const getReq = store.get(id);
+
+            getReq.onsuccess = () => {
+                if (!getReq.result) return reject("السجل غير موجود");
+                const updated = { ...getReq.result, ...newData, updated_at: new Date().toISOString() };
+                store.put(updated);
+                resolve(updated);
+            };
+            getReq.onerror = () => reject("خطأ في التحديث");
         });
     }
 
     async delete(storeName, id) {
-        const tx = this.db.transaction(storeName, 'readwrite');
-        tx.objectStore(storeName).delete(id);
-        return true;
+        return new Promise((resolve, reject) => {
+            const tx = this.db.transaction(storeName, 'readwrite');
+            const request = tx.objectStore(storeName).delete(id);
+            request.onsuccess = () => resolve(true);
+            request.onerror = () => reject("خطأ في الحذف");
+        });
     }
 }
 
+// تصدير المحرك كنسخة واحدة (Singleton) لكل النظام
 const db = new DBEngine();
