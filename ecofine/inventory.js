@@ -1,7 +1,7 @@
 /**
  * 📦 inventory.js - مديول المخازن والجرد الشامل (Eco Fine Pro V6 Turbo)
  * المطور: M H 4 Tech
- * التحديث V9.8: واجهة Mobile-Native، ربط المزامنة السحابية، وتفعيل دفتر الجرد (Audit).
+ * التحديث V9.9: منطق محاسبي للتسعير، إصلاح واجهات الموبايل، ومحرك طوارئ للتصنيفات.
  */
 
 const { useState, useEffect } = React;
@@ -17,24 +17,34 @@ const InventoryModule = () => {
     
     // حالة الصنف
     const initialFormState = {
-        name: '', barcode: '', category: '', cost_price: 0, 
-        wholesale_price: 0, cash_price: 0, installment_price: 0, stock: 0
+        name: '', barcode: '', category: '', 
+        cost_price: '', wholesale_price: '', cash_price: '', installment_price: '', stock: ''
     };
     const [formData, setFormData] = useState(initialFormState);
 
     // حالة التصنيف
     const [catName, setCatName] = useState(''); 
 
+    // ==========================================
+    // 1. تحميل البيانات (مع محرك الطوارئ للتصنيفات)
+    // ==========================================
     const loadAllData = async () => {
         try {
-            const [p, c, l] = await Promise.all([
+            const [p, l] = await Promise.all([
                 db.getAll('products').catch(() => []),
-                db.getAll('categories').catch(() => []),
                 db.getAll('inventory_logs').catch(() => [])
             ]);
+            
+            // محرك الطوارئ: لو جدول التصنيفات مش موجود في DB، هنسحب من الذاكرة المحلية
+            let c = [];
+            try { 
+                c = await db.getAll('categories'); 
+            } catch (err) { 
+                c = JSON.parse(localStorage.getItem('eco_fallback_categories') || '[]'); 
+            }
+
             setProducts(p || []);
             setCategories(c || []);
-            // ترتيب الجرد من الأحدث للأقدم
             setLogs((l || []).sort((a, b) => new Date(b.date) - new Date(a.date)));
         } catch (err) {
             console.error("خطأ في تحميل بيانات المخزن:", err);
@@ -43,7 +53,6 @@ const InventoryModule = () => {
 
     useEffect(() => { loadAllData(); }, []);
 
-    // 트리거 المزامنة الفورية
     const triggerSync = () => {
         if (navigator.onLine && typeof db !== 'undefined' && db.syncUnsyncedData) {
             db.syncUnsyncedData();
@@ -51,7 +60,7 @@ const InventoryModule = () => {
     };
 
     // ==========================================
-    // 1. إدارة التصنيفات
+    // 2. إدارة التصنيفات (محمية ضد الأعطال)
     // ==========================================
     const handleSaveCategory = async (e) => {
         e.preventDefault();
@@ -62,36 +71,70 @@ const InventoryModule = () => {
         const exists = categories.find(c => c.name.toLowerCase() === trimmedName.toLowerCase());
         if (exists) return alert("⚠️ هذا التصنيف مسجل بالفعل في القائمة");
 
+        const newCat = { id: crypto.randomUUID(), name: trimmedName };
+
         try {
-            await db.add('categories', { name: trimmedName });
-            setCatName('');
-            await loadAllData();
-            triggerSync();
-            alert("✅ تم إضافة التصنيف بنجاح");
-        } catch (err) { alert("❌ فشل الحفظ: " + err); }
+            // محاولة الحفظ في قاعدة البيانات
+            await db.add('categories', newCat);
+        } catch (err) {
+            // تفعيل الطوارئ: الحفظ محلياً إذا لم يكن الجدول موجوداً
+            const localCats = JSON.parse(localStorage.getItem('eco_fallback_categories') || '[]');
+            localCats.push(newCat);
+            localStorage.setItem('eco_fallback_categories', JSON.stringify(localCats));
+        }
+
+        setCatName('');
+        await loadAllData();
+        triggerSync();
+        alert("✅ تم إضافة التصنيف بنجاح");
     };
 
     const deleteCategory = async (id) => {
         if (confirm("⚠️ حذف التصنيف لن يحذف المنتجات المرتبطة به، هل تريد الاستمرار؟")) {
-            await db.delete('categories', id);
+            try {
+                await db.delete('categories', id);
+            } catch (err) {
+                let localCats = JSON.parse(localStorage.getItem('eco_fallback_categories') || '[]');
+                localCats = localCats.filter(c => c.id !== id);
+                localStorage.setItem('eco_fallback_categories', JSON.stringify(localCats));
+            }
             loadAllData();
             triggerSync();
         }
     };
 
     // ==========================================
-    // 2. إدارة الأصناف
+    // 3. المنطق المحاسبي وإدارة الأصناف
     // ==========================================
+    const validatePricing = () => {
+        const cost = Number(formData.cost_price);
+        const wholesale = Number(formData.wholesale_price);
+        const cash = Number(formData.cash_price);
+        const installment = Number(formData.installment_price);
+
+        if (cost <= 0 || cash <= 0) return "⚠️ سعر التكلفة وسعر الكاش إجبارية ويجب أن تكون أكبر من صفر.";
+        if (cost > wholesale && wholesale > 0) return "🚫 خطأ محاسبي: سعر التكلفة لا يمكن أن يكون أعلى من سعر الجملة!";
+        if (wholesale > cash) return "🚫 خطأ محاسبي: سعر الجملة لا يمكن أن يكون أعلى من سعر الكاش!";
+        if (cash > installment && installment > 0) return "🚫 خطأ محاسبي: سعر الكاش لا يمكن أن يكون أعلى من سعر التقسيط!";
+        
+        return null; // لا توجد أخطاء
+    };
+
     const handleSaveProduct = async (e) => {
         e.preventDefault();
+        
+        // 1. الفحص المحاسبي الصارم
+        const validationError = validatePricing();
+        if (validationError) return alert(validationError);
+
         setIsProcessing(true);
         try {
             const finalData = {
                 ...formData,
                 cost_price: Number(formData.cost_price),
-                wholesale_price: Number(formData.wholesale_price),
+                wholesale_price: Number(formData.wholesale_price || formData.cash_price),
                 cash_price: Number(formData.cash_price),
-                installment_price: Number(formData.installment_price),
+                installment_price: Number(formData.installment_price || formData.cash_price),
                 stock: Number(formData.stock)
             };
 
@@ -100,17 +143,17 @@ const InventoryModule = () => {
                 await db.update('products', formData.id, finalData);
                 
                 // تسجيل الفرق في الجرد لو حصل تعديل يدوي للرصيد
-                if (oldProduct && oldProduct.stock !== finalData.stock) {
+                if (oldProduct && Number(oldProduct.stock) !== finalData.stock) {
                     await db.add('inventory_logs', {
                         product_id: formData.id, 
                         product_name: finalData.name,
                         type: 'adjustment', 
-                        qty: finalData.stock - oldProduct.stock, 
+                        qty: finalData.stock - Number(oldProduct.stock), 
                         date: new Date().toISOString(),
-                        note: 'تعديل جرد يدوي'
+                        note: 'تسوية جردية لتصحيح الرصيد'
                     });
                 }
-                alert("✅ تم تحديث بيانات الصنف بنجاح");
+                alert("✅ تم تحديث بيانات وتسعير الصنف بنجاح");
             } else {
                 const newP = await db.add('products', { 
                     ...finalData, 
@@ -123,9 +166,9 @@ const InventoryModule = () => {
                     type: 'opening', 
                     qty: finalData.stock, 
                     date: new Date().toISOString(),
-                    note: 'رصيد افتتاحي'
+                    note: 'رصيد افتتاحي (صنف جديد)'
                 });
-                alert("✅ تم تسجيل صنف جديد بنجاح");
+                alert("✅ تم تسجيل الصنف الجديد في المخزن");
             }
             
             triggerSync();
@@ -215,7 +258,6 @@ const InventoryModule = () => {
                                         <h4 className="font-black text-slate-800 text-sm leading-snug line-clamp-2">{p.name}</h4>
                                         <div className="flex items-center gap-2 mt-2">
                                             <span className="text-[9px] bg-slate-100 text-slate-500 font-bold uppercase tracking-widest px-2 py-1 rounded-lg">{p.category || 'غير مصنف'}</span>
-                                            {p.barcode && <span className="text-[9px] text-slate-400 font-mono">#{p.barcode}</span>}
                                         </div>
                                     </div>
                                     <button onClick={() => openEditModal(p)} className="w-10 h-10 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shrink-0">✏️</button>
@@ -228,7 +270,7 @@ const InventoryModule = () => {
                                     <div className="w-px h-10 bg-slate-200 mx-2"></div>
                                     <div className="text-left">
                                         <p className="text-[10px] text-slate-400 font-black uppercase mb-1">سعر التقسيط</p>
-                                        <p className="font-black text-blue-600 text-lg leading-none">{p.installment_price.toLocaleString()} <span className="text-[10px] text-blue-400">ج.م</span></p>
+                                        <p className="font-black text-blue-600 text-lg leading-none">{Number(p.installment_price).toLocaleString()} <span className="text-[10px] text-blue-400">ج.م</span></p>
                                     </div>
                                 </div>
                             </div>
@@ -237,7 +279,7 @@ const InventoryModule = () => {
                 </div>
             )}
 
-            {/* ⚖️ شاشة دفتر الجرد (Audit) - تمت برمجتها بالكامل */}
+            {/* ⚖️ شاشة دفتر الجرد (Audit) */}
             {activeSubTab === 'audit' && (
                 <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden animate-in fade-in">
                     <div className="p-6 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
@@ -251,7 +293,7 @@ const InventoryModule = () => {
                         <table className="w-full text-right text-xs">
                             <thead className="bg-slate-50 text-slate-400 font-black uppercase tracking-widest text-[9px]">
                                 <tr>
-                                    <th className="p-4">التاريخ</th>
+                                    <th className="p-4 whitespace-nowrap">التاريخ</th>
                                     <th className="p-4">اسم الصنف</th>
                                     <th className="p-4">نوع الحركة</th>
                                     <th className="p-4 text-center">الكمية</th>
@@ -261,7 +303,7 @@ const InventoryModule = () => {
                             <tbody className="divide-y divide-slate-50 font-bold text-slate-700">
                                 {logs.length > 0 ? logs.map(log => (
                                     <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="p-4 text-[10px] text-slate-500" dir="ltr">{new Date(log.date).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                                        <td className="p-4 text-[10px] text-slate-500 whitespace-nowrap" dir="ltr">{new Date(log.date).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' })}</td>
                                         <td className="p-4">{log.product_name}</td>
                                         <td className="p-4">
                                             {log.type === 'opening' && <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-1 rounded-lg">رصيد افتتاحي</span>}
@@ -314,16 +356,19 @@ const InventoryModule = () => {
                         </div>
 
                         <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">2. التسعير والجرد (ج.م)</h4>
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 flex justify-between items-center">
+                                <span>2. التسعير والجرد (ج.م)</span>
+                                <span className="text-[8px] bg-red-50 text-red-500 px-2 py-1 rounded-lg">التكلفة &lt; الجملة &lt; الكاش &lt; القسط</span>
+                            </h4>
                             <div className="grid grid-cols-2 gap-4">
                                 <PriceInp label="التكلفة (الشراء)" val={formData.cost_price} onChange={v => setFormData({...formData, cost_price: v})} />
                                 <PriceInp label="سعر الجملة" val={formData.wholesale_price} onChange={v => setFormData({...formData, wholesale_price: v})} />
                                 <PriceInp label="سعر الكاش" val={formData.cash_price} onChange={v => setFormData({...formData, cash_price: v})} />
                                 <PriceInp label="سعر التقسيط" val={formData.installment_price} onChange={v => setFormData({...formData, installment_price: v})} isHighlight={true} />
                             </div>
-                            <div className="pt-4 border-t">
+                            <div className="pt-4 border-t mt-4">
                                 <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">الرصيد الفعلي في المخزن</label>
-                                <input placeholder="الكمية المتاحة" type="number" required className="w-full p-4 bg-green-50 text-green-700 border border-green-200 rounded-2xl font-black text-lg outline-none focus:border-green-500 transition-colors" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} />
+                                <input placeholder="الكمية المتاحة" type="number" required min="0" className="w-full p-4 bg-green-50 text-green-700 border border-green-200 rounded-2xl font-black text-lg outline-none focus:border-green-500 transition-colors" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} />
                                 {editMode && <p className="text-[9px] font-bold text-amber-600 mt-2">⚠️ سيتم تسجيل هذا التعديل كـ "تسوية جردية" في دفتر الجرد.</p>}
                             </div>
                         </div>
@@ -356,6 +401,7 @@ const PriceInp = ({ label, val, onChange, isHighlight = false }) => (
             type="number" 
             required 
             min="0"
+            step="0.01"
             className={`w-full p-4 border rounded-2xl font-bold text-sm outline-none transition-colors ${isHighlight ? 'bg-blue-50 border-blue-200 text-blue-700 focus:border-blue-500' : 'bg-slate-50 border-slate-100 focus:border-slate-400 text-slate-800'}`} 
             value={val} 
             onChange={e => onChange(e.target.value)} 
