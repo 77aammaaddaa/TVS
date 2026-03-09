@@ -1,97 +1,42 @@
 /**
  * 🚀 EcoFine Pro V6 Turbo - المايسترو (The Maestro)
- * إصدار التحميل الكسول (Lazy Load) - الأسرع والأخف على الأجهزة المحمولة
- * التصميم: Mobile-First (Redmi 10 Optimized) + X-Guard UAC
+ * تم إصلاح مشكلة التحميل اللانهائي (Infinite Loading Fix)
  */
 
 const { useState, useEffect, useCallback, useMemo } = React;
 
 const App = () => {
-    // ==========================================
-    // 1. الحالات العامة (States)
-    // ==========================================
     const [isReady, setIsReady] = useState(false);
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    
-    // تتبع الملفات التي تم تحميلها لعدم تكرار الطلب
     const [loadedScripts, setLoadedScripts] = useState(new Set(['dashboard']));
+    const [renderTrigger, setRenderTrigger] = useState(0); // 🔴 الحالة الجديدة لإجبار الشاشة على التحديث
     
-    // المستخدم الحالي
     const [user] = useState({ name: 'مستر إكس', role: 'CEO' });
 
-    // ==========================================
-    // 2. التشغيل الأولي (Initialization)
-    // ==========================================
     useEffect(() => {
-        // إخفاء شاشة التحميل الخاصة بـ HTML (Splash Screen) إن وجدت
         const splash = document.getElementById('splash-screen');
         if (splash) {
             splash.style.opacity = '0';
             setTimeout(() => splash.remove(), 500);
         }
 
-        // تشغيل المحركات
         if (typeof db !== 'undefined') {
-            db.init()
-                .then(() => setIsReady(true))
-                .catch(err => alert("❌ فشل تشغيل محرك إكس القابضة: " + err));
+            db.init().then(() => setIsReady(true)).catch(err => alert("❌ فشل تشغيل محرك إكس القابضة: " + err));
         } else {
             alert("⚠️ ملف database.js غير موجود!");
         }
     }, []);
 
-    // ==========================================
-    // 3. خريطة النظام (The Strategic Map)
-    // ==========================================
     const rawMenuGroups = [
-        {
-            group: "القيادة والأداء",
-            items: [
-                { id: 'dashboard', label: 'لوحة التحكم المركزية', icon: '📊' },
-                { id: 'hr', label: 'شؤون الموظفين والنقاط', icon: '👥' },
-                { id: 'users', label: 'إدارة الصلاحيات (UAC)', icon: '🔑' }
-            ]
-        },
-        {
-            group: "العملاء والائتمان",
-            items: [
-                { id: 'crm', label: 'العملاء والضامنين', icon: '🤝' },
-                { id: 'survey', label: 'الاستعلام الميداني', icon: '📍' }
-            ]
-        },
-        {
-            group: "المخازن والمشتريات",
-            items: [
-                { id: 'inventory', label: 'المخزن والجرد', icon: '📦' },
-                { id: 'suppliers', label: 'إدارة الموردين', icon: '🏢' },
-                { id: 'purchases', label: 'المشتريات والتوريد', icon: '🛒' }
-            ]
-        },
-        {
-            group: "التشغيل والمبيعات",
-            items: [
-                { id: 'pos', label: 'نقطة البيع (التقسيط)', icon: '💻' }
-            ]
-        },
-        {
-            group: "المالية والقانون",
-            items: [
-                { id: 'collection', label: 'وحدة التحصيل', icon: '💰' },
-                { id: 'treasury', label: 'الخزينة والمصاريف', icon: '🏦' },
-                { id: 'legal', label: 'الشؤون القانونية', icon: '⚖️' }
-            ]
-        },
-        {
-            group: "البيانات والإعدادات",
-            items: [
-                { id: 'data_import', label: 'استيراد وتصدير (CSV)', icon: '📥' },
-                { id: 'settings', label: 'المزامنة والطباعة', icon: '⚙️' }
-            ]
-        }
+        { group: "القيادة والأداء", items: [{ id: 'dashboard', label: 'لوحة التحكم المركزية', icon: '📊' }, { id: 'hr', label: 'شؤون الموظفين والنقاط', icon: '👥' }, { id: 'users', label: 'إدارة الصلاحيات (UAC)', icon: '🔑' }] },
+        { group: "العملاء والائتمان", items: [{ id: 'crm', label: 'العملاء والضامنين', icon: '🤝' }, { id: 'survey', label: 'الاستعلام الميداني', icon: '📍' }] },
+        { group: "المخازن والمشتريات", items: [{ id: 'inventory', label: 'المخزن والجرد', icon: '📦' }, { id: 'suppliers', label: 'إدارة الموردين', icon: '🏢' }, { id: 'purchases', label: 'المشتريات والتوريد', icon: '🛒' }] },
+        { group: "التشغيل والمبيعات", items: [{ id: 'pos', label: 'نقطة البيع (التقسيط)', icon: '💻' }] },
+        { group: "المالية والقانون", items: [{ id: 'collection', label: 'وحدة التحصيل', icon: '💰' }, { id: 'treasury', label: 'الخزينة والمصاريف', icon: '🏦' }, { id: 'legal', label: 'الشؤون القانونية', icon: '⚖️' }] },
+        { group: "البيانات والإعدادات", items: [{ id: 'data_import', label: 'استيراد وتصدير (CSV)', icon: '📥' }, { id: 'settings', label: 'المزامنة والطباعة', icon: '⚙️' }] }
     ];
 
-    // فلترة القائمة بناءً على الصلاحيات باستخدام useMemo لعدم استهلاك المعالج
     const menuGroups = useMemo(() => {
         return rawMenuGroups.map(group => ({
             ...group,
@@ -100,7 +45,7 @@ const App = () => {
     }, [user.role]);
 
     // ==========================================
-    // 4. محرك التحميل الكسول (Lazy Loader Engine)
+    // 🔴 محرك التحميل المصلح (Fixed Lazy Loader)
     // ==========================================
     const loadModule = useCallback((id) => {
         if (loadedScripts.has(id)) return;
@@ -115,12 +60,33 @@ const App = () => {
             script.src = `${id}.js`;
             
             script.onload = () => {
-                // إجبار متصفح الموبايل على ترجمة كود الـ React فور تحميله
-                if (window.Babel) setTimeout(() => window.Babel.transformScriptTags(), 50);
+                if (window.Babel) {
+                    window.Babel.transformScriptTags();
+                    
+                    // 🔴 خريطة أسماء الموديولات في الذاكرة
+                    const expectedGlobalName = {
+                        'hr': 'HRModule', 'users': 'UsersModule', 'crm': 'CRMModule',
+                        'survey': 'SurveyModule', 'inventory': 'InventoryModule',
+                        'suppliers': 'SuppliersModule', 'purchases': 'PurchasesModule',
+                        'pos': 'POSModule', 'collection': 'CollectionModule',
+                        'treasury': 'TreasuryModule', 'legal': 'LegalModule',
+                        'data_import': 'ImportModule', 'settings': 'SettingsModule'
+                    }[id];
+
+                    // 🔴 نبضة المراقبة: نستنى لحد ما Babel يخلص ترجمة ويرفع الموديول للذاكرة
+                    let attempts = 0;
+                    const checkInterval = setInterval(() => {
+                        attempts++;
+                        if (window[expectedGlobalName] || attempts > 50) { // 5 ثواني كحد أقصى
+                            clearInterval(checkInterval);
+                            setRenderTrigger(Date.now()); // إجبار الشاشة على التحديث وعرض الموديول!
+                        }
+                    }, 100);
+                }
             };
             
             script.onerror = () => {
-                alert(`❌ فشل الاتصال بموديول: ${id}`);
+                alert(`❌ تأكد من وجود ملف ${id}.js في نفس المجلد`);
                 setLoadedScripts(prev => { const newSet = new Set(prev); newSet.delete(id); return newSet; });
             };
             
@@ -129,34 +95,25 @@ const App = () => {
     }, [loadedScripts]);
 
     // ==========================================
-    // 5. محرك عرض الموديولات (The Switcher)
+    // 5. محرك عرض الموديولات
     // ==========================================
     const renderModule = () => {
         const moduleMap = {
             'dashboard': DashboardView,
-            'hr': window.HRModule,
-            'users': window.UsersModule,
-            'crm': window.CRMModule,
-            'survey': window.SurveyModule,
-            'inventory': window.InventoryModule,
-            'suppliers': window.SuppliersModule,
-            'purchases': window.PurchasesModule,
-            'pos': window.POSModule,
-            'collection': window.CollectionModule,
-            'treasury': window.TreasuryModule,
-            'legal': window.LegalModule,
-            'data_import': window.ImportModule,
-            'settings': window.SettingsModule,
+            'hr': window.HRModule, 'users': window.UsersModule, 'crm': window.CRMModule,
+            'survey': window.SurveyModule, 'inventory': window.InventoryModule,
+            'suppliers': window.SuppliersModule, 'purchases': window.PurchasesModule,
+            'pos': window.POSModule, 'collection': window.CollectionModule,
+            'treasury': window.TreasuryModule, 'legal': window.LegalModule,
+            'data_import': window.ImportModule, 'settings': window.SettingsModule,
         };
 
         const Component = moduleMap[activeTab];
 
-        // إذا كان الموديول محمل في الذاكرة (RAM)، اعرضه فوراً
         if (Component) {
             return <div className="animate-in fade-in duration-500"><Component /></div>;
         }
 
-        // إذا لم يكن محملاً، اطلب استدعاءه واعرض شاشة انتظار سريعة
         loadModule(activeTab);
         
         return (
@@ -168,15 +125,10 @@ const App = () => {
         );
     };
 
-    // ==========================================
-    // 6. واجهة العرض (The UI Shell)
-    // ==========================================
     if (!isReady) return <LoadingScreen />;
 
     return (
         <div className="h-screen bg-slate-100 flex overflow-hidden" dir="rtl">
-            
-            {/* الهيدر العلوي */}
             <header className="fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center px-4 z-40 shadow-sm">
                 <button onClick={() => setIsMenuOpen(true)} className="p-2 text-slate-700 text-2xl active:scale-95 transition-transform">☰</button>
                 <div className="mr-3 flex flex-col">
@@ -192,7 +144,6 @@ const App = () => {
                 </div>
             </header>
 
-            {/* القائمة الجانبية */}
             <aside className={`fixed inset-y-0 right-0 z-[100] w-72 bg-slate-900 text-slate-400 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
                     <div>
@@ -222,10 +173,8 @@ const App = () => {
                 </nav>
             </aside>
 
-            {/* خلفية التظليل للموبايل */}
             {isMenuOpen && <div className="fixed inset-0 bg-slate-900/60 z-[90] backdrop-blur-sm transition-opacity" onClick={() => setIsMenuOpen(false)}></div>}
 
-            {/* منطقة المحتوى */}
             <main className="flex-1 pt-20 pb-10 overflow-y-auto w-full px-4 custom-scroll">
                 <div className="max-w-5xl mx-auto">
                     {renderModule()}
@@ -235,14 +184,8 @@ const App = () => {
     );
 };
 
-// ==========================================
-// 7. لوحة القيادة الديناميكية (Dynamic Dashboard)
-// ==========================================
 const DashboardView = () => {
-    const [stats, setStats] = useState({
-        totalSales: 0, totalCollected: 0, pendingDebt: 0, 
-        activeCustomers: 0, lowStock: 0, legalCases: 0, netTreasury: 0
-    });
+    const [stats, setStats] = useState({ totalSales: 0, totalCollected: 0, pendingDebt: 0, activeCustomers: 0, lowStock: 0, legalCases: 0, netTreasury: 0 });
 
     useEffect(() => {
         let isMounted = true;
@@ -252,26 +195,14 @@ const DashboardView = () => {
                     db.getAll('invoices'), db.getAll('installments'), db.getAll('customers'),
                     db.getAll('products'), db.getAll('legal_cases'), db.getAll('expenses')
                 ]);
-
                 if (!isMounted) return;
-
                 const sales = (invoices || []).reduce((s, i) => s + (Number(i.total) || 0), 0);
                 const collected = (installments || []).filter(i => i.status === 'paid').reduce((s, i) => s + (Number(i.amount) || 0), 0);
                 const pending = (installments || []).filter(i => i.status === 'pending').reduce((s, i) => s + (Number(i.amount) || 0), 0);
                 const totalExpenses = (expenses || []).reduce((s, e) => s + (Number(e.amount) || 0), 0);
-                
-                setStats({
-                    totalSales: sales,
-                    totalCollected: collected,
-                    pendingDebt: pending,
-                    activeCustomers: (customers || []).length,
-                    lowStock: (products || []).filter(p => p.stock <= 3).length,
-                    legalCases: (legal || []).length,
-                    netTreasury: collected - totalExpenses
-                });
+                setStats({ totalSales: sales, totalCollected: collected, pendingDebt: pending, activeCustomers: (customers || []).length, lowStock: (products || []).filter(p => p.stock <= 3).length, legalCases: (legal || []).length, netTreasury: collected - totalExpenses });
             } catch (err) { console.error("Dashboard Sync Error:", err); }
         };
-        
         fetchStats();
         const interval = setInterval(fetchStats, 60000);
         return () => { isMounted = false; clearInterval(interval); };
@@ -279,7 +210,6 @@ const DashboardView = () => {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-700">
-            {/* بطاقة السيولة النقدية */}
             <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
                 <div className="absolute top-[-50%] right-[-10%] w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
                 <div className="relative z-10">
@@ -287,16 +217,12 @@ const DashboardView = () => {
                     <h2 className="text-4xl md:text-5xl font-black">{stats.netTreasury.toLocaleString()} <span className="text-sm font-normal opacity-50">ج.م</span></h2>
                 </div>
             </div>
-
-            {/* الكروت الإحصائية */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatBox label="إجمالي المبيعات" val={stats.totalSales} color="blue" icon="📈" />
                 <StatBox label="تم تحصيله" val={stats.totalCollected} color="green" icon="✅" />
                 <StatBox label="ديون في السوق" val={stats.pendingDebt} color="amber" icon="⏳" />
                 <StatBox label="عملاء نشطين" val={stats.activeCustomers} color="slate" icon="👥" />
             </div>
-
-            {/* التنبيهات الميدانية */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white p-6 rounded-[2rem] border border-slate-200 flex items-center justify-between shadow-sm">
                     <div className="flex items-center gap-4">
@@ -306,9 +232,7 @@ const DashboardView = () => {
                             <p className="text-[10px] font-bold text-slate-400">{stats.lowStock > 0 ? `يوجد ${stats.lowStock} صنف رصيده أقل من 3` : 'المخزون آمن ومستقر'}</p>
                         </div>
                     </div>
-                    {stats.lowStock > 0 && <span className="bg-orange-600 text-white text-[9px] px-3 py-1 rounded-full font-black animate-pulse">تنبيه</span>}
                 </div>
-
                 <div className="bg-white p-6 rounded-[2rem] border border-slate-200 flex items-center gap-4 shadow-sm">
                     <div className="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center text-xl">⚖️</div>
                     <div>
@@ -337,6 +261,5 @@ const LoadingScreen = () => (
     </div>
 );
 
-// تشغيل التطبيق
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
