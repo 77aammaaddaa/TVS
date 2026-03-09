@@ -1,17 +1,16 @@
 /**
- * 🛠️ EcoFine Pro V4 - المحرك (The Engine)
- * إدارة قاعدة البيانات المحلية IndexedDB لجميع الموديولات
- * التحديث: شمولية الجداول + نظام المعرفات الذكي
+ * 🧠 EcoFine V5 - المحرك المركزي لإكس القابضة
+ * محرك قاعدة البيانات الائتمانية والمحاسبية الشاملة
+ * يدير: العملاء، الضامنين، الموردين، المخزون، والرحلة المالية
  */
 
 class DBEngine {
     constructor() {
-        this.dbName = "EcoFine_V4";
-        this.version = 2; // تم رفع الإصدار لتفعيل التحديثات الجديدة
+        this.dbName = "X_Holding_ERP_V5";
+        this.version = 3; // رفع الإصدار لتحديث الهيكل الشامل
         this.db = null;
     }
 
-    // 1. تشغيل القاعدة وتجهيز كافة المخازن (Stores)
     async init() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(this.dbName, this.version);
@@ -19,120 +18,132 @@ class DBEngine {
             request.onupgradeneeded = (e) => {
                 const db = e.target.result;
 
-                // قائمة بجميع المواسير المطلوبة للنظام بالكامل (30 موديول)
-                const stores = [
-                    'customers',      // موديول 5: العملاء والضامنين
-                    'products',       // موديول 9: المخازن والأصناف
-                    'invoices',       // موديول 12: العقود والفواتير
-                    'installments',   // موديول 15: الأقساط والجدولة
-                    'expenses',       // موديول 20: المصاريف الإدارية
-                    'treasury',       // موديول 21: الخزينة والسيولة
-                    'employees',      // موديول 22: شؤون الموظفين
-                    'attendance',     // موديول 23: الحضور والانصراف
-                    'salary_points',  // موديول 24: نظام النقاط والرواتب
-                    'legal_cases',    // موديول 25: الشؤون القانونية
-                    'surveys',        // موديول 26: الاستعلام الميداني
-                    'logs',           // موديول 27: سجل النظام والأمان
-                    'suppliers',      // موديول 28: الموردين
-                    'settings'        // موديول 29: إعدادات النظام
+                // 1. قاعدة بيانات الأشخاص (مركزية الائتمان)
+                const peopleStores = [
+                    'customers',  // العميل: (الاسم، البطاقة، التقييم الائتماني، المديونية)
+                    'guarantors', // الضامنين: (صلة القرابة، تقييم الضمان، تاريخه)
+                    'suppliers'   // الموردين: (بيانات الشركة، الحساب الجاري)
                 ];
 
-                // إنشاء كل مخزن لو مش موجود
-                stores.forEach(storeName => {
-                    if (!db.objectStoreNames.contains(storeName)) {
-                        db.createObjectStore(storeName, { keyPath: 'id' });
-                        console.log(`📡 تم إنشاء ماسورة: ${storeName}`);
+                // 2. قاعدة بيانات العمليات (الرحلة المالية)
+                const transactionStores = [
+                    'invoices',     // مبيعات: (رقم العقد، العميل، الضامن، الإجمالي)
+                    'purchases',    // مشتريات: (المورد، الأصناف، التكلفة)
+                    'installments', // الأقساط: (تاريخ، مبلغ، حالة، غرامة تأخير)
+                    'credit_logs',  // محرك التقييم: (تغير سكور العميل بناءً على التزامه)
+                    'treasury_log'  // حركة الخزينة: (كل مليم دخل أو خرج)
+                ];
+
+                // 3. قاعدة بيانات المخزون والأمان
+                const inventoryStores = [
+                    'products',       // الأصناف: (سعر الشراء، الجملة، الكاش، القسط)
+                    'inventory_logs', // حركة الصنف: (وارد، منصرف، تالف، جرد)
+                    'users',          // الموظفين: (صلاحيات، نقاط الأداء)
+                    'logs'            // سجل النظام: (مين عمل إيه وإمتى)
+                ];
+
+                // تنفيذ إنشاء الجداول (Stores)
+                [...peopleStores, ...transactionStores, ...inventoryStores].forEach(store => {
+                    if (!db.objectStoreNames.contains(store)) {
+                        db.createObjectStore(store, { keyPath: 'id' });
                     }
                 });
             };
 
             request.onsuccess = (e) => {
                 this.db = e.target.result;
-                console.log("✅ محرك إكس القابضة V4 جاهز للعمل بكامل طاقته");
+                console.log("🚀 محرك V5 المركزي يعمل الآن.. جاهز لإدارة الإمبراطورية");
                 resolve();
             };
 
-            request.onerror = (e) => reject("❌ فشل في تشغيل القاعدة");
+            request.onerror = (e) => reject("❌ فشل في الوصول للنظام");
         });
     }
 
-    // 2. دالة الإضافة العامة (Create)
+    // ==========================================
+    // ⚙️ محرك الإدخال الذكي (X-Insert)
+    // ==========================================
     async add(storeName, data) {
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction(storeName, 'readwrite');
             const store = transaction.objectStore(storeName);
             
-            // توليد ID فريد (اسم الموديول + الوقت + رقم عشوائي لضمان عدم التكرار)
-            const randomID = Math.floor(Math.random() * 1000);
-            const id = `${storeName.substring(0, 3).toUpperCase()}-${Date.now()}-${randomID}`;
+            const prefix = storeName.substring(0, 3).toUpperCase();
+            const id = `${prefix}-${Date.now()}-${Math.floor(Math.random() * 100)}`;
             
             const record = { 
                 ...data, 
                 id, 
                 created_at: new Date().toISOString(),
-                // تطبيق قاعدة الـ 50% تقييم ائتماني للعملاء الجدد آلياً
-                credit_score: (storeName === 'customers' && !data.credit_score) ? 50 : (data.credit_score || 0)
+                // منطق الائتمان المبدئي (50% للعميل والضامن الجديد)
+                credit_score: ['customers', 'guarantors'].includes(storeName) ? (data.credit_score || 50) : undefined
             };
 
             const request = store.add(record);
             request.onsuccess = () => resolve(record);
-            request.onerror = () => reject("Error adding record");
+            request.onerror = () => reject("Error in X-Insert");
         });
     }
 
-    // 3. دالة جلب كل البيانات (Read All)
+    // ==========================================
+    // 📈 محرك الحسابات الجارية (Financial Journey)
+    // ==========================================
+    async getCustomerJourney(customerId) {
+        // هذه الدالة تجمع "رحلة العميل" من 3 جداول مختلفة في لحظة واحدة
+        const invoices = await this.getAll('invoices');
+        const installments = await this.getAll('installments');
+        
+        const customerInvoices = invoices.filter(i => i.customer_id === customerId);
+        const customerInst = installments.filter(i => i.customer_id === customerId);
+
+        const totalDebt = customerInvoices.reduce((s, i) => s + i.total, 0);
+        const totalPaid = customerInst.filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0);
+        
+        // حساب مدة التأخير (بالأيام)
+        const delayedDays = customerInst
+            .filter(i => i.status === 'pending' && new Date(i.due_date) < new Date())
+            .reduce((s, i) => s + Math.floor((new Date() - new Date(i.due_date)) / (1000*60*60*24)), 0);
+
+        return {
+            total_debt: totalDebt,
+            total_paid: totalPaid,
+            remaining: totalDebt - totalPaid,
+            delay_days: delayedDays,
+            trust_level: delayedDays > 0 ? "خطر ⚠️" : "ملتزم ✅"
+        };
+    }
+
+    // ==========================================
+    // 🛠️ دوال العمليات العامة
+    // ==========================================
     async getAll(storeName) {
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(storeName, 'readonly');
-            const store = transaction.objectStore(storeName);
-            const request = store.getAll();
+        return new Promise((resolve) => {
+            const tx = this.db.transaction(storeName, 'readonly');
+            const request = tx.objectStore(storeName).getAll();
             request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject("Error fetching records");
         });
     }
 
-    // 4. دالة التحديث (Update)
     async update(storeName, id, newData) {
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(storeName, 'readwrite');
-            const store = transaction.objectStore(storeName);
-            const request = store.get(id);
-
-            request.onsuccess = () => {
-                if (!request.result) return reject("Record not found");
-                const data = { 
-                    ...request.result, 
-                    ...newData, 
-                    updated_at: new Date().toISOString() 
-                };
-                store.put(data);
-                resolve(data);
-            };
+        const tx = this.db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        const oldData = await new Promise(r => {
+            const req = store.get(id);
+            req.onsuccess = () => r(req.result);
+        });
+        
+        const updated = { ...oldData, ...newData, updated_at: new Date().toISOString() };
+        return new Promise(r => {
+            const req = store.put(updated);
+            req.onsuccess = () => r(updated);
         });
     }
 
-    // 5. دالة الحذف (Delete) - مهمة للمرتجعات والأخطاء
     async delete(storeName, id) {
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(storeName, 'readwrite');
-            const store = transaction.objectStore(storeName);
-            const request = store.delete(id);
-            request.onsuccess = () => resolve(true);
-            request.onerror = () => reject("Error deleting record");
-        });
-    }
-
-    // 6. البحث برقم محدد (Get By ID)
-    async getById(storeName, id) {
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(storeName, 'readonly');
-            const store = transaction.objectStore(storeName);
-            const request = store.get(id);
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject("Error finding record");
-        });
+        const tx = this.db.transaction(storeName, 'readwrite');
+        tx.objectStore(storeName).delete(id);
+        return true;
     }
 }
 
-// تصدير المحرك كنسخة واحدة (Singleton)
 const db = new DBEngine();
