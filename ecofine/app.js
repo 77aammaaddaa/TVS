@@ -1,11 +1,12 @@
-// app.js - المايسترو (نسخة الزر العائم والتحكم الكامل)
+// app.js - المايسترو (النسخة الموحدة والمرنة لكل الشاشات)
+// التركيز: الأندرويد والموبايل أولاً (Mobile-First)
 
 const { useState, useEffect } = React;
 
 const App = () => {
     const [isReady, setIsReady] = useState(false);
     const [activeTab, setActiveTab] = useState('dashboard');
-    const [isMenuOpen, setIsMenuOpen] = useState(false); // التحكم في ظهور القائمة
+    const [isMenuOpen, setIsMenuOpen] = useState(false); // حالة واحدة للمنيو في كل الأجهزة
     const [user] = useState({ name: 'مستر إكس', role: 'CEO' });
 
     useEffect(() => {
@@ -14,7 +15,10 @@ const App = () => {
 
     if (!isReady) return (
         <div className="h-screen flex items-center justify-center bg-slate-900 text-white">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500"></div>
+            <div className="text-center">
+                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="font-bold">EcoFine Pro V4...</p>
+            </div>
         </div>
     );
 
@@ -28,85 +32,99 @@ const App = () => {
         { id: 'settings', label: 'الإعدادات', icon: '⚙️' },
     ];
 
+    const navigateTo = (id) => {
+        setActiveTab(id);
+        setIsMenuOpen(false); // قفل المنيو بعد الاختيار فوراً
+    };
+
     return (
         <div className="h-screen bg-slate-100 flex overflow-hidden font-sans" dir="rtl">
             
-            {/* 1. زر المنيو العائم (يظهر في الموبايل والكمبيوتر عند الحاجة) */}
-            <button 
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="fixed bottom-6 left-6 z-[60] w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl lg:hidden"
-            >
-                {isMenuOpen ? '✕' : '☰'}
-            </button>
+            {/* زر المنيو (الهامبرجر) - ثابت في الهيدر لكل الأجهزة */}
+            <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center px-4 z-40 shadow-sm">
+                <button 
+                    onClick={() => setIsMenuOpen(true)}
+                    className="p-2 hover:bg-slate-100 rounded-lg text-slate-700 transition-colors"
+                >
+                    <span className="text-2xl">☰</span>
+                </button>
+                <h2 className="mr-4 text-lg font-black text-slate-800 truncate">
+                    {menuItems.find(i => i.id === activeTab)?.label}
+                </h2>
+                <div className="mr-auto flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xs font-black">X</div>
+                </div>
+            </header>
 
-            {/* 2. القائمة الجانبية (Drawer System) */}
+            {/* القائمة المسحوبة (الدرج) - تظهر من اليمين فوق المحتوى */}
             <aside className={`
-                fixed inset-y-0 right-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-300 shadow-2xl
-                lg:static lg:translate-x-0
+                fixed inset-y-0 right-0 z-[100] w-72 bg-slate-900 text-slate-300 flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-in-out
                 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
             `}>
-                <div className="p-6 border-b border-slate-800 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-xl">X</div>
-                    <h1 className="text-white font-bold">EcoFine Pro</h1>
+                <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-xl">X</div>
+                        <h1 className="text-white font-bold">إكس القابضة</h1>
+                    </div>
+                    <button onClick={() => setIsMenuOpen(false)} className="text-2xl text-slate-500 hover:text-white">✕</button>
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                     {menuItems.map(item => (
                         <button
                             key={item.id}
-                            onClick={() => { setActiveTab(item.id); setIsMenuOpen(false); }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                            onClick={() => navigateTo(item.id)}
+                            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold transition-all ${
                                 activeTab === item.id ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800'
                             }`}
                         >
-                            <span>{item.icon}</span> {item.label}
+                            <span className="text-xl">{item.icon}</span>
+                            <span className="text-sm">{item.label}</span>
                         </button>
                     ))}
                 </nav>
+                
+                <div className="p-4 border-t border-slate-800 text-[10px] text-center text-slate-500 font-bold uppercase tracking-widest">
+                    EcoFine Pro v4 | Mobile First
+                </div>
             </aside>
 
-            {/* 3. منطقة المحتوى الأساسية */}
-            <main className="flex-1 flex flex-col min-w-0 relative">
-                {/* هيدر بسيط */}
-                <header className="h-16 bg-white border-b flex justify-between items-center px-6">
-                    <div className="flex items-center gap-4">
-                        {/* زر منيو إضافي في الهيدر للكمبيوتر */}
-                        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="hidden lg:block text-slate-600">☰</button>
-                        <h2 className="text-lg font-black text-slate-800 uppercase tracking-tighter">
-                            {menuItems.find(i => i.id === activeTab)?.label}
-                        </h2>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-md uppercase">{user.role}</span>
-                    </div>
-                </header>
+            {/* خلفية تظليل عند فتح المنيو (Overlay) */}
+            {isMenuOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/60 z-[90] backdrop-blur-sm"
+                    onClick={() => setIsMenuOpen(false)}
+                ></div>
+            )}
 
-                <div className="flex-1 overflow-y-auto p-4 md:p-8">
-                    {/* مديول الـ CRM سيظهر هنا فور اختياره */}
+            {/* منطقة المحتوى - تبدأ تحت الهيدر */}
+            <main className="flex-1 pt-16 overflow-y-auto w-full">
+                <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+                    {/* الموديولات */}
                     {activeTab === 'crm' && (
-                        <div className="animate-fade-in">
+                        <div className="animate-in fade-in duration-500">
                             <CRMModule />
                         </div>
                     )}
 
                     {activeTab === 'dashboard' && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border-r-4 border-blue-600">
-                                <p className="text-slate-400 text-xs font-bold">إجمالي المبيعات</p>
-                                <h3 className="text-xl font-black">0.00 ج.م</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
+                                <p className="text-slate-400 text-xs font-bold mb-1">إجمالي المبيعات</p>
+                                <h3 className="text-2xl font-black text-slate-800">0.00 <span className="text-xs">ج.م</span></h3>
                             </div>
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border-r-4 border-green-600">
-                                <p className="text-slate-400 text-xs font-bold">تحصيلات اليوم</p>
-                                <h3 className="text-xl font-black">0.00 ج.م</h3>
+                            <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
+                                <p className="text-slate-400 text-xs font-bold mb-1">تحصيل اليوم</p>
+                                <h3 className="text-2xl font-black text-green-600">0.00 <span className="text-xs text-slate-400">ج.م</span></h3>
                             </div>
                         </div>
                     )}
 
-                    {/* باقي الموديولات */}
                     {!['dashboard', 'crm'].includes(activeTab) && (
-                        <div className="text-center py-20 text-slate-400">
-                            <p className="text-4xl mb-4">🚧</p>
-                            <p className="font-bold">قيد التنفيذ حسب استراتيجية الدومينو</p>
+                        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                            <div className="text-5xl mb-4">⚙️</div>
+                            <p className="font-bold">الموديول قيد التجهيز</p>
+                            <p className="text-xs mt-2 italic text-slate-300">استراتيجية الدومينو للمحترف إكس</p>
                         </div>
                     )}
                 </div>
