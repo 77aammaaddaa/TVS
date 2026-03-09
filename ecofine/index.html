@@ -2,43 +2,72 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoFine Pro ERP V4 - X-Holding</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title> EcoFine Pro ERP V6</title>
+    
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'IBM Plex Sans Arabic', sans-serif; background: #f8fafc; }
-        .sidebar-active { background: #2563eb; color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4); }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        :root {
+            --primary-dark: #0f172a;
+            --accent-blue: #2563eb;
+        }
+        body { 
+            font-family: 'IBM Plex Sans Arabic', sans-serif; 
+            background: #f8fafc; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* تحسينات الواجهة للأجهزة المحمولة (ريدمي 10) */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        
+        /* أنيميشن الدخول للموديولات */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-module { animation: slideUp 0.4s ease-out forwards; }
     </style>
 </head>
 <body>
 
-
-
     <div id="root"></div>
 
-
-
     <script type="text/babel" src="database.js"></script>
-    
+    <script type="text/babel" src="XCore.js"></script>
+    <script type="text/babel" src="auth.js"></script>
+
     <script type="text/babel" src="crm.js"></script>
+    <script type="text/babel" src="survey.js"></script>
+    <script type="text/babel" src="legal.js"></script>
 
-<script type="text/babel" src="inventory.js"></script>
+    <script type="text/babel" src="inventory.js"></script>
+    <script type="text/babel" src="suppliers.js"></script>
+    <script type="text/babel" src="purchases.js"></script>
 
-    <script type="text/babel" src="pos.js"></script> 
+    <script type="text/babel" src="pos.js"></script>
+    <script type="text/babel" src="collection.js"></script>
+    <script type="text/babel" src="treasury.js"></script>
 
-
-
-
+    <script type="text/babel" src="hr.js"></script>
+    <script type="text/babel" src="users.js"></script>
     
+    <script type="text/babel" src="data_bridge.js"></script>
+    <script type="text/babel" src="settings.js"></script>
+
     <script type="text/babel" src="app.js"></script>
 
-
-
-
-    </body>
+</body>
 </html>
