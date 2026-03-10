@@ -4,72 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <title>Eco Fine Pro V6 | M H 4 Tech</title>
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Eco Fine Pro V11.5 - Enterprise ERP & Installment Management System. Powered by Techno Vision Solutions.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>Eco Fine Pro V11.5 | Enterprise</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com">
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     
     <style>
         :root { --primary-dark: #0f172a; --accent-blue: #2563eb; }
         body { 
             font-family: 'IBM Plex Sans Arabic', sans-serif; 
             background: #f8fafc; 
-            overscroll-behavior-y: contain; 
+            overscroll-behavior-y: none; /* يمنع ارتداد الشاشة المزعج في أجهزة الموبايل */
+            -webkit-font-smoothing: antialiased;
         }
         
         * { -webkit-tap-highlight-color: transparent; outline: none; }
         
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        /* تصميم شريط التمرير الاحترافي */
+        .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
         
-        .animate-in { animation: slideUp 0.4s ease-out forwards; }
+        .animate-in { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* شاشة إقلاع X-Holding */
         #splash-screen {
             position: fixed; inset: 0; background: #0f172a;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 9999; transition: opacity 0.5s ease;
+            z-index: 99999; transition: opacity 0.6s ease-out, visibility 0.6s;
         }
     </style>
 </head>
-<body>
+<body class="antialiased overflow-hidden selection:bg-blue-500 selection:text-white">
 
     <div id="splash-screen">
-        <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <h1 class="text-white font-black mt-6 tracking-widest text-xl">Eco Fine Pro</h1>
-        <div class="bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded mt-2 uppercase tracking-widest">Version 6.0</div>
-        <p class="text-[10px] text-slate-400 mt-6 font-bold uppercase tracking-widest">Powered by <span class="text-white">M H 4 Tech</span></p>
+        <div class="relative w-24 h-24 mb-8">
+            <div class="absolute inset-0 border-4 border-slate-800 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center font-black text-2xl text-white">X</div>
+        </div>
+        <h1 class="text-white font-black tracking-tighter text-4xl mb-3">Eco Fine <span class="text-blue-500">Pro</span></h1>
+        <div class="bg-slate-800/50 text-blue-400 text-[10px] font-black px-4 py-1.5 rounded-lg uppercase tracking-[0.3em] shadow-lg border border-slate-700/50 backdrop-blur-sm">
+            Enterprise V11.5
+        </div>
+        <p class="text-[10px] text-slate-500 mt-10 font-bold uppercase tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+            Booting Cloud Engine...
+        </p>
     </div>
 
     <div id="root"></div>
 
-    <script type="text/babel" src="XConfig.js"></script> <script type="text/babel" src="database.js"></script>
-    <script type="text/babel" src="XCore.js"></script>
-    <script type="text/babel" src="auth.js"></script>
+    <script type="text/babel" src="XConfig.js"></script> 
+    <script type="text/babel" src="database.js"></script>
+    <script type="text/babel" src="XSync.js"></script> <script type="text/babel" src="XCore.js"></script>
+    
+    <script type="text/babel" src="activation.js"></script> <script type="text/babel" src="auth.js"></script>
 
     <script type="text/babel" src="crm.js"></script>
     <script type="text/babel" src="survey.js"></script>
     <script type="text/babel" src="legal.js"></script>
-
     <script type="text/babel" src="inventory.js"></script>
     <script type="text/babel" src="suppliers.js"></script>
     <script type="text/babel" src="purchases.js"></script>
-
     <script type="text/babel" src="pos.js"></script>
     <script type="text/babel" src="collection.js"></script>
     <script type="text/babel" src="treasury.js"></script>
-
     <script type="text/babel" src="hr.js"></script>
-    <script type="text/babel" src="users.js"></script> <script type="text/babel" src="data_bridge.js"></script>
+    <script type="text/babel" src="users.js"></script> 
+    <script type="text/babel" src="data_bridge.js"></script>
     <script type="text/babel" src="settings.js"></script>
     <script type="text/babel" src="feedback.js"></script>
 
