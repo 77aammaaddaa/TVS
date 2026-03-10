@@ -1,8 +1,7 @@
 /**
- * 🎛️ X-CONFIG Manager - لوحة تحكم النظام السيادية
- * النظام: Eco Fine Pro V6 | تطوير: M H 4 Tech
- * هذا الملف هو "الريموت كنترول" لكل مؤسسة تستخدم نظام Eco Fine Pro.
- * تم تصميمه ليكون تراكمياً (Cumulative) بحيث تؤثر الإعدادات على بعضها البعض.
+ * 🎛️ X-CONFIG Manager - لوحة تحكم النظام السيادية (Enterprise V11.5)
+ * النظام: Eco Fine Pro | تطوير: Techno Vision Solutions (Mr. X)
+ * الوظيفة: إعدادات النظام، قواعد الائتمان، وروابط "الماستر" المركزية.
  */
 
 const XConfig = {
@@ -10,10 +9,10 @@ const XConfig = {
     // 1. الهوية التجارية (Branding & Localization)
     // ==========================================
     identity: {
-        storeName: "Eco Fine Pro - النسخة التجارية", // يتغير حسب اسم مؤسسة العميل
-        currency: "ج.م", // أو ر.س، د.إ
+        storeName: "Eco Fine Pro - Enterprise", 
+        currency: "ج.م",
         language: "ar-EG",
-        themeColor: "#0f172a", // اللون الأساسي للبراند (Slate 900)
+        themeColor: "#0f172a", 
         logoUrl: "./assets/logo.png"
     },
 
@@ -22,24 +21,22 @@ const XConfig = {
     // ==========================================
     modes: {
         financingType: "SHARIA", // الخيارات: [SHARIA, CONVENTIONAL, LEASING]
-        businessModel: "RETAIL_INSTALLMENTS", // الخيارات: [RETAIL, SERVICES, WHOLESALE]
-        calculationMethod: "DAYS_ACCUMULATION", // حساب التأخير بالأيام وليس الفوائد
+        businessModel: "RETAIL_INSTALLMENTS", 
+        calculationMethod: "DAYS_ACCUMULATION", 
     },
 
     // ==========================================
-    // 3. سياسة الائتمان والتقييم (Credit & Scoring Policy)
+    // 3. سياسة الائتمان والتقييم (Credit Scoring)
     // ==========================================
     creditPolicy: {
-        minScoreToEntry: 50, // الحد الأدنى عشان السيستم يقبل يفتح ملف
-        startingScore: 0,   // نقطة البداية للعميل الجديد
-        creditLimitMultiplier: 5, // (الدخل * السكور * هذا الرقم) = سقف الائتمان
-        
-        // الأوزان النسبية للتقييم (يجب أن يكون المجموع 100)
+        minScoreToEntry: 50, 
+        startingScore: 0,   
+        creditLimitMultiplier: 5, 
         weights: {
-            identity: 10,    // صحة البيانات والبطاقة
-            income: 30,      // قوة الدخل والتوثيق
-            guarantors: 40,  // عدد وقوة الضامنين
-            residence: 20    // نوع السكن والتحقق الميداني
+            identity: 10,    
+            income: 30,      
+            guarantors: 40,  
+            residence: 20    
         }
     },
 
@@ -49,11 +46,9 @@ const XConfig = {
     guarantorRules: {
         minGuarantors: 1,
         maxGuarantors: 3,
-        allowGuarantorAsBuyer: true, // هل ينفع الضامن يشتري هو كمان؟
-        minGuarantorScore: 50,       // الضامن اللي تحت 50 مرفوض إجبارياً
-        requireOneActiveOnly: true,  // الضامن يضمن عملية واحدة فقط في المرة
-        
-        // المنطق التراكمي (Interdependent Rules)
+        allowGuarantorAsBuyer: true, 
+        minGuarantorScore: 50,       
+        requireOneActiveOnly: true,  
         dependency: {
             "GOV_EMPLOYEE": { requiredGuarantors: 2, needsVerification: true },
             "PRIVATE_SECTOR": { requiredGuarantors: 3, needsVerification: true },
@@ -66,21 +61,15 @@ const XConfig = {
     // ==========================================
     salesTerms: {
         minInvoiceAmount: 2500,
-        
-        // حدود المدد بناءً على قيمة الفاتورة
         durationTiers: [
             { maxAmount: 100000, maxMonths: 10, docs: "RECEIPTS" },
             { maxAmount: 1000000, maxMonths: 15, docs: "CHECKS" }
         ],
-
-        // حدود الأقساط
         dailyLimit: { min: 50, max: 1000 },
         monthlyLimit: { min: 500, max: 50000 },
-        
-        // منطق التقديمة (Down Payment)
         downPaymentLogic: {
-            daily: "DAYS_OF_MONTH", // يحسب عدد الأيام المنقضية
-            monthly: "ONE_MONTH_PREPAID" // يدفع شهر مقدم
+            daily: "DAYS_OF_MONTH", 
+            monthly: "ONE_MONTH_PREPAID" 
         }
     },
 
@@ -88,18 +77,11 @@ const XConfig = {
     // 6. الرقابة القانونية (Legal & Collection)
     // ==========================================
     legalPolicy: {
-        // فترات التحول التلقائي للمتعثرين
-        thresholds: {
-            daily: 35,   // يوم تأخير
-            monthly: 63  // يوم تأخير
-        },
-        
-        warningInterval: 10, // إرسال تحذير كل 10 أيام تأخير
-        banPeriodDays: 180,  // فترة الحظر (6 شهور) بعد القضايا
+        thresholds: { daily: 35, monthly: 63 },
+        warningInterval: 10, 
+        banPeriodDays: 180,  
         maxCasesPerPerson: 6,
-        
-        // خيار "تجميد العداد"
-        stopDelayCounterAtLimit: true // يتوقف العداد لو المديونية وصلت للسقف
+        stopDelayCounterAtLimit: true 
     },
 
     // ==========================================
@@ -110,17 +92,20 @@ const XConfig = {
         pdfContractGeneration: true,
         fieldSurveyModule: true,
         inventoryManagement: true,
-        reScheduling: true, // تفعيل إعادة الجدولة
-        rescheduleLimitYears: 1 // مرة كل سنة
+        reScheduling: true, 
+        rescheduleLimitYears: 1 
     },
+
     // ==========================================
-    // 8. إعدادات السحابة والمزامنة (Cloud Sync)
+    // 8. مفاتيح السحابة المركزية (Master Cloud Keys) ☁️
+    // يستخدمها ملف activation.js فقط للتحقق من الرخص
     // ==========================================
-    cloud: {
+    masterCloud: {
         url: "https://pyrcpouvcvjkgpjyuafz.supabase.co",
         key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5cmNwb3V2Y3Zqa2dwanl1YWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0ODc4NDgsImV4cCI6MjA4ODA2Mzg0OH0.vhrkZgIAh4Zp1TjLjwvelU5x31eSZZN5fBaPiaVKHCk"
     }
 
+}; // ✅ <--- هذا هو القوس الذي كان مفقوداً ودمر النظام!
 
 // تثبيت الإعدادات في النطاق العام للوصول إليها من كل الموديولات
 window.XConfig = XConfig;
