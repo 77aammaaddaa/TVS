@@ -8,10 +8,12 @@ const { useState, useEffect } = React;
 
 // ==========================================
 // 🌐 إعدادات قاعدة البيانات المركزية (Master DB)
-// تنبيه: ضع هنا رابط ومفتاح مشروع EcoFine_Master الخاص بك
 // ==========================================
-const MASTER_SUPABASE_URL = window.XConfig?.masterUrl || 'ضع_رابط_الماستر_هنا';
-const MASTER_SUPABASE_KEY = window.XConfig?.masterKey || 'ضع_مفتاح_الماستر_هنا';
+// ✅ تم وضع الرابط الخاص بك بنجاح
+const MASTER_SUPABASE_URL = 'https://pyrcpouvcvjkgpjyuafz.supabase.co';
+
+// ⚠️ المطلوب منك: امسح الجملة دي، واعمل Paste للمفتاح اللي نسخته من سوبابيز (بيبدأ بـ sb_publishable)
+const MASTER_SUPABASE_KEY = 'ضع_مفتاح_الـ_Publishable_Key_هنا'; 
 
 const ActivationModule = ({ onActivated }) => {
     const [inputKey, setInputKey] = useState('');
@@ -37,7 +39,6 @@ const ActivationModule = ({ onActivated }) => {
 
         try {
             // 1. إنشاء اتصال مؤقت بقاعدة البيانات المركزية (الماستر)
-            // تأكد من تحميل مكتبة supabase في index.html
             const masterDb = supabase.createClient(MASTER_SUPABASE_URL, MASTER_SUPABASE_KEY);
 
             // 2. البحث عن كود التفعيل في جدول organizations
@@ -46,7 +47,7 @@ const ActivationModule = ({ onActivated }) => {
                 .select('*')
                 .eq('activation_key', inputKey.trim().toUpperCase())
                 .eq('is_active', true)
-                .single(); // نتوقع نتيجة واحدة فقط لتطابق الكود
+                .single(); 
 
             if (dbError || !data) {
                 throw new Error('كود التفعيل غير صحيح أو النسخة موقوفة من الإدارة.');
@@ -63,7 +64,7 @@ const ActivationModule = ({ onActivated }) => {
             // 4. حفظ البيانات محلياً في المتصفح
             localStorage.setItem('X_ORG_CONFIG', JSON.stringify(orgConfig));
             
-            // 5. تحديث محرك قاعدة البيانات المحلي (إذا كان متوفراً)
+            // 5. تحديث محرك قاعدة البيانات المحلي
             if (window.db && window.db.reInitialize) {
                 await window.db.reInitialize(orgConfig.url, orgConfig.key);
             }
@@ -139,3 +140,7 @@ const ActivationModule = ({ onActivated }) => {
 };
 
 window.ActivationModule = ActivationModule;
+
+
+
+
