@@ -104,8 +104,7 @@ const XConfig = {
         url: "https://pyrcpouvcvjkgpjyuafz.supabase.co",
         key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5cmNwb3V2Y3Zqa2dwanl1YWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0ODc4NDgsImV4cCI6MjA4ODA2Mzg0OH0.vhrkZgIAh4Zp1TjLjwvelU5x31eSZZN5fBaPiaVKHCk"
     }
-
-}; // ✅ <--- هذا هو القوس الذي كان مفقوداً ودمر النظام!
+}; 
 
 // تثبيت الإعدادات في النطاق العام للوصول إليها من كل الموديولات
 window.XConfig = XConfig;
