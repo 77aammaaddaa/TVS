@@ -95,11 +95,13 @@ const App = () => {
             { id: 'treasury', label: 'الخزينة والمصاريف', icon: '🏦' },
             { id: 'legal', label: 'الشؤون القانونية', icon: '🚨' }
         ]},
-        { group: "البيانات والإعدادات", items: [
+        { group: "البيانات و الإعدادات", items: [
             { id: 'notifications', label: 'مركز الإشعارات', icon: '🔔' },
             { id: 'audit', label: 'سجل المراقبة الأمني', icon: '👁️' },
             { id: 'data_import', label: 'استيراد وتصدير (CSV)', icon: '📥' },
-            { id: 'settings', label: 'الإعدادات المتقدمة', icon: '⚙️' }
+            { id: 'settings', label: 'الإعدادات العامة', icon: '⚙️' }
+            { id: 'sync', label: 'مركز المزامنة السحابية', icon: '☁️' }
+
         ]}
     ];
 
