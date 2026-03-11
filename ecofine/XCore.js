@@ -1,146 +1,164 @@
 /**
- * 🧠 X-CORE Engine V8.0 - الإصدار التجاري العالمي
- * المحرك مرتبط كلياً بملف XConfig لضمان قابلية التخصيص لكل مؤسسة.
+ * 🧠 X-CORE Engine V12.0 - العقل الاستراتيجي ومحرك المخاطر
+ * المطور: Techno Vision Solutions (Mr. X)
+ * الوظيفة: التقييم الائتماني، اتخاذ قرارات التقسيط المتقدمة، حساب الزكاة، والمراقبة القانونية.
  */
 
 const XCore = {
     // ==========================================
-    // 1. محرك التقييم الائتماني (Scoring)
+    // 1. محرك التقييم الائتماني (X-Score Calculator)
     // ==========================================
-    evaluateCustomer: async (customerData) => {
-        const conf = window.XConfig.creditPolicy;
-        let score = conf.startingScore;
+    evaluateCustomer: (customerData) => {
+        const conf = window.XConfig?.creditPolicy || { startingScore: 0, minScoreToEntry: 50, weights: { identity: 10, income: 30, guarantors: 40, residence: 20 } };
+        let score = conf.startingScore || 0;
         let messages = [`نقطة البداية: ${score}%`];
 
         const guarantors = customerData.guarantors || [];
-        const gRules = window.XConfig.guarantorRules;
+        const gRules = window.XConfig?.guarantorRules || { minGuarantors: 1, minGuarantorScore: 50, maxGuarantors: 3 };
 
         // فحص الحد الأدنى للضامنين
         if (guarantors.length < gRules.minGuarantors) {
-            return { approved: false, score: 0, msg: `❌ الحد الأدنى ${gRules.minGuarantors} ضامن.` };
+            return { approved: false, score: 0, msg: `❌ مرفوض: يفتقر للحد الأدنى من الضامنين (${gRules.minGuarantors}).` };
         }
         
-        // فحص أهلية الضامنين بناءً على إعدادات العميل
-        for(let g of guarantors) {
-            if(g.credit_score < gRules.minGuarantorScore) {
-                 return { approved: false, score: 0, msg: `❌ الضامن ${g.full_name} تقييمه أقل من ${gRules.minGuarantorScore}%.` };
+        // فحص أهلية الضامنين
+        for (let g of guarantors) {
+            if (g.credit_score && g.credit_score < gRules.minGuarantorScore) {
+                 return { approved: false, score: 0, msg: `❌ مرفوض: الضامن تقييمه الائتماني ضعيف (أقل من ${gRules.minGuarantorScore}%).` };
             }
         }
 
-        // حساب الأوزان النسبية من الإعدادات
-        score += (guarantors.length * (conf.weights.guarantors / gRules.maxGuarantors));
+        // حساب الأوزان النسبية
+        const guarantorWeight = (guarantors.length / gRules.maxGuarantors) * (conf.weights?.guarantors || 40);
+        score += Math.min(guarantorWeight, conf.weights?.guarantors || 40);
         
-        if (customerData.income_verified) score += conf.weights.income;
-        if (customerData.survey_status === 'verified') score += conf.weights.residence;
+        if (customerData.job_type === 'GOV_EMPLOYEE' || customerData.monthly_income > 3000) score += (conf.weights?.income || 30);
+        if (customerData.residence_type === 'OWNED' || customerData.survey_status === 'verified') score += (conf.weights?.residence || 20);
+        if (customerData.national_id && customerData.national_id.length === 14) score += (conf.weights?.identity || 10);
 
-        const finalScore = Math.min(score, 100);
+        const finalScore = Math.min(Math.round(score), 100);
         const approved = finalScore >= conf.minScoreToEntry;
 
         return {
             approved,
             finalScore,
-            msg: approved ? "✅ مؤهل للتقسيط" : `❌ التقييم تحت ${conf.minScoreToEntry}%`,
+            msg: approved ? "✅ مؤهل للائتمان والتقسيط." : `❌ التقييم (${finalScore}%) أقل من الحد الأدنى للشركة (${conf.minScoreToEntry}%).`,
             breakdown: messages
         };
     },
 
     // ==========================================
-    // 2. محرك تعدد الفواتير والسقف الائتماني
+    // 2. محرك قرار تعدد الفواتير والسقف المالي (يستخدمه POS.js)
     // ==========================================
-    canOpenNewInvoice: async (customerId, newInvoiceAmount) => {
-        const conf = window.XConfig;
-        const customer = await db.getById('customers', customerId);
-        const journey = await db.getCustomerJourney(customerId);
+    canOpenMultiInvoice: (creditScore, monthlyIncome, currentDebt, totalPaid, newInvoiceTotal) => {
+        const conf = window.XConfig?.creditPolicy || { minScoreToEntry: 50, creditLimitMultiplier: 5 };
+        const minScore = conf.minScoreToEntry;
         
-        // فحص الحظر القانوني
-        if (customer.ban_until && new Date(customer.ban_until) > new Date()) {
-            return { can: false, msg: `🚫 محظور حتى ${customer.ban_until}` };
+        // 1. فحص السكور الأساسي
+        if (creditScore < minScore) {
+            return { can: false, msg: `مرفوض: السكور الائتماني للعميل (${creditScore}) أقل من الحد الأدنى للشركة (${minScore}).` };
         }
 
-        // شرط سداد نسبة معينة (افتراضياً 50% أو حسب ما نحدده مستقبلاً)
-        const hasPaidHalf = journey.total_debt === 0 || (journey.total_paid >= (0.5 * journey.total_debt));
-        if (!hasPaidHalf) {
-            return { can: false, msg: "⚠️ يجب سداد 50% من المديونية الحالية." };
+        // 2. إذا لم يكن هناك دخل مسجل، نعتمد على السجل السابق كضمان
+        const incomeToUse = monthlyIncome > 0 ? monthlyIncome : (totalPaid > 0 ? totalPaid / 2 : 1000);
+
+        // 3. حساب السقف الائتماني الآمن للعميل
+        // المعادلة: الدخل الشهري × المعامل × (نسبة السكور)
+        const multiplier = conf.creditLimitMultiplier || 5;
+        const maxCreditLimit = (incomeToUse * multiplier) * (creditScore / 100);
+
+        // 4. فحص تخطي السقف
+        if ((currentDebt + newInvoiceTotal) > maxCreditLimit) {
+            return { 
+                can: false, 
+                msg: `مرفوض: إجمالي المديونية (${Math.round(currentDebt + newInvoiceTotal).toLocaleString()} ج) سيتخطى السقف الآمن للعميل (${Math.round(maxCreditLimit).toLocaleString()} ج).` 
+            };
         }
 
-        // سقف الائتمان بناءً على Multiplier من الإعدادات
-        const creditLimit = customer.monthly_income * (customer.credit_score / 100) * conf.creditPolicy.creditLimitMultiplier;
-        const currentLiability = journey.remaining;
-
-        if ((currentLiability + newInvoiceAmount) > creditLimit) {
-            return { can: false, msg: `⚠️ تخطى سقف الائتمان المسموح (${creditLimit.toLocaleString()} ${conf.identity.currency}).` };
+        // 5. فحص الالتزام السابق (يجب أن يكون قد سدد 30% على الأقل من ديونه القديمة لفتح فاتورة جديدة)
+        if (currentDebt > 0 && totalPaid < (currentDebt * 0.3)) {
+            return { can: false, msg: "مرفوض: العميل لديه مديونية عالية ولم يسدد نسبة كافية من أقساطه القديمة لفتح عقد جديد." };
         }
 
-        return { can: true, msg: "✅ مؤهل للفاتورة." };
+        return { can: true, msg: "✅ العميل مؤهل ائتمانياً. السقف المالي يسمح بإتمام العملية." };
     },
 
     // ==========================================
-    // 3. محرك أهلية الضامن (Iron Guarantor)
+    // 3. حاسبة شروط البيع والمقدم التلقائي (يستخدمه POS.js)
     // ==========================================
-    checkGuarantorEligibility: async (nationalId) => {
-        const gRules = window.XConfig.guarantorRules;
-        const person = await db.getByIndex('customers', 'national_id', nationalId);
-        
-        if (!person) return { eligible: true, msg: "✅ ضامن جديد." };
-
-        if (person.credit_score < gRules.minGuarantorScore) {
-            return { eligible: false, msg: `❌ تقييم الضامن أقل من ${gRules.minGuarantorScore}%.` };
+    calculateSaleTerms: (totalAmount, instType, desiredInstValue, purchaseDay) => {
+        if (!totalAmount || !desiredInstValue || desiredInstValue <= 0) {
+            return { error: "مدخلات الحساب غير صحيحة، تأكد من إدخال قدرة العميل على الدفع." };
         }
 
-        if (gRules.requireOneActiveOnly) {
-            const allActiveInvoices = await db.getAll('invoices');
-            const isAlreadyGuarantor = allActiveInvoices.some(inv => 
-                inv.status === 'active' && inv.guarantors?.some(g => g.national_id === nationalId)
-            );
-            if (isAlreadyGuarantor) return { eligible: false, msg: "❌ ضامن بالفعل في فاتورة مفتوحة." };
-        }
-
-        return { eligible: true, msg: "✅ الضامن مؤهل." };
-    },
-
-    // ==========================================
-    // 4. الحسابات والرقابة القانونية (Advanced Logic)
-    // ==========================================
-    calculateFinancing: (totalAmount, saleType, dailyAmount, monthlyAmount) => {
-        const terms = window.XConfig.salesTerms;
-        const purchaseDay = new Date().getDate();
         let downPayment = 0;
+        const termsConf = window.XConfig?.salesTerms || { downPaymentLogic: { monthly: 'ONE_MONTH_PREPAID', daily: 'DAYS_OF_MONTH' } };
+        const logic = instType === 'monthly' ? termsConf.downPaymentLogic?.monthly : termsConf.downPaymentLogic?.daily;
 
-        if (saleType === 'daily') {
-            downPayment = terms.downPaymentLogic.daily === "DAYS_OF_MONTH" ? (dailyAmount * purchaseDay) : dailyAmount;
-        } else {
-            downPayment = monthlyAmount;
+        // حساب المقدم
+        if (instType === 'monthly') {
+            if (logic === 'ONE_MONTH_PREPAID') downPayment = desiredInstValue;
+            else if (logic === 'PERCENTAGE') downPayment = totalAmount * 0.20; // 20% افتراضي
+            else downPayment = 0; // مرن
+        } else if (instType === 'daily') {
+            if (logic === 'DAYS_OF_MONTH') downPayment = desiredInstValue * (purchaseDay || 1);
+            else downPayment = desiredInstValue; // قسط يومي واحد
         }
 
-        // البحث في مصفوفة المدد (Tiers) من الإعدادات
-        const tier = terms.durationTiers.find(t => totalAmount <= t.maxAmount) || terms.durationTiers[terms.durationTiers.length - 1];
+        // تأمين: المقدم يجب ألا يتخطى 50% آلياً لتجنب الأخطاء، إلا إذا تم التعديل يدوياً
+        if (downPayment >= totalAmount * 0.5) downPayment = totalAmount * 0.5;
+
+        const remainingDebt = totalAmount - downPayment;
+        const calculatedPeriods = remainingDebt / desiredInstValue; // شهور أو أيام
+        const calculatedMonths = instType === 'daily' ? (calculatedPeriods / 30) : calculatedPeriods;
+
+        // تحديد الحد الأقصى للمدة
+        const tiers = termsConf.durationTiers || [
+            { maxAmount: 100000, maxMonths: 10, docs: "RECEIPTS" },
+            { maxAmount: 1000000, maxMonths: 15, docs: "CHECKS" }
+        ];
+
+        let matchedTier = tiers.find(t => totalAmount <= t.maxAmount) || tiers[tiers.length - 1];
+
+        if (calculatedMonths > matchedTier.maxMonths) {
+            return { 
+                error: `مرفوض: قدرة العميل الحالية (${desiredInstValue} ج) ستجعل مدة التقسيط تتخطى الحد الأقصى (${matchedTier.maxMonths} شهور) لهذا المبلغ.` 
+            };
+        }
 
         return {
-            isEligible: totalAmount >= terms.minInvoiceAmount,
-            downPayment,
-            maxMonths: tier.maxMonths,
-            docsNeeded: tier.docs
+            downPayment: Math.ceil(downPayment),
+            maxMonths: matchedTier.maxMonths,
+            calculatedMonths: Math.ceil(calculatedPeriods), // إرجاع عدد الأقساط (سواء شهور أو أيام)
+            docs: { 
+                type: matchedTier.docs, 
+                description: matchedTier.docs === 'CHECKS' ? 'توقيع شيكات بنكية بكامل القيمة الإجمالية كضمان.' : 'توقيع إيصالات أمانة ورقية بقيمة الأقساط.' 
+            }
         };
     },
 
+    // ==========================================
+    // 4. الرقابة القانونية للمتعثرين (Legal Monitor)
+    // ==========================================
     monitorLegalStatus: (installments, type, creditLimit) => {
-        const legal = window.XConfig.legalPolicy;
+        const legal = window.XConfig?.legalPolicy || { thresholds: { daily: 35, monthly: 63 }, stopDelayCounterAtLimit: true };
         const today = new Date();
         const pending = installments.filter(i => i.status === 'pending');
         
-        if (pending.length === 0) return { status: 'SAFE' };
+        if (pending.length === 0) return { status: 'SAFE', days: 0 };
 
         const oldestInst = pending.sort((a,b) => new Date(a.due_date) - new Date(b.due_date))[0];
         const delayDays = Math.floor((today - new Date(oldestInst.due_date)) / (1000 * 60 * 60 * 24));
 
         if (delayDays <= 0) return { status: 'SAFE', days: 0 };
 
+        // إيقاف العداد إذا تخطت المديونية سقف الائتمان أو تحولت لقضية
         if (legal.stopDelayCounterAtLimit) {
             const totalOwed = pending.reduce((sum, inst) => sum + Number(inst.amount), 0);
             if (totalOwed >= creditLimit) return { status: 'CAPPED', days: delayDays };
         }
 
-        const threshold = type === 'daily' ? legal.thresholds.daily : legal.thresholds.monthly;
+        const threshold = type === 'daily' ? legal.thresholds?.daily : legal.thresholds?.monthly;
         if (delayDays >= threshold) return { status: 'LEGAL', days: delayDays };
 
         return { status: 'OVERDUE', days: delayDays };
