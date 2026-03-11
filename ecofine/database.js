@@ -1,7 +1,7 @@
 /**
- * 🗄️ database.js - المحرك الهجين (Enterprise SaaS Edition V11.5)
+ * 🗄️ database.js - المحرك الهجين (Enterprise SaaS Edition V12.0)
  * النظام: Eco Fine Pro | المطور: Techno Vision Solutions (Mr. X)
- * التحديث: التوجيه الديناميكي لقواعد بيانات العملاء (Multi-tenant Routing)، دالة reInitialize، والمزامنة الذكية.
+ * التحديث: دمج جداول المراقبة، التنبيهات، والتسويق، وترقية إصدار القاعدة إلى 13.
  */
 
 const db = {
@@ -35,7 +35,8 @@ const db = {
     // ==========================================
     init: async function() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(this.dbName, 12);
+            // ⚠️ تم رفع الإصدار إلى 13 لإجبار المتصفح على إنشاء الجداول الجديدة
+            const request = indexedDB.open(this.dbName, 13);
 
             request.onupgradeneeded = (event) => {
                 const local = event.target.result;
@@ -48,7 +49,7 @@ const db = {
                 if (!local.objectStoreNames.contains('treasury')) local.createObjectStore('treasury', { keyPath: 'id' });
                 if (!local.objectStoreNames.contains('sync_queue')) local.createObjectStore('sync_queue', { keyPath: 'id', autoIncrement: true });
 
-                // جداول Eco Fine Pro V6
+                // جداول Eco Fine Pro التشغيلية
                 if (!local.objectStoreNames.contains('guarantors')) local.createObjectStore('guarantors', { keyPath: 'id' });
                 if (!local.objectStoreNames.contains('suppliers')) local.createObjectStore('suppliers', { keyPath: 'id' });
                 if (!local.objectStoreNames.contains('purchases')) local.createObjectStore('purchases', { keyPath: 'id' });
@@ -57,14 +58,21 @@ const db = {
                 if (!local.objectStoreNames.contains('surveys')) local.createObjectStore('surveys', { keyPath: 'id' });
                 if (!local.objectStoreNames.contains('legal_cases')) local.createObjectStore('legal_cases', { keyPath: 'id' });
                 
-                // 📦 الجداول الجديدة الخاصة بالمخازن والجرد
+                // 📦 الجداول الخاصة بالمخازن والجرد
                 if (!local.objectStoreNames.contains('categories')) local.createObjectStore('categories', { keyPath: 'id' });
                 if (!local.objectStoreNames.contains('inventory_logs')) local.createObjectStore('inventory_logs', { keyPath: 'id' });
+
+                // 🚀 الجداول السيادية الجديدة (V12.0)
+                if (!local.objectStoreNames.contains('audit_logs')) local.createObjectStore('audit_logs', { keyPath: 'id', autoIncrement: true });
+                if (!local.objectStoreNames.contains('system_alerts')) local.createObjectStore('system_alerts', { keyPath: 'id', autoIncrement: true });
+                if (!local.objectStoreNames.contains('coupons')) local.createObjectStore('coupons', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('flash_sales')) local.createObjectStore('flash_sales', { keyPath: 'id' });
+                if (!local.objectStoreNames.contains('system_settings')) local.createObjectStore('system_settings', { keyPath: 'id' });
             };
 
             request.onsuccess = (event) => {
                 this.localDb = event.target.result;
-                console.log("✅ المحرك المحلي جاهز للعمل (IndexedDB Active)");
+                console.log("✅ المحرك المحلي جاهز للعمل (IndexedDB V13 Active)");
                 
                 // محاولة مزامنة السجلات المعلقة إن وُجدت السحابة
                 this.syncWithCloud();
@@ -158,7 +166,6 @@ const db = {
     },
 
     getByIndex: async function(tableName, indexName, value) {
-        // بما أن IndexedDB يتطلب إعداد Indexes مسبقاً، سنقوم بعمل فلترة برمجية لضمان المرونة
         const allRecords = await this.getAll(tableName);
         return allRecords.find(record => record[indexName] === value) || null;
     },
@@ -169,10 +176,11 @@ const db = {
     syncWithCloud: async function() {
         if (!navigator.onLine || !window._supabase) return;
 
+        // تم إضافة جداول V12.0 للمزامنة
         const tables = [
             'customers', 'products', 'invoices', 'installments', 'treasury',
             'guarantors', 'suppliers', 'purchases', 'expenses', 'users', 'surveys', 'legal_cases',
-            'categories', 'inventory_logs'
+            'categories', 'inventory_logs', 'coupons', 'flash_sales', 'system_alerts', 'audit_logs'
         ];
         
         for (const table of tables) {
@@ -190,10 +198,10 @@ const db = {
                             await this._toLocal(table, item);
                         } else {
                             console.error(`❌ خطأ مزامنة في ${table}:`, error.message);
-                            continue; // تخطي السجل التالف
+                            continue; 
                         }
                     } catch (e) { 
-                        break; // توقف عن محاولة مزامنة هذا الجدول إذا انقطعت الشبكة
+                        break; 
                     }
                 }
             } catch (err) {
@@ -212,9 +220,10 @@ const db = {
             return false;
         }
 
+        // تم إضافة جداول V12.0 للسحب من السحابة
         const tables = [
             'users', 'categories', 'products', 'customers', 'invoices', 'installments', 'treasury',
-            'inventory_logs'
+            'inventory_logs', 'coupons', 'flash_sales', 'system_alerts'
         ];
 
         console.log("📥 جاري سحب أحدث البيانات من سحابة المؤسسة...");
