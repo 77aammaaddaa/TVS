@@ -1,13 +1,11 @@
 /**
- * 🚀 app.js - المايسترو (The X-Command Center V11.5 Platinum)
- * التحديث: دمج التفعيل السحابي + التوقيت الحي + المهام السريعة + XGuard + النسب الذهبية.
+ * 🚀 app.js - المايسترو (The X-Command Center V12.0)
+ * التحديث: استقلالية النظام (Single Instance) + الربط مع إعدادات XConfig الديناميكية.
  */
 
 const { useState, useEffect, useMemo } = React;
 
 const App = () => {
-    // 1. حالات النظام الأساسية
-    const [orgConfig, setOrgConfig] = useState(null); // بيانات المؤسسة (سنتر عبد الله)
     const [currentUser, setCurrentUser] = useState(null); 
     const [isReady, setIsReady] = useState(false);
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -16,40 +14,32 @@ const App = () => {
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
-        // تحديث الساعة
+        // تحديث الساعة حياً
         const clockTimer = setInterval(() => setCurrentTime(new Date()), 1000);
 
         // مستمعات حالة الإنترنت
         const handleOnline = () => {
             setIsOnline(true);
-            if (typeof db !== 'undefined' && db.syncUnsyncedData) db.syncUnsyncedData();
+            if (typeof db !== 'undefined' && db.syncWithCloud) db.syncWithCloud();
         };
         const handleOffline = () => setIsOnline(false);
 
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
 
-        // إزالة شاشة التحميل الأولية (HTML Splash)
+        // إزالة شاشة التحميل الأولية
         const splash = document.getElementById('splash-screen');
         if (splash) {
             splash.style.opacity = '0';
             setTimeout(() => splash?.remove(), 500);
         }
 
-        // تهيئة التطبيق (فحص التفعيل وقاعدة البيانات)
+        // 🚀 تهيئة النظام المباشرة (استقلالية تامة)
         const initializeApp = async () => {
             try {
-                const savedOrgStr = localStorage.getItem('X_ORG_CONFIG');
-                if (savedOrgStr) {
-                    const config = JSON.parse(savedOrgStr);
-                    setOrgConfig(config);
-                    
-                    // تهيئة قاعدة البيانات بالروابط السحابية للمؤسسة
-                    if (window.db && window.db.reInitialize) {
-                        await window.db.reInitialize(config.url, config.key);
-                    } else if (window.db && window.db.init) {
-                        await window.db.init(); // Fallback للنسخة القديمة
-                    }
+                if (window.db && window.db.init) {
+                    await window.db.init(); // تشغيل المحرك المحلي
+                    // هنا مستقبلاً سنسحب الإعدادات المتقدمة من الداتا بيز لنحدث XConfig
                 }
                 setIsReady(true);
             } catch (err) {
@@ -92,7 +82,7 @@ const App = () => {
         ]},
         { group: "البيانات والإعدادات", items: [
             { id: 'data_import', label: 'استيراد وتصدير (CSV)', icon: '📥' },
-            { id: 'settings', label: 'المزامنة والطباعة', icon: '⚙️' }
+            { id: 'settings', label: 'الإعدادات المتقدمة', icon: '⚙️' } // هنا سيكون محركك الجديد
         ]}
     ];
 
@@ -122,13 +112,13 @@ const App = () => {
             'treasury': window.TreasuryModule,
             'legal': window.LegalModule,
             'data_import': window.ImportModule,
-            'settings': window.SettingsModule,
+            'settings': window.SettingsModule, // سيتم بناء الواجهة هنا
         };
 
         const Component = moduleMap[activeTab];
 
         if (Component) {
-            return <div className="animate-in fade-in duration-500"><Component currentUser={currentUser} setActiveTab={setActiveTab} orgConfig={orgConfig} /></div>;
+            return <div className="animate-in fade-in duration-500"><Component currentUser={currentUser} setActiveTab={setActiveTab} /></div>;
         }
 
         return (
@@ -140,29 +130,16 @@ const App = () => {
         );
     };
 
-    // ==========================================
-    // 🛡️ طبقات التوجيه والأمان (Routing Logic)
-    // ==========================================
-
     if (!isReady) return <LoadingScreen />;
 
-    // 1. لم يتم التفعيل (لا يوجد كود مؤسسة) -> عرض شاشة التفعيل السحابي
-    if (!orgConfig && typeof window.ActivationModule !== 'undefined') {
-        return <window.ActivationModule onActivated={(config) => setOrgConfig(config)} />;
-    }
-
-    // 2. تم التفعيل ولكن لم يسجل الدخول -> عرض شاشة الدخول / التأسيس
+    // 🔴 بوابة الدخول (تم الاستغناء عن التفعيل السحابي لصالح الاستقلالية)
     if (!currentUser && typeof window.AuthModule !== 'undefined') {
-        return <window.AuthModule orgConfig={orgConfig} onLoginSuccess={(user) => setCurrentUser(user)} />;
+        return <window.AuthModule onLoginSuccess={(user) => setCurrentUser(user)} />;
     }
 
-    // ==========================================
-    // 📱 واجهة النظام الرئيسية
-    // ==========================================
     return (
         <div className="h-[100dvh] bg-slate-50 flex overflow-hidden flex-col" dir="rtl">
             
-            {/* شريط حالة الإنترنت */}
             <div className={`shrink-0 w-full text-center py-1 text-[9px] font-black tracking-widest uppercase transition-colors duration-500 z-[300] ${isOnline ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
                 {isOnline ? '🟢 متصل بالسحابة (يتم المزامنة)' : '🔴 وضع الأوفلاين (تخزين محلي فقط)'}
             </div>
@@ -171,13 +148,14 @@ const App = () => {
                 <button onClick={() => setIsMenuOpen(true)} className="p-2 text-slate-700 text-2xl active:scale-95 transition-transform md:hidden">☰</button>
                 <div className="mr-3 flex flex-col hidden sm:flex">
                     <h2 className="font-black text-slate-900 leading-tight">Eco Fine <span className="text-blue-600">Pro</span></h2>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[120px]">{orgConfig?.orgName || 'X-Holding'}</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[150px]">
+                        {window.XConfig?.identity?.storeName || 'Enterprise Edition'}
+                    </p>
                 </div>
 
-                {/* الساعة الحية */}
                 <div className="hidden md:flex items-center justify-center flex-1">
                     <div className="bg-slate-50 border border-slate-200 px-4 py-1.5 rounded-full shadow-inner flex items-center gap-2 text-slate-600">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">توقيت السويس</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">توقيت العمليات</span>
                         <span className="text-xs font-black" dir="ltr">{currentTime.toLocaleTimeString('ar-EG')}</span>
                     </div>
                 </div>
@@ -201,12 +179,11 @@ const App = () => {
             </header>
 
             <div className="flex flex-1 overflow-hidden relative">
-                {/* ☰ القائمة الجانبية */}
                 <aside className={`absolute md:static inset-y-0 right-0 z-[100] w-72 bg-slate-900 text-slate-400 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl ${isMenuOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}>
                     <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950 shrink-0">
                         <div>
                             <span className="text-white font-black text-lg block">القائمة الرئيسية</span>
-                            <p className="text-[9px] text-blue-500 font-bold tracking-widest uppercase mt-1">Enterprise V11.5</p>
+                            <p className="text-[9px] text-blue-500 font-bold tracking-widest uppercase mt-1">Version 12.0</p>
                         </div>
                         <button onClick={() => setIsMenuOpen(false)} className="text-xl text-slate-500 hover:text-white transition-colors md:hidden">✕</button>
                     </div>
@@ -230,21 +207,18 @@ const App = () => {
                         ))}
                     </nav>
                     
-                    {/* زر الخروج للموبايل */}
                     <div className="p-4 border-t border-slate-800 shrink-0 md:hidden bg-slate-950">
                         <button 
                             onClick={() => window.XGuard?.logout()} 
                             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 font-black text-xs hover:bg-red-500 hover:text-white shadow-sm transition-all"
                         >
-                            <span>🚪</span> إنهاء الجلسة بأمان
+                            <span>🚪</span> إنهاء الجلسة
                         </button>
                     </div>
                 </aside>
 
-                {/* خلفية معتمة للموبايل */}
                 {isMenuOpen && <div className="fixed inset-0 bg-slate-900/60 z-[90] backdrop-blur-sm transition-opacity md:hidden" onClick={() => setIsMenuOpen(false)}></div>}
 
-                {/* منطقة عرض الموديول */}
                 <main className="flex-1 overflow-y-auto w-full px-2 py-4 md:px-6 md:py-6 custom-scroll">
                     <div className="max-w-7xl mx-auto h-full">
                         {renderModule()}
@@ -258,7 +232,7 @@ const App = () => {
 // ==========================================
 // 🎯 لوحة التحكم ومركز القيادة (The Command Center)
 // ==========================================
-const DashboardView = ({ currentUser, setActiveTab, orgConfig }) => {
+const DashboardView = ({ currentUser, setActiveTab }) => {
     const [stats, setStats] = useState({
         totalSales: 0, totalCollected: 0, pendingDebt: 0, 
         activeCustomers: 0, lowStock: 0, legalCases: 0, netTreasury: 0
@@ -269,7 +243,6 @@ const DashboardView = ({ currentUser, setActiveTab, orgConfig }) => {
         const fetchStats = async () => {
             if (!window.db) return;
             try {
-                // جلب الداتا دايماً من الـ IndexedDB المحلي (سريع جداً)
                 const [invoices, installments, customers, products, legal, expenses] = await Promise.all([
                     db.getAll('invoices').catch(() => []), db.getAll('installments').catch(() => []),
                     db.getAll('customers').catch(() => []), db.getAll('products').catch(() => []),
@@ -296,21 +269,20 @@ const DashboardView = ({ currentUser, setActiveTab, orgConfig }) => {
         return () => { isMounted = false; clearInterval(interval); };
     }, []);
 
-    // حساب النسب الذهبية لاتخاذ القرار
     const totalPortfolio = stats.totalCollected + stats.pendingDebt;
     const collectionRate = totalPortfolio > 0 ? ((stats.totalCollected / totalPortfolio) * 100).toFixed(1) : 0;
     const riskRate = stats.totalSales > 0 ? ((stats.pendingDebt / stats.totalSales) * 100).toFixed(1) : 0;
     const liquidityRate = stats.totalSales > 0 ? ((stats.netTreasury / stats.totalSales) * 100).toFixed(1) : 0;
 
-    // 🌟 منطق الترحيب الذكي
     const currentHour = new Date().getHours();
     const greeting = currentHour < 12 ? "صباح الخير" : "مساء الخير";
     const userName = currentUser?.username || 'يا زعيم';
+    // قراءة اسم المؤسسة ديناميكياً من الإعدادات
+    const storeName = window.XConfig?.identity?.storeName || 'المؤسسة';
 
     return (
         <div className="space-y-6 animate-in fade-in duration-700 pb-10">
             
-            {/* هيدر الترحيب السريع والأزرار */}
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
                 
@@ -319,13 +291,12 @@ const DashboardView = ({ currentUser, setActiveTab, orgConfig }) => {
                         {greeting}، <span className="text-blue-600">{userName}</span> 👋
                     </h2>
                     <p className="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-widest mt-2">
-                        ملخص تشغيل: <span className="text-slate-800">{orgConfig?.orgName || 'المؤسسة الحالية'}</span>
+                        ملخص تشغيل: <span className="text-slate-800">{storeName}</span>
                     </p>
                 </div>
                 
-                {/* 🚀 أزرار المهام السريعة */}
                 <div className="flex flex-wrap gap-2 w-full xl:w-auto relative z-10">
-                    <button onClick={() => setActiveTab('crm')} className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-slate-50 border border-slate-200 px-4 py-3 md:py-4 rounded-2xl text-[10px] md:text-xs font-black text-slate-700 hover:bg-slate-100 hover:border-slate-300 active:scale-95 transition-all shadow-sm">
+                    <button onClick={() => setActiveTab('crm')} className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-slate-50 border border-slate-200 px-4 py-3 md:py-4 rounded-2xl text-[10px] md:text-xs font-black text-slate-700 hover:bg-slate-100 active:scale-95 transition-all shadow-sm">
                         <span className="text-base md:text-lg">🤝</span> عميل جديد
                     </button>
                     <button onClick={() => setActiveTab('pos')} className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-slate-900 border border-slate-900 px-4 py-3 md:py-4 rounded-2xl text-[10px] md:text-xs font-black text-white hover:bg-slate-800 active:scale-95 transition-all shadow-lg shadow-slate-900/20">
@@ -337,7 +308,6 @@ const DashboardView = ({ currentUser, setActiveTab, orgConfig }) => {
                 </div>
             </div>
 
-            {/* 1. بطاقة السيولة النقدية الكبرى */}
             <div className="bg-slate-900 p-6 md:p-10 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden border border-slate-800">
                 <div className="absolute top-[-50%] left-[-10%] w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
                 <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
@@ -357,14 +327,12 @@ const DashboardView = ({ currentUser, setActiveTab, orgConfig }) => {
                 </div>
             </div>
 
-            {/* 2. مؤشرات النسب الذهبية الثلاثة */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <RatioCard title="كفاءة التحصيل" percentage={collectionRate} color="green" desc="نسبة المبالغ المحصلة من إجمالي الأقساط" />
                 <RatioCard title="معدل المخاطرة" percentage={riskRate} color="amber" desc="الديون المعلقة بالسوق مقارنة بالمبيعات" />
                 <RatioCard title="مؤشر السيولة" percentage={liquidityRate} color="blue" desc="السيولة الحرة في الخزينة بعد المصاريف" />
             </div>
 
-            {/* 3. إحصائيات سريعة للتشغيل الميداني */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatBox label="تم تحصيله (كاش)" val={stats.totalCollected} color="green" icon="💸" />
                 <StatBox label="باقي بالسوق (ديون)" val={stats.pendingDebt} color="amber" icon="⏳" />
@@ -372,7 +340,6 @@ const DashboardView = ({ currentUser, setActiveTab, orgConfig }) => {
                 <StatBox label="قضايا ونزاعات" val={stats.legalCases} color="red" icon="⚖️" />
             </div>
 
-            {/* 4. تنبيهات استراتيجية */}
             {stats.lowStock > 0 && (
                 <div className="bg-orange-50 p-5 md:p-6 rounded-[2rem] border border-orange-200 flex items-start sm:items-center gap-4 shadow-sm">
                     <div className="w-12 h-12 shrink-0 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center text-2xl font-black shadow-inner">⚠️</div>
@@ -389,15 +356,8 @@ const DashboardView = ({ currentUser, setActiveTab, orgConfig }) => {
     );
 };
 
-// مكون شريط النسبة الذهبية
 const RatioCard = ({ title, percentage, color, desc }) => {
-    const colorClasses = {
-        green: 'bg-green-500',
-        amber: 'bg-amber-500',
-        blue: 'bg-blue-500',
-        red: 'bg-red-500'
-    };
-    
+    const colorClasses = { green: 'bg-green-500', amber: 'bg-amber-500', blue: 'bg-blue-500', red: 'bg-red-500' };
     return (
         <div className="bg-white p-5 md:p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-center mb-3">
@@ -412,7 +372,6 @@ const RatioCard = ({ title, percentage, color, desc }) => {
     );
 };
 
-// مكون بطاقة الإحصاء السريعة
 const StatBox = ({ label, val, icon }) => (
     <div className="bg-white p-5 md:p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:-translate-y-1 transition-transform group">
         <div className="flex justify-between items-start mb-4">
@@ -423,7 +382,6 @@ const StatBox = ({ label, val, icon }) => (
     </div>
 );
 
-// شاشة التحميل الأولي
 const LoadingScreen = () => (
     <div className="h-[100dvh] flex flex-col items-center justify-center bg-slate-900 text-white relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px]"></div>
@@ -434,12 +392,11 @@ const LoadingScreen = () => (
                 <div className="absolute inset-0 flex items-center justify-center font-black text-xl">X</div>
             </div>
             <h2 className="text-2xl md:text-3xl font-black tracking-tighter mb-2">Eco Fine <span className="text-blue-500">Pro</span></h2>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] animate-pulse">Enterprise Edition Booting...</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] animate-pulse">Initializing System...</p>
         </div>
     </div>
 );
 
-// تهيئة وعرض التطبيق
 const rootElement = document.getElementById('root');
 if (rootElement) {
     const root = ReactDOM.createRoot(rootElement);
