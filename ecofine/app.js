@@ -1,6 +1,6 @@
 /**
  * 🚀 app.js - المايسترو ومركز القيادة (The X-Command Center V12.0)
- * التحديث: داشبورد ديناميكية قابلة للتخصيص، جرس إشعارات تفاعلي، وربط كافة الموديولات.
+ * التحديث: داشبورد ديناميكية، جرس إشعارات تفاعلي، وربط موديول المزامنة المستقل XSync.
  */
 
 const { useState, useEffect, useMemo, useCallback } = React;
@@ -68,7 +68,7 @@ const App = () => {
         return () => clearInterval(alertInterval);
     }, [isReady]);
 
-    // 🗺️ القائمة الرئيسية (تم إضافة كل الموديولات السيادية الجديدة)
+    // 🗺️ القائمة الرئيسية (تم إضافة كل الموديولات السيادية الجديدة وموديول المزامنة)
     const rawMenuGroups = [
         { group: "القيادة والأداء", items: [
             { id: 'dashboard', label: 'لوحة التحكم المركزية', icon: '📊' },
@@ -99,9 +99,8 @@ const App = () => {
             { id: 'notifications', label: 'مركز الإشعارات', icon: '🔔' },
             { id: 'audit', label: 'سجل المراقبة الأمني', icon: '👁️' },
             { id: 'data_import', label: 'استيراد وتصدير (CSV)', icon: '📥' },
-            { id: 'settings', label: 'الإعدادات العامة', icon: '⚙️' }
+            { id: 'settings', label: 'الإعدادات العامة', icon: '⚙️' },
             { id: 'sync', label: 'مركز المزامنة السحابية', icon: '☁️' }
-
         ]}
     ];
 
@@ -136,6 +135,7 @@ const App = () => {
             'audit': window.AuditModule,
             'data_import': window.ImportModule,
             'settings': window.SettingsModule,
+            'sync': window.XSyncModule, // 🔗 تم ربط محرك المزامنة المستقل هنا
         };
 
         const Component = moduleMap[activeTab];
@@ -345,7 +345,7 @@ const DashboardView = ({ currentUser, setActiveTab, rawMenuGroups }) => {
 
     const currentHour = new Date().getHours();
     const greeting = currentHour < 12 ? "صباح الخير" : "مساء الخير";
-    const userName = currentUser?.username || 'يا ';
+    const userName = currentUser?.username || 'يا زعيم';
     const storeName = window.XConfig?.identity?.storeName || 'المؤسسة';
 
     return (
