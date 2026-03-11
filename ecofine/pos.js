@@ -1,10 +1,10 @@
 /**
- * 💻 pos.js - مديول نقطة البيع الذكية (V10.0 Platinum - X-Core Integrated)
+ * 💻 pos.js - مديول نقطة البيع الذكية (V11.0 Platinum - X-Core Integrated)
  * واجهة الهاتف المحمول (Full-Screen Native Fix) لدعم البيع (كاش، شحن، تقسيط)
- * يطبق حسابات الشريعة، السقف الائتماني، والمخاطر لحظياً مع واجهة منيعة ضد انهيار الكيبورد.
+ * يطبق حسابات الشريعة، السقف الائتماني، والمخاطر لحظياً مع دعم مسح الباركود بالكاميرا.
  */
 
-const { useState, useEffect, useMemo, useCallback } = React;
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
 
 const POSModule = ({ currentUser }) => {
     // ==========================================
@@ -29,6 +29,11 @@ const POSModule = ({ currentUser }) => {
     // حالة الإشعارات والتحميل
     const [notification, setNotification] = useState(null);
     const [isProcessingSale, setIsProcessingSale] = useState(false);
+
+    // حالة ماسح الباركود
+    const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const scannerRef = useRef(null);
+    const scannerContainerRef = useRef(null);
 
     // ==========================================
     // 2. تحميل البيانات الأساسية
@@ -160,7 +165,106 @@ const POSModule = ({ currentUser }) => {
     }, [saleType, selectedCustomer, cartTotal, finalTotal, instType, instValue, customers, installmentsData]);
 
     // ==========================================
-    // 5. إتمام العملية (Execution & Auditing)
+    // 5. ماسح الباركود بالكاميرا
+    // ==========================================
+    // تحميل مكتبة html5-qrcode إذا لم تكن موجودة
+    const loadHtml5QrcodeScript = () => {
+        return new Promise((resolve, reject) => {
+            if (window.Html5Qrcode) {
+                resolve();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    };
+
+    const startBarcodeScanner = async () => {
+        try {
+            await loadHtml5QrcodeScript();
+            
+            if (!scannerContainerRef.current) return;
+            
+            // إنشاء كائن الماسح
+            const html5QrCode = new Html5Qrcode("barcode-scanner-container");
+            scannerRef.current = html5QrCode;
+
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 150 },
+                aspectRatio: 1.0,
+                formatsToSupport: [ Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8, 
+                                     Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39,
+                                     Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E,
+                                     Html5QrcodeSupportedFormats.CODABAR, Html5QrcodeSupportedFormats.ITF ]
+            };
+
+            await html5QrCode.start(
+                { facingMode: "environment" }, // الكاميرا الخلفية
+                config,
+                (decodedText, decodedResult) => {
+                    // تم المسح بنجاح
+                    handleBarcodeScanned(decodedText);
+                },
+                (errorMessage) => {
+                    // خطأ في المسح (يمكن تجاهل معظم الأخطاء)
+                    console.log(errorMessage);
+                }
+            );
+        } catch (err) {
+            console.error("خطأ في بدء تشغيل الكاميرا:", err);
+            showNotification('error', '❌ تعذر تشغيل الكاميرا. تأكد من الإذن.');
+            setIsScannerOpen(false);
+        }
+    };
+
+    const stopBarcodeScanner = async () => {
+        if (scannerRef.current) {
+            try {
+                await scannerRef.current.stop();
+                scannerRef.current.clear();
+            } catch (err) {
+                console.error("خطأ في إيقاف الماسح:", err);
+            }
+            scannerRef.current = null;
+        }
+    };
+
+    const handleBarcodeScanned = (barcode) => {
+        // تعيين الباركود في حقل البحث
+        setSearchQuery(barcode);
+        
+        // إغلاق الماسح
+        stopBarcodeScanner();
+        setIsScannerOpen(false);
+        
+        // البحث عن المنتج بهذا الباركود وإضافته تلقائياً إذا كان موجوداً
+        const product = products.find(p => p.barcode === barcode);
+        if (product) {
+            addToCart(product);
+            showNotification('success', `✅ تم إضافة ${product.name} بواسطة الباركود.`);
+        } else {
+            showNotification('info', `🔍 لم يتم العثور على منتج بهذا الباركود: ${barcode}`);
+        }
+    };
+
+    // تنظيف الماسح عند إغلاق النافذة
+    useEffect(() => {
+        if (!isScannerOpen) {
+            stopBarcodeScanner();
+        } else {
+            startBarcodeScanner();
+        }
+        return () => {
+            stopBarcodeScanner();
+        };
+    }, [isScannerOpen]);
+
+    // ==========================================
+    // 6. إتمام العملية (Execution & Auditing)
     // ==========================================
     const processSale = async () => {
         if (cart.length === 0) return showNotification('error', '⚠️ لا يمكن طباعة فاتورة فارغة!');
@@ -273,7 +377,7 @@ const POSModule = ({ currentUser }) => {
                 </div>
             )}
 
-            {/* شريط البحث المطور (دعم الباركود) */}
+            {/* شريط البحث المطور (دعم الباركود) مع زر الكاميرا */}
             <div className="bg-white p-2 rounded-[2rem] border border-slate-200 shadow-sm mb-4 sticky top-0 z-10 flex gap-2 items-center mx-2 mt-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
                 <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl shrink-0">🔍</div>
                 <input 
@@ -284,7 +388,39 @@ const POSModule = ({ currentUser }) => {
                     onChange={(e) => setSearchQuery(e.target.value)} 
                     autoFocus
                 />
+                <button 
+                    onClick={() => setIsScannerOpen(true)} 
+                    className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-xl shrink-0 hover:bg-blue-700 transition-colors shadow-md"
+                    title="مسح باركود بالكاميرا"
+                >
+                    📷
+                </button>
             </div>
+
+            {/* نافذة ماسح الباركود */}
+            {isScannerOpen && (
+                <div className="fixed inset-0 z-[10000] bg-black/90 flex flex-col items-center justify-center p-4">
+                    <div className="bg-white rounded-[2rem] w-full max-w-lg overflow-hidden shadow-2xl">
+                        <div className="bg-slate-900 text-white p-4 flex justify-between items-center">
+                            <h3 className="font-black text-lg">مسح الباركود بالكاميرا</h3>
+                            <button 
+                                onClick={() => setIsScannerOpen(false)} 
+                                className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center text-xl hover:bg-red-500 transition-colors"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div 
+                            id="barcode-scanner-container" 
+                            ref={scannerContainerRef}
+                            className="w-full h-80 bg-black"
+                        ></div>
+                        <div className="p-4 text-center text-sm text-slate-600 font-bold">
+                            وجه الكاميرا نحو الباركود للمسح التلقائي
+                        </div>
+                    </div>
+                </div>
+            )}
             
             {/* معرض المنتجات (Grid) */}
             <div className="flex-1 overflow-y-auto custom-scroll px-2">
