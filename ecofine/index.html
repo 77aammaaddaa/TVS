@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <meta name="theme-color" content="#0f172a">
-    <meta name="description" content="Eco Fine Pro V11.5 - Enterprise ERP & Installment Management System. Powered by Techno Vision Solutions.">
+    <meta name="description" content="Eco Fine Pro V12.0 - Enterprise ERP & Installment Management System. Powered by Techno Vision Solutions.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <title>Eco Fine Pro V11.5 | Enterprise</title>
+    <title>Eco Fine Pro V12.0 | Enterprise</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,14 +37,37 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
         .animate-in { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
         #splash-screen {
             position: fixed; inset: 0; background: #0f172a;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 99999; transition: opacity 0.6s ease-out, visibility 0.6s;
+        }
+
+        /* 🖨️ إعدادات الطباعة السيادية (لإخفاء الواجهة وطباعة التقارير والفواتير فقط) */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-report, #printable-report * {
+                visibility: visible;
+            }
+            #printable-report {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            .print\:hidden {
+                display: none !important;
+            }
         }
     </style>
 </head>
@@ -54,19 +77,21 @@
         <div class="relative w-24 h-24 mb-8">
             <div class="absolute inset-0 border-4 border-slate-800 rounded-full"></div>
             <div class="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
-            <div class="absolute inset-0 flex items-center justify-center font-black text-2xl text-white">X</div>
+            <div class="absolute inset-0 flex items-center justify-center font-black text-2xl text-white">7X</div>
         </div>
         <h1 class="text-white font-black tracking-tighter text-4xl mb-3">Eco Fine <span class="text-blue-500">Pro</span></h1>
         <div class="bg-slate-800/50 text-blue-400 text-[10px] font-black px-4 py-1.5 rounded-lg uppercase tracking-[0.3em] shadow-lg border border-slate-700/50 backdrop-blur-sm">
-            Enterprise V11.5
+            Enterprise V12.0
         </div>
     </div>
 
     <div id="root"></div>
 
-    <script type="text/babel" src="XConfig.js"></script> 
+    <script type="text/babel" src="settings.js"></script>
     <script type="text/babel" src="database.js"></script>
+    <script type="text/babel" src="X-Audit.js"></script>
     <script type="text/babel" src="XCore.js"></script>
+    <script type="text/babel" src="notifications.js"></script>
     
     <script type="text/babel" src="users.js"></script>
 
@@ -77,11 +102,14 @@
     <script type="text/babel" src="suppliers.js"></script>
     <script type="text/babel" src="purchases.js"></script>
     <script type="text/babel" src="pos.js"></script>
-    <script type="text/babel" src="collection.js"></script>
+    
+    <script type="text/babel" src="installments.js"></script>
     <script type="text/babel" src="treasury.js"></script>
+    <script type="text/babel" src="accounting.js"></script>
     <script type="text/babel" src="hr.js"></script>
+    <script type="text/babel" src="marketing.js"></script>
+    <script type="text/babel" src="reports.js"></script>
     <script type="text/babel" src="data_bridge.js"></script>
-    <script type="text/babel" src="settings.js"></script>
 
     <script type="text/babel" src="app.js"></script>
 
