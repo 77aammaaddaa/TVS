@@ -345,7 +345,7 @@ const DashboardView = ({ currentUser, setActiveTab, rawMenuGroups }) => {
 
     const currentHour = new Date().getHours();
     const greeting = currentHour < 12 ? "صباح الخير" : "مساء الخير";
-    const userName = currentUser?.username || 'يا زعيم';
+    const userName = currentUser?.username || 'يا ';
     const storeName = window.XConfig?.identity?.storeName || 'المؤسسة';
 
     return (
