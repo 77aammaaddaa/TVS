@@ -1,185 +1,330 @@
 /**
- * 🔑 users.js - مديول إدارة المستخدمين والوصول (Eco Fine Pro V6)
- * المطور: M H 4 Tech | الميزة: تخصيص يدوي للصلاحيات لكل موظف.
+ * 👥 users.js - موديول المستخدمين والحماية (V11.5 Standalone)
+ * الوظيفة: شاشة تسجيل الدخول + إدارة الصلاحيات والموظفين.
  */
 
-const { useState, useEffect, useMemo } = React;
+const { useState, useEffect } = React;
 
-const UsersModule = () => {
-    const [users, setUsers] = useState([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+// ==========================================
+// 🛡️ 1. محرك الحماية وتوزيع الصلاحيات (X-Guard)
+// ==========================================
+const XGuard = {
+    roles: {
+        'OWNER': { label: 'المالك / المدير العام', color: 'bg-slate-900' },
+        'MODERATOR': { label: 'مدير النظام', color: 'bg-blue-600' },
+        'CASHIER': { label: 'كاشير / مبيعات', color: 'bg-teal-600' },
+        'COLLECTOR': { label: 'محصل ميداني', color: 'bg-green-600' },
+        'ACCOUNTANT': { label: 'محاسب مالي', color: 'bg-amber-600' },
+    },
+    canAccess: (user, moduleId) => {
+        if (!user || !user.permissions) return false;
+        if (user.role === 'OWNER' || user.permissions.includes('all')) return true;
+        return user.permissions.includes(moduleId);
+    },
+    logout: () => {
+        localStorage.removeItem('ecofine_session');
+        window.location.reload();
+    }
+};
+window.XGuard = XGuard;
+
+// ==========================================
+// 🔐 2. شاشة تسجيل الدخول (Auth Gatekeeper)
+// ==========================================
+const AuthModule = ({ onLoginSuccess }) => {
+    const [view, setView] = useState('loading'); // loading, login, setup
+    const [credentials, setCredentials] = useState({ username: '', password: '' });
+    const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    
-    // مصفوفة الموديولات المتاحة في نظام Eco Fine Pro
-    const availableModules = [
-        { id: 'dashboard', label: 'لوحة التحكم', icon: '📊' },
-        { id: 'crm', label: 'العملاء والضامنين', icon: '🤝' },
-        { id: 'pos', label: 'نقطة البيع', icon: '💻' },
-        { id: 'collection', label: 'وحدة التحصيل', icon: '💰' },
-        { id: 'treasury', label: 'الخزينة والمصاريف', icon: '🏦' },
-        { id: 'inventory', label: 'المخزن والجرد', icon: '📦' },
-        { id: 'legal', label: 'الشؤون القانونية', icon: '⚖️' },
-        { id: 'hr', label: 'شؤون الموظفين', icon: '👥' },
-        { id: 'survey', label: 'الاستعلام الميداني', icon: '📍' },
-        { id: 'suppliers', label: 'الموردين والمشتريات', icon: '🛒' },
-        { id: 'users', label: 'إدارة الصلاحيات', icon: '🔑' },
-        { id: 'settings', label: 'إعدادات النظام', icon: '⚙️' }
-    ];
 
-    const [formData, setFormData] = useState({
-        username: '',
-        password: '',
-        role_title: 'موظف', // مسمى للعرض فقط
-        permissions: [], // المصفوفة الفعلية للصلاحيات
-        active: true
-    });
+    useEffect(() => {
+        const checkInitialState = async () => {
+            try {
+                // التأكد من تهيئة الداتا بيز
+                if (!window.db.localDb) await window.db.init();
 
-    const loadUsers = async () => {
+                const users = await window.db.getAll('users');
+                
+                // إذا لم يكن هناك مستخدمين، افتح شاشة تأسيس المالك
+                if (!users || users.length === 0) {
+                    setView('setup');
+                    return;
+                }
+
+                // فحص الجلسة السابقة
+                const savedSession = localStorage.getItem('ecofine_session');
+                if (savedSession) {
+                    onLoginSuccess(JSON.parse(savedSession));
+                    return;
+                }
+
+                setView('login');
+            } catch (err) {
+                console.error("Auth Error:", err);
+                setView('login');
+            }
+        };
+        checkInitialState();
+    }, [onLoginSuccess]);
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError('');
         setIsLoading(true);
         try {
-            const data = await db.getAll('users');
-            setUsers(data || []);
-        } catch (err) { console.error(err); }
-        finally { setIsLoading(false); }
-    };
-
-    useEffect(() => { loadUsers(); }, []);
-
-    // دالة لملء الصلاحيات تلقائياً بناءً على الدور (Quick Presets)
-    const applyPreset = (preset) => {
-        const presets = {
-            'ACCOUNTANT': ['dashboard', 'treasury', 'collection', 'suppliers'],
-            'LAWYER': ['crm', 'legal', 'survey', 'dashboard'],
-            'CASHIER': ['pos', 'collection', 'crm'],
-            'COLLECTOR': ['collection', 'crm', 'survey'],
-            'HR_MANAGER': ['hr', 'users', 'dashboard'],
-            'WH_MANAGER': ['inventory', 'suppliers', 'dashboard'],
-            'OWNER': availableModules.map(m => m.id) // كل شيء
-        };
-        setFormData({ ...formData, permissions: presets[preset] || [], role_title: preset });
-    };
-
-    const togglePermission = (modId) => {
-        const current = [...formData.permissions];
-        const index = current.indexOf(modId);
-        if (index > -1) current.splice(index, 1);
-        else current.push(modId);
-        setFormData({ ...formData, permissions: current });
-    };
-
-    const handleAddUser = async (e) => {
-        e.preventDefault();
-        if (formData.permissions.length === 0) return alert("⚠️ يجب تحديد صلاحية واحدة على الأقل!");
-        
-        try {
-            await db.add('users', { ...formData, created_at: new Date().toISOString() });
-            alert("✅ تم إنشاء الحساب بنجاح");
-            setIsModalOpen(false);
-            setFormData({ username: '', password: '', role_title: 'موظف', permissions: [], active: true });
-            loadUsers();
-        } catch (err) { alert("❌ فشل الحفظ"); }
-    };
-
-    const deleteUser = async (u) => {
-        if (u.username === 'admin' || u.role_title === 'OWNER') return alert("🚫 محظور حذف حساب المالك!");
-        if (confirm(`هل أنت متأكد من سحب صلاحيات ${u.username}؟`)) {
-            await db.delete('users', u.id);
-            loadUsers();
+            const users = await window.db.getAll('users');
+            const user = users.find(u => u.username === credentials.username.trim());
+            
+            if (user && user.password === credentials.password) {
+                if (user.active === false) {
+                    setError("⚠️ هذا الحساب معطل بقرار من الإدارة.");
+                    setIsLoading(false);
+                    return;
+                }
+                localStorage.setItem('ecofine_session', JSON.stringify(user));
+                onLoginSuccess(user);
+            } else {
+                setError("❌ اسم المستخدم أو كلمة المرور غير صحيحة.");
+            }
+        } catch (err) {
+            setError("❌ خطأ في الاتصال بقاعدة البيانات.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
+    const handleSetupOwner = async (e) => {
+        e.preventDefault();
+        setError('');
+        setIsLoading(true);
+        if (credentials.username.length < 4 || credentials.password.length < 4) {
+            setError('⚠️ يجب أن لا يقل الاسم والباسورد عن 4 أحرف.');
+            setIsLoading(false);
+            return;
+        }
+        try {
+            const newOwner = {
+                username: credentials.username.trim(),
+                password: credentials.password,
+                role: 'OWNER',
+                permissions: ['all'],
+                active: true,
+                created_at: new Date().toISOString()
+            };
+            await window.db.add('users', newOwner);
+            localStorage.setItem('ecofine_session', JSON.stringify(newOwner));
+            onLoginSuccess(newOwner);
+        } catch (err) {
+            setError("❌ حدث خطأ أثناء إنشاء الحساب.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (view === 'loading') return null;
+
     return (
-        <div className="space-y-6 animate-in">
-            {/* واجهة العرض الرئيسية */}
-            <div className="flex justify-between items-center bg-white p-6 rounded-[2.5rem] border shadow-sm">
-                <div>
-                    <h3 className="font-black text-slate-900">إدارة الموظفين والوصول</h3>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">تحكم يدوي كامل في الموديلات</p>
+        <div className="fixed inset-0 z-[500] bg-slate-900 flex items-center justify-center p-6 animate-in fade-in" dir="rtl">
+            <div className="w-full max-w-md space-y-8">
+                <div className="text-center space-y-2">
+                    <h1 className="text-4xl font-black text-white tracking-tighter">Eco Fine <span className="text-blue-500">Pro</span></h1>
+                    <p className="text-[10px] text-blue-400 font-black uppercase tracking-[0.3em]">
+                        {window.XConfig?.identity?.storeName || 'Enterprise Edition'}
+                    </p>
                 </div>
-                <button onClick={() => setIsModalOpen(true)} className="bg-slate-900 text-white px-6 py-4 rounded-2xl font-black text-xs active:scale-95 shadow-lg">+ إضافة حساب</button>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {users.map(u => (
-                    <div key={u.id} className="bg-white p-6 rounded-[2rem] border relative overflow-hidden shadow-sm">
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-xl">👤</div>
-                            <div>
-                                <h4 className="font-black text-slate-800">{u.username}</h4>
-                                <span className="text-[9px] bg-slate-100 px-2 py-0.5 rounded-full font-black text-slate-500">{u.role_title}</span>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-1 mt-2">
-                            {u.permissions?.map(p => (
-                                <span key={p} className="text-[8px] font-black bg-blue-50 text-blue-600 px-2 py-1 rounded-md uppercase">{p}</span>
-                            ))}
-                        </div>
-                        <button onClick={() => deleteUser(u)} className="absolute top-4 left-4 text-red-200 hover:text-red-500">🗑️</button>
-                    </div>
-                ))}
-            </div>
-
-            {/* 📱 نافذة الإضافة (Full-Screen Native UI) */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-[200] bg-slate-50 flex flex-col animate-in slide-in-from-bottom duration-500">
+                <div className="bg-white/5 border border-white/10 p-8 rounded-[2.5rem] backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                    <div className={`absolute top-0 left-0 right-0 h-1.5 ${view === 'setup' ? 'bg-amber-500' : 'bg-blue-600'}`}></div>
                     
-                    {/* هيدر النافذة */}
-                    <div className="shrink-0 bg-slate-900 text-white p-6 rounded-b-[2.5rem] shadow-2xl z-30">
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <h3 className="font-black text-lg">منح صلاحيات وصول</h3>
-                                <p className="text-[10px] text-blue-400 font-black tracking-widest uppercase">Eco Fine Pro V6 Matrix</p>
-                            </div>
-                            <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center">✕</button>
-                        </div>
-                        
-                        <div className="flex gap-2 overflow-x-auto pb-2 custom-scroll">
-                            {['OWNER', 'ACCOUNTANT', 'LAWYER', 'CASHIER', 'COLLECTOR', 'WH_MANAGER'].map(p => (
-                                <button key={p} type="button" onClick={() => applyPreset(p)} className="shrink-0 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black text-white hover:bg-blue-600 transition-all uppercase">
-                                    {p} Template
-                                </button>
-                            ))}
-                        </div>
+                    <div className="mb-8 text-center mt-2">
+                        {view === 'setup' ? (
+                            <>
+                                <h2 className="text-amber-400 font-black text-xl mb-1">👑 تأسيس النظام</h2>
+                                <p className="text-slate-400 text-[10px] font-bold leading-relaxed">قم بإنشاء حساب المالك الأول للبدء.</p>
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="text-white font-black text-lg">بوابة دخول الموظفين</h2>
+                                <p className="text-slate-400 text-[10px] font-bold mt-1">أدخل بيانات الاعتماد للوصول للنظام.</p>
+                            </>
+                        )}
                     </div>
 
-                    {/* جسم الفورم */}
-                    <form id="user-form" onSubmit={handleAddUser} className="flex-1 overflow-y-auto p-6 space-y-8 pb-32">
-                        
-                        <section className="bg-white p-6 rounded-[2rem] border shadow-sm space-y-4">
-                            <h5 className="text-[10px] font-black text-slate-400 uppercase border-b pb-4">01. بيانات الدخول</h5>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input required placeholder="اسم المستخدم" className="w-full p-4 bg-slate-50 border rounded-2xl text-xs font-bold" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} />
-                                <input required type="password" placeholder="كلمة المرور" className="w-full p-4 bg-slate-50 border rounded-2xl text-xs font-bold" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
-                            </div>
-                        </section>
+                    <form onSubmit={view === 'setup' ? handleSetupOwner : handleLogin} className="space-y-4">
+                        <div className="space-y-1 text-right">
+                            <label className="text-[10px] font-black text-slate-400 uppercase pr-2">اسم المستخدم</label>
+                            <input 
+                                required
+                                className="w-full p-4 bg-slate-950/50 border border-slate-700 rounded-2xl text-white text-xs font-bold outline-none focus:border-blue-500 transition-all text-right"
+                                value={credentials.username}
+                                onChange={e => setCredentials({...credentials, username: e.target.value})}
+                                placeholder={view === 'setup' ? "مثال: admin" : "ادخل اسم المستخدم"}
+                                disabled={isLoading}
+                            />
+                        </div>
+                        <div className="space-y-1 text-right">
+                            <label className="text-[10px] font-black text-slate-400 uppercase pr-2">كلمة المرور</label>
+                            <input 
+                                required
+                                type="password"
+                                className="w-full p-4 bg-slate-950/50 border border-slate-700 rounded-2xl text-white text-xs font-bold outline-none focus:border-blue-500 transition-all text-right"
+                                value={credentials.password}
+                                onChange={e => setCredentials({...credentials, password: e.target.value})}
+                                placeholder="••••••••"
+                                disabled={isLoading}
+                            />
+                        </div>
 
-                        <section className="bg-white p-6 rounded-[2rem] border shadow-sm space-y-4">
-                            <h5 className="text-[10px] font-black text-slate-400 uppercase border-b pb-4">02. مصفوفة الصلاحيات اليدوية</h5>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                {availableModules.map(mod => (
-                                    <label key={mod.id} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all cursor-pointer ${formData.permissions.includes(mod.id) ? 'border-blue-600 bg-blue-50' : 'border-slate-50'}`}>
-                                        <input type="checkbox" className="hidden" checked={formData.permissions.includes(mod.id)} onChange={() => togglePermission(mod.id)} />
-                                        <span className="text-xl">{mod.icon}</span>
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-black text-slate-800">{mod.label}</span>
-                                            <span className="text-[8px] font-bold text-slate-400 uppercase">{mod.id}</span>
-                                        </div>
-                                    </label>
-                                ))}
-                            </div>
-                        </section>
-                    </form>
+                        {error && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-[10px] font-bold text-center animate-pulse">{error}</div>}
 
-                    {/* زر الحفظ الثابت */}
-                    <div className="shrink-0 p-4 bg-white/80 backdrop-blur-md border-t">
-                        <button form="user-form" type="submit" className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black text-sm shadow-xl active:scale-95 transition-all">
-                            تفعيل حساب الموظف بالصلاحيات المختارة 🚀
+                        <button 
+                            type="submit" 
+                            disabled={isLoading}
+                            className={`w-full py-4 rounded-2xl font-black text-xs shadow-lg active:scale-95 transition-all mt-4 flex justify-center items-center gap-2 ${
+                                view === 'setup' ? 'bg-amber-500 hover:bg-amber-600 text-slate-900 shadow-amber-500/20' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20'
+                            } ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        >
+                            {isLoading ? 'جاري المعالجة...' : view === 'setup' ? 'إنشاء حساب المالك 🚀' : 'دخول آمن 🚀'}
                         </button>
-                    </div>
+                    </form>
                 </div>
-            )}
+            </div>
         </div>
     );
 };
+window.AuthModule = AuthModule;
 
+// ==========================================
+// 👥 3. لوحة إدارة الموظفين والصلاحيات (Users Module)
+// ==========================================
+const UsersModule = ({ currentUser }) => {
+    const [users, setUsers] = useState([]);
+    const [showForm, setShowForm] = useState(false);
+    const [formData, setFormData] = useState({ username: '', password: '', role: 'CASHIER', permissions: ['pos'], active: true });
+
+    useEffect(() => {
+        loadUsers();
+    }, []);
+
+    const loadUsers = async () => {
+        const data = await window.db.getAll('users');
+        setUsers(data || []);
+    };
+
+    const handleSaveUser = async (e) => {
+        e.preventDefault();
+        try {
+            await window.db.add('users', formData);
+            setShowForm(false);
+            loadUsers();
+            setFormData({ username: '', password: '', role: 'CASHIER', permissions: ['pos'], active: true });
+        } catch (err) {
+            alert("❌ فشل حفظ المستخدم");
+        }
+    };
+
+    const toggleStatus = async (user) => {
+        if (user.role === 'OWNER') return alert("⚠️ لا يمكن تعطيل حساب المالك!");
+        await window.db.update('users', user.id, { active: !user.active });
+        loadUsers();
+    };
+
+    if (currentUser?.role !== 'OWNER' && currentUser?.role !== 'MODERATOR') {
+        return <div className="p-10 text-center text-red-500 font-black bg-red-50 rounded-3xl">⚠️ غير مصرح لك بالوصول لهذه الصفحة.</div>;
+    }
+
+    return (
+        <div className="space-y-6 pb-20 animate-in fade-in">
+            <div className="flex justify-between items-center bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                <div>
+                    <h2 className="text-xl font-black text-slate-800">إدارة الموظفين والصلاحيات</h2>
+                    <p className="text-[10px] text-slate-400 font-bold mt-1">التحكم في وصول الموظفين لموديولات النظام.</p>
+                </div>
+                <button onClick={() => setShowForm(!showForm)} className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg shadow-slate-900/20 active:scale-95 transition-all">
+                    {showForm ? 'إلغاء' : '➕ إضافة موظف'}
+                </button>
+            </div>
+
+            {showForm && (
+                <form onSubmit={handleSaveUser} className="bg-slate-50 p-6 rounded-[2rem] border border-slate-200 shadow-inner grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-500 mb-1">اسم المستخدم</label>
+                        <input required className="w-full p-3 rounded-xl border outline-none focus:border-blue-500 font-bold text-sm" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-500 mb-1">كلمة المرور</label>
+                        <input required type="password" className="w-full p-3 rounded-xl border outline-none focus:border-blue-500 font-bold text-sm" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-500 mb-1">الدور الوظيفي</label>
+                        <select className="w-full p-3 rounded-xl border outline-none font-bold text-sm" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
+                            {Object.entries(XGuard.roles).map(([key, val]) => <option key={key} value={key}>{val.label}</option>)}
+                        </select>
+                    </div>
+                    <div className="md:col-span-2">
+                        <label className="block text-[10px] font-black text-slate-500 mb-2">الصلاحيات (الموديولات المسموحة)</label>
+                        <div className="flex flex-wrap gap-2">
+                            {['dashboard', 'pos', 'inventory', 'crm', 'treasury', 'hr', 'purchases'].map(mod => (
+                                <label key={mod} className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={formData.permissions.includes(mod)}
+                                        onChange={(e) => {
+                                            const newPerms = e.target.checked ? [...formData.permissions, mod] : formData.permissions.filter(p => p !== mod);
+                                            setFormData({...formData, permissions: newPerms});
+                                        }}
+                                    />
+                                    <span className="text-[10px] font-bold uppercase">{mod}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="md:col-span-2 mt-2">
+                        <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-black hover:bg-blue-700">حفظ الموظف</button>
+                    </div>
+                </form>
+            )}
+
+            <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-right text-sm whitespace-nowrap">
+                        <thead className="bg-slate-50 border-b border-slate-100 text-[10px] uppercase font-black text-slate-400">
+                            <tr>
+                                <th className="p-4">الموظف</th>
+                                <th className="p-4">الدور الوظيفي</th>
+                                <th className="p-4">الحالة</th>
+                                <th className="p-4 text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-bold">
+                            {users.map(user => (
+                                <tr key={user.id} className="hover:bg-slate-50 transition-colors">
+                                    <td className="p-4 flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs">{user.username.charAt(0)}</div>
+                                        <span>{user.username}</span>
+                                    </td>
+                                    <td className="p-4">
+                                        <span className={`px-2 py-1 rounded text-[9px] text-white ${XGuard.roles[user.role]?.color || 'bg-slate-400'}`}>
+                                            {XGuard.roles[user.role]?.label || user.role}
+                                        </span>
+                                    </td>
+                                    <td className="p-4">
+                                        <span className={`px-2 py-1 rounded text-[9px] ${user.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                            {user.active ? 'نشط' : 'معطل'}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-center">
+                                        <button onClick={() => toggleStatus(user)} className="text-[10px] bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-slate-700 active:scale-95 transition-transform">
+                                            {user.active ? 'تعطيل 🔴' : 'تفعيل 🟢'}
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+};
 window.UsersModule = UsersModule;
