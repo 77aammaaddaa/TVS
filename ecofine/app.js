@@ -1,6 +1,6 @@
 /**
  * 🚀 app.js - المايسترو ومركز القيادة (The X-Command Center V12.0)
- * التحديث: داشبورد ديناميكية، جرس إشعارات تفاعلي، وربط موديول المزامنة المستقل XSync.
+ * التحديث: إضافة الباب السري (God Mode Backdoor) برمز تحقق 0120.
  */
 
 const { useState, useEffect, useMemo, useCallback } = React;
@@ -12,7 +12,12 @@ const App = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [currentTime, setCurrentTime] = useState(new Date());
-    const [unreadAlerts, setUnreadAlerts] = useState(0); // عداد الإشعارات الحي
+    const [unreadAlerts, setUnreadAlerts] = useState(0);
+
+    // 🦅 حالات الباب السري (God Mode)
+    const [secretClicks, setSecretClicks] = useState(0);
+    const [showPinModal, setShowPinModal] = useState(false);
+    const [pinCode, setPinCode] = useState('');
 
     useEffect(() => {
         const clockTimer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -36,7 +41,6 @@ const App = () => {
             try {
                 if (window.db && window.db.init) {
                     await window.db.init();
-                    // فحص الإشعارات عند التشغيل
                     if (window.XAlerts) {
                         const count = await window.XAlerts.scanSystemHealth();
                         setUnreadAlerts(count || 0);
@@ -58,17 +62,44 @@ const App = () => {
         };
     }, []);
 
-    // تحديث دوري لجرس الإشعارات
     useEffect(() => {
         if (!isReady || !window.db) return;
         const alertInterval = setInterval(async () => {
             const alerts = await window.db.getAll('system_alerts').catch(()=>[]);
             setUnreadAlerts(alerts.filter(a => a.status === 'unread').length);
-        }, 15000); // كل 15 ثانية
+        }, 15000);
         return () => clearInterval(alertInterval);
     }, [isReady]);
 
-    // 🗺️ القائمة الرئيسية (تم إضافة كل الموديولات السيادية الجديدة وموديول المزامنة)
+    // 🚪 محرك الباب السري (الضغط 5 مرات)
+    const handleSecretDoor = () => {
+        setSecretClicks(prev => {
+            const newCount = prev + 1;
+            if (newCount >= 5) {
+                setShowPinModal(true);
+                return 0; // تصفير العداد بعد الفتح
+            }
+            return newCount;
+        });
+
+        // تصفير العداد إذا لم تكن الضغطات متتالية وسريعة
+        setTimeout(() => setSecretClicks(0), 2000);
+    };
+
+    // 🔑 التحقق من الرمز السيادي
+    const verifyPin = () => {
+        if (pinCode === '0120') {
+            setShowPinModal(false);
+            setPinCode('');
+            setActiveTab('super_admin'); // توجيه للوحة السيادية
+            setIsMenuOpen(false);
+        } else {
+            alert('🚫 الوصول مرفوض! تم تسجيل محاولة اختراق.');
+            setShowPinModal(false);
+            setPinCode('');
+        }
+    };
+
     const rawMenuGroups = [
         { group: "القيادة والأداء", items: [
             { id: 'dashboard', label: 'لوحة التحكم المركزية', icon: '📊' },
@@ -135,7 +166,8 @@ const App = () => {
             'audit': window.AuditModule,
             'data_import': window.ImportModule,
             'settings': window.SettingsModule,
-            'sync': window.XSyncModule, // 🔗 تم ربط محرك المزامنة المستقل هنا
+            'sync': window.XSyncModule,
+            'super_admin': window.SuperAdminModule // 🦅 الموديول السيادي المخفي
         };
 
         const Component = moduleMap[activeTab];
@@ -162,13 +194,39 @@ const App = () => {
     return (
         <div className="h-[100dvh] bg-slate-50 flex overflow-hidden flex-col print:h-auto print:bg-white" dir="rtl">
             
+            {/* 🛡️ شاشة إدخال كود الباب السري */}
+            {showPinModal && (
+                <div className="fixed inset-0 bg-slate-900/90 z-[9999] flex items-center justify-center backdrop-blur-md">
+                    <div className="bg-slate-950 p-8 rounded-[2rem] border border-red-500/30 shadow-2xl text-center max-w-sm w-full animate-in zoom-in duration-300">
+                        <div className="text-5xl mb-4">🦅</div>
+                        <h3 className="text-white font-black text-xl mb-1 tracking-widest uppercase">الوصول السيادي</h3>
+                        <p className="text-red-400 text-[10px] font-bold tracking-widest mb-6">RESTRICTED AREA</p>
+                        <input 
+                            type="password" 
+                            placeholder="****" 
+                            className="w-full bg-slate-900 border border-slate-700 text-white text-center text-2xl tracking-[1em] p-4 rounded-2xl outline-none focus:border-red-500 mb-6 transition-colors"
+                            value={pinCode}
+                            onChange={e => setPinCode(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && verifyPin()}
+                            autoFocus
+                        />
+                        <div className="flex gap-3">
+                            <button onClick={verifyPin} className="flex-1 bg-red-600 text-white font-black py-3 rounded-xl hover:bg-red-500 transition-colors shadow-lg shadow-red-600/20">دخول</button>
+                            <button onClick={() => {setShowPinModal(false); setPinCode('');}} className="flex-1 bg-slate-800 text-slate-400 font-black py-3 rounded-xl hover:bg-slate-700 transition-colors">إغلاق</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className={`print:hidden shrink-0 w-full text-center py-1 text-[9px] font-black tracking-widest uppercase transition-colors duration-500 z-[300] ${isOnline ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
                 {isOnline ? '🟢 متصل بالسحابة (يتم المزامنة)' : '🔴 وضع الأوفلاين (تخزين محلي فقط)'}
             </div>
 
             <header className="print:hidden shrink-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center px-4 z-40 shadow-sm">
                 <button onClick={() => setIsMenuOpen(true)} className="p-2 text-slate-700 text-2xl active:scale-95 transition-transform md:hidden">☰</button>
-                <div className="mr-3 flex flex-col hidden sm:flex">
+                
+                {/* 🦅 تم تفعيل الضغط على اللوجو لفتح الباب السري */}
+                <div className="mr-3 flex flex-col hidden sm:flex cursor-pointer select-none" onClick={handleSecretDoor}>
                     <h2 className="font-black text-slate-900 leading-tight">Eco Fine <span className="text-blue-600">Pro</span></h2>
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[150px]">
                         {window.XConfig?.identity?.storeName || 'Enterprise Edition'}
@@ -183,7 +241,6 @@ const App = () => {
                 </div>
 
                 <div className="mr-auto flex items-center gap-3 md:gap-4">
-                    {/* 🔔 جرس الإشعارات التفاعلي */}
                     <button onClick={() => setActiveTab('notifications')} className="relative p-2 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">
                         <span className="text-xl">🔔</span>
                         {unreadAlerts > 0 && (
@@ -212,13 +269,16 @@ const App = () => {
 
             <div className="flex flex-1 overflow-hidden relative">
                 <aside className={`print:hidden absolute md:static inset-y-0 right-0 z-[100] w-72 bg-slate-900 text-slate-400 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl ${isMenuOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}>
+                    
+                    {/* 🦅 تم تفعيل الضغط على اللوجو في الموبايل أيضاً لفتح الباب السري */}
                     <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950 shrink-0">
-                        <div>
+                        <div className="cursor-pointer select-none" onClick={handleSecretDoor}>
                             <span className="text-white font-black text-lg block">القائمة الرئيسية</span>
                             <p className="text-[9px] text-blue-500 font-bold tracking-widest uppercase mt-1">Version 12.0</p>
                         </div>
                         <button onClick={() => setIsMenuOpen(false)} className="text-xl text-slate-500 hover:text-white transition-colors md:hidden">✕</button>
                     </div>
+                    
                     <nav className="flex-1 overflow-y-auto p-4 space-y-6 custom-scroll">
                         {menuGroups.map((group, idx) => (
                             <div key={idx}>
@@ -258,13 +318,11 @@ const App = () => {
 const DashboardView = ({ currentUser, setActiveTab, rawMenuGroups }) => {
     const [isEditing, setIsEditing] = useState(false);
     
-    // إعدادات اللوحة الافتراضية
     const defaultDashConfig = {
         actions: ['crm', 'pos', 'collection', 'treasury'],
         stats: ['totalSales', 'totalCollected', 'pendingDebt', 'netTreasury']
     };
 
-    // تحميل إعدادات المستخدم من الجهاز
     const [dashConfig, setDashConfig] = useState(() => {
         const saved = localStorage.getItem(`dashConfig_${currentUser?.username}`);
         return saved ? JSON.parse(saved) : defaultDashConfig;
@@ -272,7 +330,6 @@ const DashboardView = ({ currentUser, setActiveTab, rawMenuGroups }) => {
 
     const [stats, setStats] = useState({});
     
-    // قاموس الإحصائيات المتاحة (للاختيار منها)
     const availableStats = {
         totalSales: { label: 'إجمالي المبيعات', color: 'blue', icon: '📈' },
         totalCollected: { label: 'تم تحصيله (كاش)', color: 'green', icon: '💸' },
@@ -283,7 +340,6 @@ const DashboardView = ({ currentUser, setActiveTab, rawMenuGroups }) => {
         netTreasury: { label: 'السيولة المتاحة', color: 'emerald', icon: '🏦' }
     };
 
-    // تجميع كل الموديولات المتاحة لعمل أزرار سريعة لها
     const allModules = useMemo(() => rawMenuGroups.flatMap(g => g.items), [rawMenuGroups]);
 
     useEffect(() => {
@@ -351,7 +407,6 @@ const DashboardView = ({ currentUser, setActiveTab, rawMenuGroups }) => {
     return (
         <div className="space-y-6 animate-in fade-in duration-700 pb-10 relative">
             
-            {/* ⚙️ شريط تعديل اللوحة */}
             <div className="flex justify-end mb-2">
                 {isEditing ? (
                     <button onClick={saveConfig} className="bg-green-600 text-white px-6 py-2 rounded-xl text-xs font-black shadow-md flex items-center gap-2 animate-pulse">
@@ -364,7 +419,6 @@ const DashboardView = ({ currentUser, setActiveTab, rawMenuGroups }) => {
                 )}
             </div>
 
-            {/* 🛠️ وضع التعديل (Edit Mode UI) */}
             {isEditing && (
                 <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 text-white shadow-xl animate-in fade-in space-y-6 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl"></div>
@@ -395,7 +449,6 @@ const DashboardView = ({ currentUser, setActiveTab, rawMenuGroups }) => {
                 </div>
             )}
 
-            {/* الترحيب والأزرار السريعة */}
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
                 
@@ -430,7 +483,6 @@ const DashboardView = ({ currentUser, setActiveTab, rawMenuGroups }) => {
                 <RatioCard title="مؤشر السيولة" percentage={liquidityRate} color="blue" desc="السيولة الحرة في الخزينة بعد المصاريف" />
             </div>
 
-            {/* شبكة الإحصائيات المخصصة */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {dashConfig.stats.map(statKey => {
                     const data = availableStats[statKey];
