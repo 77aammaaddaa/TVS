@@ -1,6 +1,6 @@
 /**
- * 💻 pos.js - مديول نقطة البيع الذكية (V12.2 Diamond - AI-Powered)
- * تم إصلاح استجابة الشاشات، تثبيت زر التأكيد، وتطوير كروت المنتجات
+ * 💻 pos.js - مديول نقطة البيع الذكية (V12.3 Diamond - AI-Powered)
+ * إضافة نظام عرض بيانات العميل، الحد الائتماني، التقييم، الضامنين، وزر إضافة عميل جديد
  */
 
 const { useState, useEffect, useMemo, useCallback, useRef } = React;
@@ -151,8 +151,30 @@ const POSModule = ({ currentUser }) => {
     }, [products, searchQuery, selectedCategory, sortBy, salesStats, saleType, getPrice]);
 
     // ==========================================
-    // 5. محرك فحص إكس كور (X-Core Validator)
+    // 5. محرك فحص إكس كور وبيانات العميل النشط
     // ==========================================
+    
+    // جلب بيانات العميل النشط لعرضها في بطاقة العميل
+    const activeCustomerData = useMemo(() => {
+        if (!selectedCustomer) return null;
+        const customer = customers.find(c => c.id === selectedCustomer);
+        if (!customer) return null;
+
+        const customerInsts = installmentsData.filter(i => i.customer_id === selectedCustomer);
+        const currentDebtTotal = customerInsts.reduce((sum, i) => sum + Number(i.amount), 0);
+        const totalPaid = customerInsts.filter(i => i.status === 'paid').reduce((sum, i) => sum + Number(i.amount), 0);
+        const activeDebt = currentDebtTotal - totalPaid; // المديونية المتبقية غير المسددة
+
+        // افتراض الحد الائتماني من الدخل الشهري إذا لم يكن محدداً بشكل صريح
+        const creditLimit = customer.credit_limit || (Number(customer.monthly_income || 0) * 3) || 5000;
+
+        return {
+            ...customer,
+            activeDebt,
+            creditLimit
+        };
+    }, [selectedCustomer, customers, installmentsData]);
+
     const xCoreValidation = useMemo(() => {
         if (saleType !== 'installment' || cartTotal === 0) return null;
         const minInvoice = window.XConfig?.salesTerms?.minInvoiceAmount || 1000;
@@ -185,6 +207,20 @@ const POSModule = ({ currentUser }) => {
             return { error: "❌ خطأ في حسابات المحرك: " + err.message };
         }
     }, [saleType, selectedCustomer, cartTotal, finalTotal, instType, instValue, customers, installmentsData]);
+
+    // دالة إضافة عميل جديد
+    const handleAddCustomer = () => {
+        // فحص إذا كان النظام يحتوي على ميزة التنقل بين الموديولات (Tabs)
+        if (typeof window.switchTab === 'function') {
+            setIsCheckoutOpen(false);
+            window.switchTab('crm'); // التوجيه إلى قسم العملاء
+        } else {
+            showNotification('info', '💡 يرجى الذهاب إلى شاشة "العملاء" لإضافة عميل جديد.');
+            // محاولة توجيه عبر الـ Hash في حال كان التطبيق يعتمد عليه
+            window.location.hash = '#crm';
+            setIsCheckoutOpen(false);
+        }
+    };
 
     // ==========================================
     // 6. ماسح الباركود
@@ -295,7 +331,6 @@ const POSModule = ({ currentUser }) => {
     // 8. واجهة المستخدم المحدثة (Responsive UI)
     // ==========================================
     return (
-        // تقييد الحاوية الرئيسية لتكون بحجم الشاشة وتمنع التمرير العشوائي للمتصفح (حل مشكلة خروج العناصر)
         <div className="h-full flex flex-col bg-slate-50 overflow-hidden relative font-sans">
             
             {/* الإشعارات */}
@@ -305,10 +340,9 @@ const POSModule = ({ currentUser }) => {
                 </div>
             )}
 
-            {/* الهيدر المحكم (ثابت في الأعلى لا يتحرك) */}
+            {/* الهيدر المحكم */}
             <header className="bg-white border-b border-slate-200 px-4 py-3 shrink-0 z-30 shadow-sm flex flex-col md:flex-row gap-3">
                 <div className="flex items-center gap-3 w-full">
-                    {/* شريط البحث المدمج بالكاميرا */}
                     <div className="flex-1 flex items-center bg-slate-100/80 rounded-2xl px-3 py-1.5 border border-slate-200 focus-within:border-blue-500 focus-within:bg-white transition-all">
                         <span className="text-xl text-slate-400">🔍</span>
                         <input 
@@ -321,7 +355,6 @@ const POSModule = ({ currentUser }) => {
                         </button>
                     </div>
 
-                    {/* أيقونة السلة في الهيدر (تحل مشكلة اختفائها) */}
                     <button onClick={() => setIsCheckoutOpen(true)} className="relative shrink-0 w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl shadow-sm border border-blue-100 hover:bg-blue-600 hover:text-white transition-all">
                         🛒
                         {cart.length > 0 && (
@@ -332,7 +365,6 @@ const POSModule = ({ currentUser }) => {
                     </button>
                 </div>
 
-                {/* أدوات الفلترة والترتيب السريعة */}
                 <div className="flex items-center gap-2 overflow-x-auto custom-scroll pb-1 hide-scrollbar">
                     <select className="bg-slate-100 border-none rounded-xl px-4 py-2 text-xs font-bold text-slate-700 outline-none min-w-[120px]" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
                         <option value="all">التصنيفات</option>
@@ -351,7 +383,7 @@ const POSModule = ({ currentUser }) => {
                 </div>
             </header>
 
-            {/* منطقة المنتجات المقيدة بالتمرير الداخلي فقط (يمنع المتصفح من التعليق) */}
+            {/* منطقة المنتجات */}
             <div className="flex-1 overflow-y-auto custom-scroll p-4 pb-32">
                 {viewMode === 'grid' ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -364,7 +396,6 @@ const POSModule = ({ currentUser }) => {
                                     {p.stock <= 3 && <span className="bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md">شبه نافذ</span>}
                                     {salesStats[p.id] > 50 && <span className="bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md">🔥</span>}
                                 </div>
-                                {/* منطقة الصورة بتصميم مبهر */}
                                 <div className="w-full aspect-[4/3] bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-2xl mb-3 flex items-center justify-center overflow-hidden">
                                     {p.image ? <img src={p.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <span className="text-4xl opacity-50 drop-shadow-sm">📦</span>}
                                 </div>
@@ -402,7 +433,7 @@ const POSModule = ({ currentUser }) => {
                 )}
             </div>
 
-            {/* شريط السلة العائم السريع من الأسفل (مؤمّن داخل الشاشة) */}
+            {/* شريط السلة العائم السريع */}
             {cart.length > 0 && !isCheckoutOpen && (
                 <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm bg-slate-900 text-white rounded-[2rem] p-2 pr-4 flex justify-between items-center shadow-[0_10px_40px_rgba(0,0,0,0.3)] z-40 border border-slate-700/50 backdrop-blur-md">
                     <div className="flex flex-col">
@@ -415,10 +446,9 @@ const POSModule = ({ currentUser }) => {
                 </div>
             )}
 
-            {/* شاشة الدفع (مبنية كطبقة فوقية مقيدة بـ Flex Box لضمان ظهور الفوتر) */}
+            {/* شاشة الدفع */}
             {isCheckoutOpen && (
                 <div className="absolute inset-0 z-[9999] bg-slate-50 flex flex-col font-sans animate-in slide-in-from-bottom-8 duration-300">
-                    {/* Header الدفع */}
                     <div className="bg-slate-900 text-white px-5 py-4 shrink-0 flex justify-between items-center shadow-md">
                         <div>
                             <h3 className="font-black text-lg">إصدار الفاتورة</h3>
@@ -427,7 +457,6 @@ const POSModule = ({ currentUser }) => {
                         <button onClick={() => setIsCheckoutOpen(false)} className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center text-xl hover:bg-red-500 transition-colors">✕</button>
                     </div>
 
-                    {/* منطقة محتوى الدفع (قابلة للتمرير الداخلي) */}
                     <div className="flex-1 overflow-y-auto custom-scroll p-4 md:p-6 pb-10">
                         <div className="max-w-3xl mx-auto space-y-6">
                             
@@ -474,16 +503,47 @@ const POSModule = ({ currentUser }) => {
                                             </div>
                                         )}
                                         {saleType !== 'cash' && (
-                                            <div>
-                                                <label className="text-[10px] font-black text-slate-500 block mb-1">العميل المُسجل</label>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <label className="text-[10px] font-black text-slate-500 block">العميل المُسجل</label>
+                                                    <button onClick={handleAddCustomer} className="text-[10px] bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-200 transition-colors font-bold flex items-center gap-1">
+                                                        <span>➕</span> أضف عميل جديد
+                                                    </button>
+                                                </div>
                                                 <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-500" value={selectedCustomer} onChange={e => setSelectedCustomer(e.target.value)}>
                                                     <option value="">-- اختر عميلاً --</option>
                                                     {customers.map(c => <option key={c.id} value={c.id}>{c.full_name} (سكور: {c.credit_score})</option>)}
                                                 </select>
+
+                                                {/* بطاقة عرض بيانات العميل الذكية عند اختياره */}
+                                                {activeCustomerData && (
+                                                    <div className="mt-3 bg-blue-50/50 border border-blue-100 rounded-xl p-4 grid grid-cols-2 gap-3 text-xs font-bold animate-in fade-in zoom-in-95 duration-200">
+                                                        <div className="col-span-2 flex justify-between items-center border-b border-blue-100 pb-3 mb-1">
+                                                            <span className="text-blue-900 font-black text-sm flex items-center gap-2">👤 {activeCustomerData.full_name}</span>
+                                                            <span className={`px-2 py-1 rounded-md text-[10px] font-black ${activeCustomerData.credit_score >= 80 ? 'bg-green-100 text-green-700' : activeCustomerData.credit_score >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                                                                ⭐ تقييم: {activeCustomerData.credit_score}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[9px] text-slate-400 uppercase">الحد الائتماني</span>
+                                                            <span className="text-slate-800 text-sm mt-0.5">{activeCustomerData.creditLimit.toLocaleString()} ج</span>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[9px] text-slate-400 uppercase">المديونية الحالية</span>
+                                                            <span className={`text-sm mt-0.5 ${activeCustomerData.activeDebt > 0 ? 'text-red-600' : 'text-green-600'}`}>{activeCustomerData.activeDebt.toLocaleString()} ج</span>
+                                                        </div>
+                                                        <div className="col-span-2 flex flex-col pt-2 border-t border-blue-100 mt-1">
+                                                            <span className="text-[9px] text-slate-400 uppercase">بيانات الضامن المعتمد</span>
+                                                            <span className="text-slate-700 mt-1 flex items-center gap-1">
+                                                                🛡️ {activeCustomerData.guarantor_name ? `${activeCustomerData.guarantor_name} ${activeCustomerData.guarantor_phone ? `(${activeCustomerData.guarantor_phone})` : ''}` : 'لا يوجد ضامن مسجل في الملف'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                         {saleType === 'installment' && (
-                                            <div className="grid grid-cols-2 gap-3">
+                                            <div className="grid grid-cols-2 gap-3 pt-2">
                                                 <div>
                                                     <label className="text-[10px] font-black text-slate-500 block mb-1">نظام الدفع</label>
                                                     <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" value={instType} onChange={e => setInstType(e.target.value)}>
@@ -524,7 +584,6 @@ const POSModule = ({ currentUser }) => {
                         </div>
                     </div>
 
-                    {/* الفوتر الثابت لشاشة الدفع (مؤمن ومثبت بفضل shrink-0 مع مساحة أمان pb-6) */}
                     <div className="shrink-0 bg-white border-t border-slate-200 p-4 pb-6 md:p-6 shadow-[0_-10px_30px_rgba(0,0,0,0.06)] z-50">
                         <div className="max-w-3xl mx-auto flex items-center gap-4">
                             <div className="shrink-0 text-right pr-2 border-l border-slate-200 pl-4">
@@ -547,7 +606,6 @@ const POSModule = ({ currentUser }) => {
                 </div>
             )}
 
-            {/* نافذة ماسح الباركود المقيدة */}
             {isScannerOpen && (
                 <div className="absolute inset-0 z-[10000] bg-black/95 flex flex-col items-center justify-center p-4">
                     <div className="w-full max-w-sm bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
