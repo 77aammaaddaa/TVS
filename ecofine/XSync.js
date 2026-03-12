@@ -1,5 +1,5 @@
 /**
- * ☁️ XSync.js - محرك المزامنة السحابية والربط المتقدم (Enterprise V12.0)
+ * ☁️ XSync.js - محرك المزامنة السحابية والربط المتقدم (Enterprise V14.0 Multi-Tenant)
  * المطور: Techno Vision Solutions (Mr. X)
  * الوظيفة: إدارة الربط (Supabase / Google Sheets)، المزامنة التلقائية، وسجل نقل البيانات.
  */
@@ -28,8 +28,8 @@ const XSyncModule = ({ currentUser }) => {
     const [pendingConfig, setPendingConfig] = useState(null);
     const [showScriptModal, setShowScriptModal] = useState(false);
 
-    // ⛔ حماية سيادية: هذه الشاشة للمالك (المطور) فقط
-    if (currentUser?.role !== 'OWNER') {
+    // ⛔ حماية سيادية: هذه الشاشة للمالك (المطور) أو المشرف العام فقط
+    if (currentUser?.role !== 'OWNER' && currentUser?.role !== 'Admin') {
         if (window.XAudit) window.XAudit.log('محاولة اختراق', 'المزامنة', `حاول ${currentUser?.username} فتح إعدادات السحابة`, 'critical');
         return (
             <div className="flex flex-col items-center justify-center py-20 bg-red-50 rounded-[2.5rem] border border-red-100">
@@ -45,8 +45,8 @@ const XSyncModule = ({ currentUser }) => {
         const loadLogs = async () => {
             if (window.db && window.db.getAll) {
                 const logs = await window.db.getAll('audit_logs').catch(() => []);
-                const syncEvents = logs.filter(l => l.module === 'المزامنة');
-                setSyncLogs(syncEvents.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)));
+                const syncEvents = logs.filter(l => l.module === 'المزامنة' || l.action === 'SYNC');
+                setSyncLogs(syncEvents.sort((a,b) => new Date(b.timestamp || b.created_at) - new Date(a.timestamp || a.created_at)));
             }
         };
         loadLogs();
@@ -81,8 +81,11 @@ const XSyncModule = ({ currentUser }) => {
             // 3. سحب البيانات من السحابة الجديدة
             if (navigator.onLine && window.db && window.db.pullAllFromCloud) {
                 logSyncEvent('warning', `جاري سحب قاعدة البيانات من السحابة الجديدة...`);
-                // ملاحظة: في بيئة العمل الحقيقية سيتم إعادة تهيئة قاعدة البيانات هنا
-                // await window.db.reInitialize(pendingConfig.supabaseUrl, pendingConfig.supabaseKey);
+                // يتم حقن العميل الجديد في الذاكرة ليقوم db.js باستخدامه
+                if (pendingConfig.activeProvider === 'supabase') {
+                    window._supabase = window.supabase.createClient(pendingConfig.supabaseUrl, pendingConfig.supabaseKey);
+                }
+                await window.db.pullAllFromCloud();
             }
 
             logSyncEvent('success', `تم تفعيل الربط السحابي مع ${pendingConfig.activeProvider} بنجاح.`);
@@ -114,7 +117,7 @@ const XSyncModule = ({ currentUser }) => {
                 
                 const now = new Date().toLocaleString('ar-EG');
                 localStorage.setItem('last_sync_time', now);
-                logSyncEvent('success', 'اكتملت دورة المزامنة الشاملة (Push/Pull) بنجاح.');
+                logSyncEvent('success', 'اكتملت دورة المزامنة الشاملة (Push/Pull) بنجاح للنظام المالي.');
                 alert("☁️ اكتملت المزامنة وتأمين البيانات بنجاح.");
             }
         } catch (err) {
@@ -127,7 +130,7 @@ const XSyncModule = ({ currentUser }) => {
 
     const logSyncEvent = (severity, details) => {
         if (window.XAudit) {
-            window.XAudit.log('حدث مزامنة', 'المزامنة', details, severity, currentUser?.username);
+            window.XAudit.log('حدث مزامنة', 'المزامنة', details, severity, currentUser?.username || 'System');
         }
     };
 
@@ -135,9 +138,9 @@ const XSyncModule = ({ currentUser }) => {
         setConfig(prev => ({ ...prev, [key]: value }));
     };
 
-    // كود الجوجل سكريبت الجاهز للنسخ
+    // كود الجوجل سكريبت الجاهز للنسخ (متوافق مع جداول V14.0)
     const gasCode = `/**
- * Eco Fine Pro V12.0 - Google Sheets Database Engine
+ * Eco Fine Pro V14.0 (Multi-Tenant ERP) - Google Sheets Database Engine
  * قم بنسخ هذا الكود بالكامل ولصقه في (Extensions > Apps Script)
  */
 function doPost(e) {
@@ -180,16 +183,16 @@ function doPost(e) {
                 <div className="absolute top-[-50%] left-[-10%] w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
                 <div className="relative z-10">
                     <h2 className="text-2xl font-black flex items-center gap-3">
-                        <span className="text-3xl">☁️</span> مركز المزامنة (X-Sync Engine)
+                        <span className="text-3xl">☁️</span> مركز المزامنة (X-Sync Engine V14)
                     </h2>
-                    <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-2">تحكم كامل في قواعد البيانات السحابية وضمان استقرار البيانات.</p>
+                    <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-2">تحكم كامل في قواعد البيانات السحابية وضمان استقرار بيانات المؤسسة.</p>
                 </div>
                 
                 <div className="relative z-10 flex gap-3 w-full md:w-auto">
                     <div className="bg-black/30 px-5 py-3 rounded-2xl border border-white/10 text-center flex-1">
                         <span className="block text-[8px] text-slate-400 font-black uppercase tracking-widest mb-1">المزود النشط</span>
                         <span className={`text-xs font-black ${config.activeProvider === 'supabase' ? 'text-emerald-400' : config.activeProvider === 'gsheets' ? 'text-blue-400' : 'text-red-400'}`}>
-                            {config.activeProvider === 'supabase' ? 'Supabase' : config.activeProvider === 'gsheets' ? 'Google Sheets' : 'Local Only (غير متصل)'}
+                            {config.activeProvider === 'supabase' ? 'Supabase (Isolated)' : config.activeProvider === 'gsheets' ? 'Google Sheets' : 'Local Only (غير متصل)'}
                         </span>
                     </div>
                     <button onClick={forceSyncNow} disabled={isProcessing} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl text-xs font-black shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2 flex-1">
@@ -209,13 +212,13 @@ function doPost(e) {
                             <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 text-2xl font-black">⚡</div>
                             <div>
                                 <h3 className="font-black text-slate-800">قاعدة بيانات Supabase</h3>
-                                <p className="text-[9px] font-bold text-slate-400 mt-1">سريعة، تدعم Real-time للشركات الكبرى</p>
+                                <p className="text-[9px] font-bold text-slate-400 mt-1">سريعة، معزولة للمؤسسة، تدعم Real-time</p>
                             </div>
                         </div>
                     </div>
 
                     <div className="space-y-4 mb-6">
-                        <InputField label="Project URL (رابط المشروع)" value={config.supabaseUrl} onChange={v => updateConfigVal('supabaseUrl', v)} placeholder="https://xxxx.supabase.co" />
+                        <InputField label="Project URL (رابط مشروع المؤسسة)" value={config.supabaseUrl} onChange={v => updateConfigVal('supabaseUrl', v)} placeholder="https://xxxx.supabase.co" />
                         <InputField label="Anon Key (مفتاح الربط)" type="password" value={config.supabaseKey} onChange={v => updateConfigVal('supabaseKey', v)} placeholder="eyJh..." />
                     </div>
 
@@ -237,7 +240,7 @@ function doPost(e) {
                             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-2xl font-black">📊</div>
                             <div>
                                 <h3 className="font-black text-slate-800">قاعدة بيانات Google Sheets</h3>
-                                <p className="text-[9px] font-bold text-slate-400 mt-1">مجانية، تعمل كجداول إكسيل، سهلة التعديل</p>
+                                <p className="text-[9px] font-bold text-slate-400 mt-1">مجانية، للتقارير والنسخ الاحتياطي الخفيف</p>
                             </div>
                         </div>
                     </div>
@@ -303,9 +306,11 @@ function doPost(e) {
                                     <p className={`text-[10px] font-black ${log.severity === 'critical' ? 'text-red-400' : log.severity === 'warning' ? 'text-amber-400' : 'text-emerald-400'}`}>
                                         {log.severity === 'critical' ? '❌ فشل مزامنة' : log.severity === 'warning' ? '⚠️ تنبيه' : '✅ مزامنة ناجحة'}
                                     </p>
-                                    <span className="text-[8px] text-slate-500 font-mono" dir="ltr">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                                    <span className="text-[8px] text-slate-500 font-mono" dir="ltr">
+                                        {new Date(log.timestamp || log.created_at).toLocaleTimeString()}
+                                    </span>
                                 </div>
-                                <p className="text-[10px] text-slate-300 font-bold">{log.details}</p>
+                                <p className="text-[10px] text-slate-300 font-bold">{log.details || log.message || log.action}</p>
                             </div>
                         )) : (
                             <div className="h-full flex flex-col justify-center items-center text-slate-500 opacity-50">
@@ -329,7 +334,7 @@ function doPost(e) {
                         <div className="p-6 md:p-8 space-y-4">
                             <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-center">
                                 <p className="text-[11px] font-black text-amber-900 leading-relaxed">
-                                    أنت على وشك تغيير وجهة قاعدة البيانات السحابية. لمنع فقدان أي فواتير مسجلة، سيقوم النظام الآن بإجبار المتصفح على عمل <span className="bg-amber-200 px-1 rounded">(مزامنة كاملة - Push)</span> للسحابة الحالية، ثم <span className="bg-amber-200 px-1 rounded">(سحب بيانات - Pull)</span> من السحابة الجديدة.
+                                    أنت على وشك تغيير وجهة قاعدة البيانات السحابية للنظام المالي. لمنع فقدان أي عقود أو فواتير مسجلة، سيقوم النظام الآن بإجبار المتصفح على عمل <span className="bg-amber-200 px-1 rounded">(مزامنة كاملة - Push)</span> للسحابة الحالية، ثم <span className="bg-amber-200 px-1 rounded">(سحب بيانات - Pull)</span> من السحابة الجديدة.
                                 </p>
                             </div>
                             <p className="text-[10px] font-bold text-slate-500 text-center">هل توافق على المزامنة وتطبيق التغييرات؟</p>
@@ -359,7 +364,7 @@ function doPost(e) {
                             <p className="text-[10px] text-slate-400 font-bold mb-4 leading-relaxed">
                                 1. افتح ملف جوجل شيت جديد.<br/>
                                 2. اذهب إلى <span className="text-white">Extensions</span> ثم <span className="text-white">Apps Script</span>.<br/>
-                                3. انسخ الكود التالي بالكامل والصقه هناك، ثم اضغط <span className="text-white">Deploy > Web app</span>.<br/>
+                                3. انسخ الكود التالي بالكامل والصقه هناك، ثم اضغط <span className="text-white">Deploy &gt; Web app</span>.<br/>
                                 4. انسخ الرابط الناتج وضعه في خانة (Webhook URL) في الإعدادات.
                             </p>
                             <div className="relative group">
@@ -367,7 +372,7 @@ function doPost(e) {
                                     {gasCode}
                                 </pre>
                                 <button 
-                                    onClick={() => { navigator.clipboard.writeText(gasCode); alert("تم نسخ الكود الحافظة!"); }}
+                                    onClick={() => { navigator.clipboard.writeText(gasCode); alert("تم نسخ الكود للحافظة!"); }}
                                     className="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[9px] font-black opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                                 >
                                     نسخ الكود 📋
