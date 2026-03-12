@@ -1,6 +1,6 @@
 /**
- * 🤝 crm.js - مديول إدارة العملاء والضامنين (V10.4 Titanium - X-Core Integrated)
- * التحديث: الاستخراج الذكي من الرقم القومي (تاريخ، سن، محافظة، نوع)، الرفض العمري، والضبط التلقائي للضامنين.
+ * 🤝 crm.js - مديول إدارة العملاء والضامنين (V10.5 Titanium - Legal & X-Core Integrated)
+ * التحديث: الاستخراج الذكي، الرفض العمري، التحقق الصارم من الهاتف، والربط المباشر مع القضايا القانونية.
  */
 
 const { useState, useEffect, useMemo, useCallback } = React;
@@ -22,7 +22,6 @@ const areasMap = {
     'السويس': ['الأربعين', 'الجناين', 'السويس', 'عتاقة', 'فيصل', 'السلام', 'الصباح'],
     'القاهرة': ['مدينة نصر', 'المعادي', 'مصر الجديدة', 'شبرا', 'وسط البلد', 'التجمع الخامس', 'حلوان'],
     'الإسكندرية': ['المنتزه', 'سموحة', 'ميامي', 'سيدي بشر', 'محرم بك', 'العجمي'],
-    // يمكن استكمال باقي المناطق لاحقاً، لو المحافظة مش هنا، هيظهر Text Input عادي
 };
 
 // ==========================================
@@ -52,6 +51,13 @@ const parseNationalId = (id) => {
         gender: genderDigit % 2 === 1 ? 'ذكر' : 'أنثى',
         province: govMap[govCode] || 'غير معروف'
     };
+};
+
+// ==========================================
+// 📱 التحقق من صحة رقم الهاتف المصري
+// ==========================================
+const isValidEgyptianPhone = (phone) => {
+    return /^01[0125][0-9]{8}$/.test(phone);
 };
 
 // ==========================================
@@ -91,7 +97,8 @@ const CRMModule = () => {
         province: '', area: '', address_details: '',
         job: '', job_type: 'قطاع خاص', income_verified: false,
         marital_status: 'متزوج', monthly_income: '', housing_type: 'إيجار',
-        birth_date: '', age: '', gender: '', guarantors: [], credit_score: 0
+        birth_date: '', age: '', gender: '', guarantors: [], credit_score: 0,
+        has_legal_issues: false // الحقل الجديد للربط القانوني
     };
     const [formData, setFormData] = useState(initialFormState);
 
@@ -103,11 +110,25 @@ const CRMModule = () => {
         setTimeout(() => setNotification(null), 4500);
     }, []);
 
+    // ⚖️ تحميل العملاء مع التحقق من موقفهم القانوني
     const loadCustomers = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await db.getAll('customers');
-            setCustomers(data || []);
+            const data = await window.db.getAll('customers') || [];
+            const cases = await window.db.getAll('legal_cases').catch(() => []) || [];
+            
+            // ربط القضايا بالعملاء
+            const enhancedData = data.map(c => {
+                // البحث إذا كان العميل مدعى عليه في أي قضية
+                const customerCases = cases.filter(lc => lc.defendant_id === c.id || lc.defendant_national_id === c.national_id);
+                return {
+                    ...c,
+                    has_legal_issues: customerCases.length > 0,
+                    cases_count: customerCases.length
+                };
+            });
+
+            setCustomers(enhancedData);
         } catch (error) {
             showNotification('error', '❌ فشل في تحميل قاعدة البيانات');
         } finally {
@@ -124,7 +145,7 @@ const CRMModule = () => {
         // وزن المشتري
         if (formData.full_name.trim().length > 8) tempScore += 5;
         if (/^\d{14}$/.test(formData.national_id)) tempScore += 10;
-        if (/^01\d{9}$/.test(formData.phone)) tempScore += 5;
+        if (isValidEgyptianPhone(formData.phone)) tempScore += 5;
         if (formData.housing_type === 'تمليك') tempScore += 10;
         else if (formData.housing_type === 'إيجار قديم') tempScore += 5;
         
@@ -139,16 +160,22 @@ const CRMModule = () => {
         // وزن الضامنين (تحليل دقيق)
         formData.guarantors.forEach(g => {
             if (/^\d{14}$/.test(g.national_id)) {
-                let gScore = 5; // أساسي لوجود ضامن برقم قومي سليم
-                if (g.is_existing && g.credit_score >= 50) gScore += 10; // ضامن قوي سابق
+                let gScore = 5; 
+                if (g.is_existing && g.credit_score >= 50) gScore += 10; 
                 if (g.job_type === 'حكومي') gScore += 5;
                 if (Number(g.monthly_income) > 3000) gScore += 5;
+                // خصم عنيف لو الضامن عليه قضايا
+                if (g.has_legal_issues) gScore -= 50; 
+                
                 tempScore += gScore;
             }
         });
 
-        const finalScore = Math.min(tempScore, 100);
-        return { score: finalScore, isEligible: finalScore >= 50 };
+        // خصم لو المشتري نفسه عليه قضية مسجلة مسبقاً
+        if (formData.has_legal_issues) tempScore -= 80;
+
+        const finalScore = Math.max(0, Math.min(tempScore, 100));
+        return { score: finalScore, isEligible: finalScore >= 50 && !formData.has_legal_issues };
     }, [formData]);
 
     // ==========================================
@@ -163,6 +190,13 @@ const CRMModule = () => {
             if (parsed.age < 21 || parsed.age > 65) {
                 setFormData(prev => ({ ...prev, national_id: '' }));
                 return showNotification('error', `🚫 السن القانوني مرفوض! (${parsed.age} سنة). يجب أن يكون بين 21 و 65.`);
+            }
+
+            // تحقق قانوني استباقي من السجل
+            const existingCust = customers.find(c => c.national_id === val);
+            if (existingCust && existingCust.has_legal_issues) {
+                setFormData(prev => ({ ...prev, has_legal_issues: true }));
+                showNotification('error', '🚨 تحذير أمني: هذا العميل مطلوب في قضايا مسجلة بالنظام!');
             }
 
             if (!formData.birth_date || formData.birth_date !== parsed.birthDate) {
@@ -181,7 +215,8 @@ const CRMModule = () => {
             guarantors: [...prev.guarantors, { 
                 full_name: '', national_id: '', phone: '', relation: '', 
                 birth_date: '', age: '', gender: '', province: '',
-                job: '', job_type: 'قطاع خاص', monthly_income: '', is_existing: false, credit_score: 0
+                job: '', job_type: 'قطاع خاص', monthly_income: '', is_existing: false, credit_score: 0,
+                has_legal_issues: false
             }]
         }));
     };
@@ -200,20 +235,17 @@ const CRMModule = () => {
     const handleGuarantorBlur = async (index, val) => {
         if (!/^\d{14}$/.test(val)) return;
 
-        // 1. هل هو نفس المشتري؟
         if (val === formData.national_id) {
             updateGuarantor(index, 'national_id', '');
             return showNotification('error', '🚫 تلاعب محظور: لا يمكن للمشتري أن يضمن نفسه!');
         }
 
-        // 2. هل هو نفس الضامن متكرر؟
         const duplicate = formData.guarantors.find((g, i) => i !== index && g.national_id === val);
         if (duplicate) {
             updateGuarantor(index, 'national_id', '');
             return showNotification('error', '⚠️ هذا الضامن مضاف بالفعل في نفس الفاتورة!');
         }
 
-        // 3. تحليل الرقم والسن
         const parsed = parseNationalId(val);
         if (!parsed) return showNotification('error', '❌ الرقم القومي للضامن غير صالح.');
         if (parsed.age < 21 || parsed.age > 65) {
@@ -221,10 +253,15 @@ const CRMModule = () => {
             return showNotification('error', `🚫 سن الضامن مرفوض (${parsed.age} سنة). يجب أن يكون بين 21 و 65.`);
         }
 
-        // 4. فحص قواعد البيانات (هل هو عميل سابق؟)
         const existingCust = customers.find(c => c.national_id === val);
         if (existingCust) {
-            // سحب البيانات آلياً وقفل الحقول
+            
+            if (existingCust.has_legal_issues) {
+                showNotification('error', `🚨 خطر ائتماني: الضامن (${existingCust.full_name}) عليه قضايا متعثرة في النظام!`);
+            } else {
+                showNotification('success', `✅ تم سحب بيانات الضامن (${existingCust.full_name}) تلقائياً من قاعدة البيانات.`);
+            }
+
             const updated = [...formData.guarantors];
             updated[index] = {
                 ...updated[index],
@@ -232,14 +269,13 @@ const CRMModule = () => {
                 birth_date: parsed.birthDate, age: parsed.age, gender: parsed.gender, province: parsed.province,
                 job: existingCust.job || '', job_type: existingCust.job_type || 'قطاع خاص',
                 monthly_income: existingCust.monthly_income || '',
-                is_existing: true, credit_score: existingCust.credit_score || 50
+                is_existing: true, credit_score: existingCust.credit_score || 50,
+                has_legal_issues: existingCust.has_legal_issues || false
             };
             setFormData({ ...formData, guarantors: updated });
-            showNotification('success', `✅ تم سحب بيانات الضامن (${existingCust.full_name}) تلقائياً من قاعدة البيانات.`);
             return;
         }
 
-        // 5. إذا كان ضامن جديد تماماً، اطلب التأكيد
         setPendingGuarantorConfirm({ index, id: val, parsed });
     };
 
@@ -248,14 +284,25 @@ const CRMModule = () => {
     // ==========================================
     const handleSave = async (e) => {
         e.preventDefault();
-        if (!liveScore.isEligible) return showNotification('error', `🚫 السكور ${liveScore.score}% غير كافٍ للاعتماد.`);
         
-        // تحقق إضافي قبل الحفظ
+        // 1. فحص الهاتف للمشتري
+        if (!isValidEgyptianPhone(formData.phone)) {
+            return showNotification('error', '❌ رقم هاتف المشتري غير صحيح. تأكد أنه 11 رقماً ويبدأ بـ 01.');
+        }
+
+        // 2. فحص الهواتف للضامنين
+        const invalidGPhone = formData.guarantors.find(g => g.phone && !isValidEgyptianPhone(g.phone));
+        if (invalidGPhone) {
+            return showNotification('error', `❌ رقم هاتف الضامن (${invalidGPhone.full_name || 'بدون اسم'}) غير صحيح.`);
+        }
+
+        if (!liveScore.isEligible) return showNotification('error', `🚫 السكور ${liveScore.score}% غير كافٍ للاعتماد أو يوجد مانع قانوني.`);
+        
         const invalidG = formData.guarantors.find(g => !g.age || g.full_name.trim() === '');
         if (invalidG) return showNotification('error', '⚠️ يرجى إكمال بيانات جميع الضامنين أو حذف الخانات الفارغة.');
 
         try {
-            await db.add('customers', {
+            await window.db.add('customers', {
                 ...formData,
                 credit_score: liveScore.score,
                 status: 'active',
@@ -300,17 +347,21 @@ const CRMModule = () => {
             {/* قائمة عرض العملاء */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 px-2">
                 {filteredCustomers.map(c => (
-                    <div key={c.id} className="bg-white p-5 rounded-[2rem] border shadow-sm relative overflow-hidden flex flex-col justify-between text-right">
-                        <div className={`absolute top-0 right-0 w-2 h-full ${c.credit_score >= 50 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <div key={c.id} className="bg-white p-5 rounded-[2rem] border shadow-sm relative overflow-hidden flex flex-col justify-between text-right hover:shadow-md transition-shadow">
+                        <div className={`absolute top-0 right-0 w-2 h-full ${c.has_legal_issues ? 'bg-red-600' : (c.credit_score >= 50 ? 'bg-green-500' : 'bg-amber-500')}`}></div>
                         <div className="flex justify-between items-start mb-4 pr-3">
-                            <div className={`w-12 h-12 rounded-[1rem] flex flex-col items-center justify-center shadow-inner shrink-0 ${c.credit_score >= 50 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                            <div className={`w-12 h-12 rounded-[1rem] flex flex-col items-center justify-center shadow-inner shrink-0 ${c.credit_score >= 50 ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
                                 <span className="font-black text-lg leading-none">{c.credit_score}</span>
                             </div>
                             <div>
-                                <h4 className="font-black text-slate-800 text-sm">{c.full_name}</h4>
+                                <h4 className="font-black text-slate-800 text-sm flex items-center justify-end gap-1">
+                                    {c.has_legal_issues && <span title="مطلوب في قضايا" className="text-red-500 text-lg animate-pulse">⚖️</span>}
+                                    {c.full_name}
+                                </h4>
                                 <div className="flex flex-wrap justify-end gap-1 mt-2">
                                     <span className="text-[9px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-bold">{c.phone}</span>
                                     <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md font-bold">{c.province}</span>
+                                    {c.has_legal_issues && <span className="text-[9px] bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-black">مطلوب قانونياً</span>}
                                 </div>
                             </div>
                         </div>
@@ -331,14 +382,18 @@ const CRMModule = () => {
                                 <p className="text-[9px] text-blue-400 font-black uppercase tracking-widest mt-1">X-Core Data Miner</p>
                             </div>
                         </div>
-                        <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                        <div className={`p-4 rounded-2xl border ${formData.has_legal_issues ? 'bg-red-900/50 border-red-500' : 'bg-slate-800 border-slate-700'}`}>
                             <div className="flex justify-between items-end mb-2">
-                                <span className={`text-2xl font-black leading-none ${liveScore.isEligible ? 'text-green-400' : 'text-red-400'}`}>{liveScore.score}%</span>
+                                <span className={`text-2xl font-black leading-none ${liveScore.isEligible ? 'text-green-400' : 'text-red-400'}`}>
+                                    {formData.has_legal_issues ? 'مرفوض قانونياً' : `${liveScore.score}%`}
+                                </span>
                                 <span className="text-[10px] font-black text-slate-300 uppercase">مؤشر الجدارة</span>
                             </div>
-                            <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden flex justify-end">
-                                <div className={`h-full transition-all duration-700 ease-out ${liveScore.score >= 50 ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: `${liveScore.score}%` }}></div>
-                            </div>
+                            {!formData.has_legal_issues && (
+                                <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden flex justify-end">
+                                    <div className={`h-full transition-all duration-700 ease-out ${liveScore.score >= 50 ? 'bg-green-500' : 'bg-amber-500'}`} style={{ width: `${liveScore.score}%` }}></div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -356,10 +411,9 @@ const CRMModule = () => {
                                     </div>
                                     <div className="sm:col-span-2">
                                         <label className="text-[10px] font-black text-slate-600 mb-1 block pr-2">الرقم القومي (يحدد السن والمحافظة تلقائياً)</label>
-                                        <input required type="text" maxLength="14" className="w-full p-4 bg-slate-50 border rounded-2xl text-xs font-black tracking-widest outline-none focus:border-blue-500" value={formData.national_id} onChange={e => setFormData({...formData, national_id: e.target.value.replace(/\D/g,'')})} onBlur={e => handleNationalIdBlur(e.target.value)} />
+                                        <input required type="text" maxLength="14" className={`w-full p-4 border rounded-2xl text-xs font-black tracking-widest outline-none focus:border-blue-500 ${formData.has_legal_issues ? 'bg-red-50 border-red-300 text-red-700' : 'bg-slate-50'}`} value={formData.national_id} onChange={e => setFormData({...formData, national_id: e.target.value.replace(/\D/g,'')})} onBlur={e => handleNationalIdBlur(e.target.value)} />
                                     </div>
                                     
-                                    {/* الحقول المستخرجة (Read-Only) */}
                                     {formData.age && (
                                         <div className="col-span-2 grid grid-cols-3 gap-2 bg-blue-50/50 p-3 rounded-2xl border border-blue-100">
                                             <div className="text-center border-l border-blue-100"><span className="block text-[8px] font-black text-blue-400">السن</span><span className="text-xs font-black text-blue-900">{formData.age} عام</span></div>
@@ -369,12 +423,12 @@ const CRMModule = () => {
                                     )}
 
                                     <div>
-                                        <label className="text-[10px] font-black text-slate-600 mb-1 block pr-2">الهاتف</label>
-                                        <input required type="tel" maxLength="11" className="w-full p-4 bg-slate-50 border rounded-2xl text-xs font-black outline-none" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value.replace(/\D/g,'')})} />
+                                        <label className="text-[10px] font-black text-slate-600 mb-1 block pr-2">الهاتف (11 رقم)</label>
+                                        <input required type="tel" maxLength="11" placeholder="01..." className="w-full p-4 bg-slate-50 border rounded-2xl text-xs font-black outline-none" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value.replace(/\D/g,'')})} />
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-black text-slate-600 mb-1 block pr-2">الواتساب</label>
-                                        <input type="tel" maxLength="11" className="w-full p-4 bg-slate-50 border rounded-2xl text-xs font-black outline-none" value={formData.whatsapp} onChange={e => setFormData({...formData, whatsapp: e.target.value.replace(/\D/g,'')})} />
+                                        <input type="tel" maxLength="11" placeholder="01..." className="w-full p-4 bg-slate-50 border rounded-2xl text-xs font-black outline-none" value={formData.whatsapp} onChange={e => setFormData({...formData, whatsapp: e.target.value.replace(/\D/g,'')})} />
                                     </div>
                                 </div>
                             </section>
@@ -407,7 +461,7 @@ const CRMModule = () => {
                                 </div>
                             </section>
 
-                            {/* بطاقة 3: العمل والضامنين */}
+                            {/* بطاقة 3: العمل والدخل */}
                             <section className="bg-white p-5 rounded-[2rem] border shadow-sm space-y-4">
                                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">3. العمل والدخل</h5>
                                 <div className="grid grid-cols-2 gap-4">
@@ -427,7 +481,7 @@ const CRMModule = () => {
                                 </div>
                             </section>
 
-                            {/* بطاقة 4: الضامنين (X-Core Logic) */}
+                            {/* بطاقة 4: الضامنين (Legal Check Included) */}
                             <section className="bg-white p-5 rounded-[2rem] border shadow-sm space-y-4">
                                 <div className="flex justify-between items-center border-b pb-3">
                                     <button type="button" onClick={addGuarantor} className="bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black shadow-md">+ إضافة ضامن</button>
@@ -435,16 +489,19 @@ const CRMModule = () => {
                                 </div>
                                 <div className="space-y-4">
                                     {formData.guarantors.map((g, idx) => (
-                                        <div key={idx} className={`p-4 rounded-[1.5rem] border relative text-right ${g.is_existing ? 'bg-green-50/30 border-green-200' : 'bg-slate-50/80 border-slate-200'}`}>
+                                        <div key={idx} className={`p-4 rounded-[1.5rem] border relative text-right ${g.has_legal_issues ? 'bg-red-50/50 border-red-300' : (g.is_existing ? 'bg-green-50/30 border-green-200' : 'bg-slate-50/80 border-slate-200')}`}>
                                             <button type="button" onClick={() => removeGuarantor(idx)} className="absolute top-4 left-4 w-8 h-8 bg-red-50 text-red-500 rounded-lg flex items-center justify-center font-black">✕</button>
                                             
                                             <div className="flex justify-between items-center mb-3 pr-2">
-                                                {g.is_existing && <span className="bg-green-100 text-green-700 text-[8px] px-2 py-1 rounded font-black">⭐ عميل مسجل</span>}
+                                                <div className="flex gap-2">
+                                                    {g.is_existing && !g.has_legal_issues && <span className="bg-green-100 text-green-700 text-[8px] px-2 py-1 rounded font-black">⭐ مسجل بالنظام</span>}
+                                                    {g.has_legal_issues && <span className="bg-red-100 text-red-700 text-[8px] px-2 py-1 rounded font-black animate-pulse">⚖️ مطلوب قانونياً</span>}
+                                                </div>
                                                 <span className="text-[10px] font-black text-slate-400 block">ضامن رقم {idx + 1}</span>
                                             </div>
                                             
                                             <div className="space-y-3">
-                                                <input required type="text" maxLength="14" placeholder="الرقم القومي (يحدد البيانات تلقائياً)" className="w-full p-3 bg-white border rounded-xl text-xs font-black font-mono outline-none" value={g.national_id} onChange={e => updateGuarantor(idx, 'national_id', e.target.value.replace(/\D/g,''))} onBlur={e => handleGuarantorBlur(idx, e.target.value)} disabled={g.is_existing} />
+                                                <input required type="text" maxLength="14" placeholder="الرقم القومي (يحدد البيانات تلقائياً)" className={`w-full p-3 bg-white border rounded-xl text-xs font-black font-mono outline-none ${g.has_legal_issues ? 'text-red-600' : ''}`} value={g.national_id} onChange={e => updateGuarantor(idx, 'national_id', e.target.value.replace(/\D/g,''))} onBlur={e => handleGuarantorBlur(idx, e.target.value)} disabled={g.is_existing} />
                                                 
                                                 <input required placeholder="الاسم الرباعي" className="w-full p-3 bg-white border rounded-xl text-xs font-black outline-none" value={g.full_name} onChange={e => updateGuarantor(idx, 'full_name', e.target.value)} disabled={g.is_existing} />
                                                 
@@ -455,7 +512,7 @@ const CRMModule = () => {
                                                 )}
 
                                                 <div className="grid grid-cols-2 gap-2">
-                                                    <input required type="tel" maxLength="11" placeholder="الهاتف" className="w-full p-3 bg-white border rounded-xl text-xs font-black outline-none" value={g.phone} onChange={e => updateGuarantor(idx, 'phone', e.target.value.replace(/\D/g,''))} disabled={g.is_existing} />
+                                                    <input required type="tel" maxLength="11" placeholder="الهاتف (01...)" className="w-full p-3 bg-white border rounded-xl text-xs font-black outline-none" value={g.phone} onChange={e => updateGuarantor(idx, 'phone', e.target.value.replace(/\D/g,''))} disabled={g.is_existing} />
                                                     <input required placeholder="القرابة" className="w-full p-3 bg-white border rounded-xl text-xs font-black outline-none" value={g.relation} onChange={e => updateGuarantor(idx, 'relation', e.target.value)} />
                                                 </div>
 
@@ -476,8 +533,8 @@ const CRMModule = () => {
 
                     {/* زر الحفظ */}
                     <div className="shrink-0 bg-white border-t p-5 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] pb-8 z-50">
-                        <button form="main-crm-form" type="submit" disabled={!liveScore.isEligible || isLoading} className={`w-full max-w-2xl mx-auto py-5 rounded-[2rem] font-black text-sm block ${liveScore.isEligible ? 'bg-slate-900 text-white shadow-xl' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}>
-                            {liveScore.isEligible ? `اعتماد وتسجيل (${liveScore.score}%) 🚀` : `غير مؤهل (${liveScore.score}%)`}
+                        <button form="main-crm-form" type="submit" disabled={!liveScore.isEligible || isLoading || formData.has_legal_issues} className={`w-full max-w-2xl mx-auto py-5 rounded-[2rem] font-black text-sm block transition-all ${liveScore.isEligible && !formData.has_legal_issues ? 'bg-slate-900 text-white shadow-xl hover:bg-slate-800' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}>
+                            {formData.has_legal_issues ? 'موقوف قانونياً 🚫' : (liveScore.isEligible ? `اعتماد وتسجيل (${liveScore.score}%) 🚀` : `غير مؤهل ائتمانياً (${liveScore.score}%)`)}
                         </button>
                     </div>
 
