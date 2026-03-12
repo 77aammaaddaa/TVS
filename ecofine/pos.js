@@ -1,7 +1,7 @@
 /**
- * 💻 pos.js - مديول نقطة البيع الذكية (V12.0 Diamond - AI-Powered)
+ * 💻 pos.js - مديول نقطة البيع الذكية (V12.1 Diamond - AI-Powered)
  * واجهة متطورة مع تصنيفات ذكية، فرز ديناميكي، وعرض منتجات مبهر
- * متكامل مع X-Core, CRM, والمخزون لدعم المبيعات الذكية
+ * تم تأمين حسابات الأسعار ودورة حياة الباركود وإصدار الفواتير
  */
 
 const { useState, useEffect, useMemo, useCallback, useRef } = React;
@@ -44,12 +44,17 @@ const POSModule = ({ currentUser }) => {
     // إحصائيات المبيعات للفرز الذكي
     const [salesStats, setSalesStats] = useState({});
 
+    // دالة أمان لجلب السعر الصحيح ومنع NaN
+    const getPrice = useCallback((item, type) => {
+        if (type === 'installment') return Number(item.installment_price || item.cash_price || item.price || 0);
+        return Number(item.cash_price || item.price || 0);
+    }, []);
+
     // ==========================================
     // 2. تحميل البيانات الأساسية
     // ==========================================
     const loadData = useCallback(async () => {
         try {
-            // تحميل المنتجات، العملاء، الأقساط، التصنيفات، وإحصائيات المبيعات
             const [p, c, i, cats, invoices] = await Promise.all([
                 window.db.getAll('products').catch(() => []),
                 window.db.getAll('customers').catch(() => []),
@@ -58,17 +63,14 @@ const POSModule = ({ currentUser }) => {
                 window.db.getAll('invoices').catch(() => [])
             ]);
             
-            // جلب المنتجات التي بها رصيد فقط
             setProducts(p.filter(item => item.stock > 0));
             
-            // قراءة الحد الأدنى للتقييم من الإعدادات الديناميكية
             const minScore = window.XConfig?.creditPolicy?.minScoreToEntry || 50;
             setCustomers(c.filter(cust => cust.status === 'active' && cust.credit_score >= minScore));
             
             setInstallmentsData(i);
             setCategories(cats || []);
 
-            // حساب عدد مرات بيع كل منتج (للأكثر مبيعاً)
             const stats = {};
             invoices.forEach(inv => {
                 if (inv.items && Array.isArray(inv.items)) {
@@ -108,12 +110,11 @@ const POSModule = ({ currentUser }) => {
             }
             return [...prev, { ...product, qty: 1 }];
         });
-        setSearchQuery(''); // تفريغ البحث بعد الإضافة لدعم مسدس الباركود
+        setSearchQuery(''); 
     };
 
     const removeFromCart = (id) => setCart(prev => prev.filter(item => item.id !== id));
 
-    // إعادة ضبط الحقول عند تغيير نوع البيع
     const handleSaleTypeChange = (type) => {
         setSaleType(type);
         if (type === 'cash') {
@@ -126,8 +127,8 @@ const POSModule = ({ currentUser }) => {
     };
 
     const cartTotal = useMemo(() => {
-        return cart.reduce((sum, item) => sum + ((saleType === 'installment' ? item.installment_price : item.cash_price) * item.qty), 0);
-    }, [cart, saleType]);
+        return cart.reduce((sum, item) => sum + (getPrice(item, saleType) * item.qty), 0);
+    }, [cart, saleType, getPrice]);
 
     const finalTotal = cartTotal + (saleType === 'shipping' ? Number(shippingFee || 0) : 0);
 
@@ -137,7 +138,6 @@ const POSModule = ({ currentUser }) => {
     const filteredAndSortedProducts = useMemo(() => {
         let result = [...products];
 
-        // 1. فلترة حسب البحث
         if (searchQuery) {
             const lowerQuery = searchQuery.toLowerCase();
             result = result.filter(p => 
@@ -147,24 +147,21 @@ const POSModule = ({ currentUser }) => {
             );
         }
 
-        // 2. فلترة حسب التصنيف
         if (selectedCategory !== 'all') {
             result = result.filter(p => p.category_id === selectedCategory);
         }
 
-        // 3. الفرز الذكي
         switch (sortBy) {
             case 'name':
                 result.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
                 break;
             case 'price_asc':
-                result.sort((a, b) => (a.cash_price || 0) - (b.cash_price || 0));
+                result.sort((a, b) => getPrice(a, saleType) - getPrice(b, saleType));
                 break;
             case 'price_desc':
-                result.sort((a, b) => (b.cash_price || 0) - (a.cash_price || 0));
+                result.sort((a, b) => getPrice(b, saleType) - getPrice(a, saleType));
                 break;
             case 'newest':
-                // نفترض وجود حقل created_at في المنتج
                 result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
                 break;
             case 'bestseller':
@@ -175,7 +172,7 @@ const POSModule = ({ currentUser }) => {
         }
 
         return result;
-    }, [products, searchQuery, selectedCategory, sortBy, salesStats]);
+    }, [products, searchQuery, selectedCategory, sortBy, salesStats, saleType, getPrice]);
 
     // ==========================================
     // 5. محرك فحص إكس كور (X-Core Validator)
@@ -259,11 +256,8 @@ const POSModule = ({ currentUser }) => {
             const config = {
                 fps: 10,
                 qrbox: { width: 250, height: 150 },
-                aspectRatio: 1.0,
-                formatsToSupport: [ Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8, 
-                                     Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39,
-                                     Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E,
-                                     Html5QrcodeSupportedFormats.CODABAR, Html5QrcodeSupportedFormats.ITF ]
+                aspectRatio: 1.0
+                // تم إزالة formatsToSupport لضمان عمل المكتبة بشكل صحيح بدون أخطاء المراجع
             };
 
             await html5QrCode.start(
@@ -293,7 +287,7 @@ const POSModule = ({ currentUser }) => {
 
     const handleBarcodeScanned = (barcode) => {
         setSearchQuery(barcode);
-        stopBarcodeScanner();
+        // التغيير في الحالة سيقوم بتشغيل دالة الإيقاف عبر useEffect لمنع التعارض
         setIsScannerOpen(false);
         
         const product = products.find(p => p.barcode === barcode);
@@ -306,10 +300,10 @@ const POSModule = ({ currentUser }) => {
     };
 
     useEffect(() => {
-        if (!isScannerOpen) {
-            stopBarcodeScanner();
-        } else {
+        if (isScannerOpen) {
             startBarcodeScanner();
+        } else {
+            stopBarcodeScanner();
         }
         return () => { stopBarcodeScanner(); };
     }, [isScannerOpen]);
@@ -337,7 +331,7 @@ const POSModule = ({ currentUser }) => {
             const invoice = {
                 customer_id: selectedCustomer || 'cash_customer',
                 type: saleType,
-                items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: saleType === 'installment' ? i.installment_price : i.cash_price })),
+                items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: getPrice(i, saleType) })),
                 subtotal: cartTotal,
                 shipping_fee: Number(shippingFee || 0),
                 total: finalTotal,
@@ -345,8 +339,11 @@ const POSModule = ({ currentUser }) => {
                 status: saleType === 'shipping' ? 'pending_delivery' : 'active',
                 cashier: currentOperator
             };
+            
             const addedInvoice = await window.db.add('invoices', invoice);
-            const invoiceRef = addedInvoice.id.slice(0, 8).toUpperCase();
+            // تأمين جلب المعرف في حال كان الناتج رقم أو نص مباشر من قاعدة البيانات
+            const insertedId = typeof addedInvoice === 'object' ? (addedInvoice.id || addedInvoice._id) : addedInvoice;
+            const invoiceRef = insertedId ? insertedId.toString().slice(0, 8).toUpperCase() : Date.now().toString().slice(-8);
 
             // 2. خصم المخزون وتسجيل حركة الجرد
             for (const item of cart) {
@@ -383,7 +380,7 @@ const POSModule = ({ currentUser }) => {
                     const dueDate = new Date();
                     dueDate.setMonth(dueDate.getMonth() + i); 
                     await window.db.add('installments', {
-                        invoice_id: addedInvoice.id,
+                        invoice_id: insertedId,
                         customer_id: selectedCustomer,
                         amount: actualMonthly.toFixed(2),
                         due_date: dueDate.toISOString().split('T')[0],
@@ -592,7 +589,7 @@ const POSModule = ({ currentUser }) => {
                                         <div>
                                             <p className="text-[9px] text-slate-400 font-bold uppercase mb-0.5">السعر</p>
                                             <p className="text-blue-600 font-black text-base leading-none">
-                                                {saleType === 'installment' ? p.installment_price : p.cash_price} 
+                                                {getPrice(p, saleType)} 
                                                 <span className="text-[10px] text-blue-400 mr-1">ج</span>
                                             </p>
                                         </div>
@@ -629,7 +626,7 @@ const POSModule = ({ currentUser }) => {
                                     </div>
                                     <div className="flex justify-between items-center mt-2">
                                         <span className="text-blue-600 font-black text-lg">
-                                            {saleType === 'installment' ? p.installment_price : p.cash_price} <span className="text-sm text-slate-400">ج</span>
+                                            {getPrice(p, saleType)} <span className="text-sm text-slate-400">ج</span>
                                         </span>
                                         <span className="text-xs text-slate-500">المتبقي: {p.stock}</span>
                                     </div>
@@ -698,12 +695,12 @@ const POSModule = ({ currentUser }) => {
                                             <div className="flex flex-col pr-2">
                                                 <span className="text-slate-800 line-clamp-1">{item.name}</span>
                                                 <span className="text-[10px] text-slate-500 mt-1 font-bold">
-                                                    {item.qty} × {(saleType === 'installment' ? item.installment_price : item.cash_price).toLocaleString()} ج
+                                                    {item.qty} × {getPrice(item, saleType).toLocaleString()} ج
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-4 shrink-0">
                                                 <span className="text-blue-700 text-base">
-                                                    {(item.qty * (saleType === 'installment' ? item.installment_price : item.cash_price)).toLocaleString()} ج
+                                                    {(item.qty * getPrice(item, saleType)).toLocaleString()} ج
                                                 </span>
                                                 <button onClick={() => removeFromCart(item.id)} className="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors">
                                                     ✕
