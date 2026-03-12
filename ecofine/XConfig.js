@@ -1,37 +1,40 @@
 /**
- * 🎛️ X-CONFIG Manager - لوحة تحكم النظام السيادية (Enterprise V11.5)
- * النظام: Eco Fine Pro | تطوير: Techno Vision Solutions (Mr. X)
- * الوظيفة: إعدادات النظام، قواعد الائتمان، وروابط "الماستر" المركزية.
+ * 🎛️ X-CONFIG Manager - لوحة تحكم النظام السيادية (Enterprise V14.0 Multi-Tenant ERP)
+ * النظام: Eco Fine Pro | المطور: Techno Vision Solutions (Mr. X)
+ * الوظيفة: إعدادات النظام، قواعد الائتمان، وروابط "الماستر" المركزية للبيئات المعزولة.
  */
 
 const XConfig = {
     // ==========================================
-    // 1. الهوية التجارية (Branding & Localization)
+    // 1. الهوية التجارية والتقنية (Branding & Localization)
     // ==========================================
     identity: {
-        storeName: "Eco Fine Pro - Enterprise", 
+        storeName: "Eco Fine Pro - V14 Enterprise", 
         currency: "ج.م",
         language: "ar-EG",
         themeColor: "#0f172a", 
-        logoUrl: "./assets/logo.png"
+        logoUrl: "./assets/logo.png",
+        tenantArchitecture: "ISOLATED_NODE" // يحدد أن النظام يعمل كقاعدة بيانات معزولة للعميل
     },
 
     // ==========================================
-    // 2. أوضاع التشغيل (Operating Modes)
+    // 2. أوضاع التشغيل المحاسبية (Operating Modes)
     // ==========================================
     modes: {
         financingType: "SHARIA", // الخيارات: [SHARIA, CONVENTIONAL, LEASING]
         businessModel: "RETAIL_INSTALLMENTS", 
-        calculationMethod: "DAYS_ACCUMULATION", 
+        calculationMethod: "DAYS_ACCUMULATION",
+        treasuryMode: "MULTI_VAULT" // دعم الخزائن المتعددة بدلاً من الخزينة المركزية الواحدة
     },
 
     // ==========================================
-    // 3. سياسة الائتمان والتقييم (Credit Scoring)
+    // 3. سياسة الائتمان والتقييم (EcoCredit Scoring V2)
     // ==========================================
     creditPolicy: {
         minScoreToEntry: 50, 
         startingScore: 0,   
         creditLimitMultiplier: 5, 
+        useMasterNetworkScore: true, // تفعيل جلب التقييم من شبكة الماستر المركزية
         weights: {
             identity: 10,    
             income: 30,      
@@ -41,12 +44,12 @@ const XConfig = {
     },
 
     // ==========================================
-    // 4. قوانين الضامنين (Guarantor Rules)
+    // 4. قوانين الضامنين (Guarantor Rules for Contracts)
     // ==========================================
     guarantorRules: {
         minGuarantors: 1,
         maxGuarantors: 3,
-        allowGuarantorAsBuyer: true, 
+        allowGuarantorAsBuyer: true, // السماح للضامن بأن يكون طرفاً أصيلاً في عقد آخر
         minGuarantorScore: 50,       
         requireOneActiveOnly: true,  
         dependency: {
@@ -57,10 +60,11 @@ const XConfig = {
     },
 
     // ==========================================
-    // 5. شروط البيع والمدد (Sales & Terms)
+    // 5. شروط العقود والمدد (Contracts & Terms)
     // ==========================================
     salesTerms: {
-        minInvoiceAmount: 2500,
+        minContractAmount: 2500, // تم تغييرها من Invoice إلى Contract
+        minInvoiceAmount: 2500, // مبقاة للتوافق الرجعي (Backward Compatibility)
         durationTiers: [
             { maxAmount: 100000, maxMonths: 10, docs: "RECEIPTS" },
             { maxAmount: 1000000, maxMonths: 15, docs: "CHECKS" }
@@ -74,31 +78,33 @@ const XConfig = {
     },
 
     // ==========================================
-    // 6. الرقابة القانونية (Legal & Collection)
+    // 6. الرقابة القانونية والتحصيل (Legal & Collection)
     // ==========================================
     legalPolicy: {
-        thresholds: { daily: 35, monthly: 63 },
+        thresholds: { daily: 35, monthly: 63 }, // أيام التأخير قبل اتخاذ إجراء
         warningInterval: 10, 
         banPeriodDays: 180,  
         maxCasesPerPerson: 6,
-        stopDelayCounterAtLimit: true 
+        stopDelayCounterAtLimit: true,
+        autoReportToMaster: true // الإبلاغ التلقائي عن المتعثرين لشبكة EcoCredit المركزية
     },
 
     // ==========================================
-    // 7. محرك المزايا (Feature Toggles)
+    // 7. محرك المزايا والصلاحيات (Feature Toggles)
     // ==========================================
     features: {
         whatsappNotifications: true,
-        pdfContractGeneration: true,
+        pdfContractGeneration: true, // توليد العقود كـ PDF
         fieldSurveyModule: true,
         inventoryManagement: true,
+        vaultTransfers: true, // تفعيل التحويلات بين الخزائن والفروع
         reScheduling: true, 
         rescheduleLimitYears: 1 
     },
 
     // ==========================================
     // 8. مفاتيح السحابة المركزية (Master Cloud Keys) ☁️
-    // يستخدمها ملف activation.js فقط للتحقق من الرخص
+    // يستخدمها ملف activation.js فقط للتحقق من الرخص وتوجيه العميل
     // ==========================================
     masterCloud: {
         url: "https://pyrcpouvcvjkgpjyuafz.supabase.co",
