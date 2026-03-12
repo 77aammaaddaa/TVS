@@ -1,7 +1,7 @@
 /**
- * 🔑 activation.js - مديول التفعيل السحابي (Cloud Edition V11.0)
- * المطور: Techno Vision Solutions - M H 4 Tech
- * الوظيفة: التحقق من كود التفعيل عبر قاعدة البيانات المركزية (Master DB)
+ * 🔑 activation.js - مديول التفعيل السحابي (Multi-Tenant ERP Edition V14.0)
+ * المطور: Techno Vision Solutions - Mr. X
+ * الوظيفة: التحقق من كود التفعيل عبر قاعدة البيانات المركزية (Master DB) وتوجيه العميل لقاعدته المعزولة.
  */
 
 const { useState, useEffect } = React;
@@ -41,35 +41,82 @@ const ActivationModule = ({ onActivated }) => {
             // 1. إنشاء اتصال مؤقت بقاعدة البيانات المركزية (الماستر)
             const masterDb = supabase.createClient(MASTER_SUPABASE_URL, MASTER_SUPABASE_KEY);
 
-            // 2. البحث عن كود التفعيل في جدول organizations
-            const { data, error: dbError } = await masterDb
-                .from('organizations')
-                .select('*')
-                .eq('activation_key', inputKey.trim().toUpperCase())
-                .eq('is_active', true)
+            // 2. البحث عن كود التفعيل في جدول licenses وجلب بيانات المؤسسة المرتبطة به
+            const { data: licenseData, error: dbError } = await masterDb
+                .from('licenses')
+                .select(`
+                    id,
+                    license_key,
+                    status,
+                    expires_at,
+                    plan,
+                    organizations (
+                        name,
+                        tenant_supabase_url,
+                        tenant_supabase_key,
+                        subscription_status
+                    )
+                `)
+                .eq('license_key', inputKey.trim().toUpperCase())
                 .single(); 
 
-            if (dbError || !data) {
-                throw new Error('كود التفعيل غير صحيح أو النسخة موقوفة من الإدارة.');
+            // 3. التحقق من وجود الكود وصحته
+            if (dbError || !licenseData) {
+                throw new Error('كود التفعيل غير صحيح أو غير مسجل في النظام.');
             }
 
-            // 3. التفعيل ناجح: تجهيز بيانات المؤسسة
+            // 4. فحوصات الأمان وصلاحية الترخيص والمؤسسة
+            if (licenseData.status !== 'active') {
+                throw new Error('هذا الترخيص موقوف من قبل الإدارة المركزية.');
+            }
+
+            const today = new Date();
+            const expiryDate = new Date(licenseData.expires_at);
+            if (today > expiryDate) {
+                throw new Error(`انتهت صلاحية هذا الترخيص في ${expiryDate.toLocaleDateString('ar-EG')}. يرجى التجديد.`);
+            }
+
+            // فحص وجود مؤسسة مربوطة بهذا الترخيص
+            const org = Array.isArray(licenseData.organizations) ? licenseData.organizations[0] : licenseData.organizations;
+            
+            if (!org) {
+                throw new Error('هذا الترخيص غير مربوط بأي كيان مؤسسي حتى الآن.');
+            }
+
+            if (org.subscription_status !== 'active') {
+                throw new Error('نظام المؤسسة موقوف حالياً من قبل الإدارة.');
+            }
+
+            // 5. التفعيل ناجح: تجهيز بيانات المؤسسة وقاعدة بياناتها المعزولة (Tenant DB)
             const orgConfig = {
-                orgName: data.org_name,
-                url: data.supabase_url,
-                key: data.supabase_key,
+                orgName: org.name,
+                url: org.tenant_supabase_url,
+                key: org.tenant_supabase_key,
+                plan: licenseData.plan,
+                expiresAt: licenseData.expires_at,
                 activatedAt: new Date().toISOString()
             };
 
-            // 4. حفظ البيانات محلياً في المتصفح
+            // 6. حفظ البيانات محلياً في المتصفح
             localStorage.setItem('X_ORG_CONFIG', JSON.stringify(orgConfig));
             
-            // 5. تحديث محرك قاعدة البيانات المحلي
+            // تحديث إعدادات المزامنة في XSync لتجنب التعارض
+            const fullConfig = JSON.parse(localStorage.getItem('ecofine_config')) || {};
+            fullConfig.cloudProvider = {
+                activeProvider: 'supabase',
+                supabaseUrl: orgConfig.url,
+                supabaseKey: orgConfig.key,
+                autoSyncInterval: 15
+            };
+            localStorage.setItem('ecofine_config', JSON.stringify(fullConfig));
+            window.XConfig = fullConfig;
+
+            // 7. تحديث محرك قاعدة البيانات المحلي للاتصال بقاعدة العميل
             if (window.db && window.db.reInitialize) {
                 await window.db.reInitialize(orgConfig.url, orgConfig.key);
             }
 
-            // 6. إبلاغ التطبيق بنجاح التفعيل لفتح الشاشات
+            // 8. إبلاغ التطبيق بنجاح التفعيل لفتح الشاشات
             onActivated(orgConfig);
 
         } catch (err) {
@@ -93,16 +140,16 @@ const ActivationModule = ({ onActivated }) => {
                 <div className="text-center mb-8">
                     <div className="text-5xl mb-4">🛡️</div>
                     <h2 className="text-2xl font-black mb-2">تنشيط النظام السحابي</h2>
-                    <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Eco Fine Pro V11 - Enterprise</p>
+                    <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Eco Fine Pro V14 - Multi-Tenant ERP</p>
                 </div>
 
                 <div className="space-y-6">
                     <div>
-                        <label className="text-[10px] font-black text-slate-400 mb-2 block pr-2 uppercase">كود تفعيل المؤسسة</label>
+                        <label className="text-[10px] font-black text-slate-400 mb-2 block pr-2 uppercase">كود تفعيل المؤسسة (License Key)</label>
                         <input 
                             type="text" 
-                            placeholder="ABD-2026"
-                            className="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-center font-black text-lg tracking-[0.3em] outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all uppercase"
+                            placeholder="ECO-V12-XXXX..."
+                            className="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-center font-black text-lg tracking-[0.2em] outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all uppercase"
                             value={inputKey}
                             onChange={(e) => setInputKey(e.target.value)}
                             disabled={isVerifying}
@@ -123,7 +170,7 @@ const ActivationModule = ({ onActivated }) => {
                         }`}
                     >
                         {isVerifying ? (
-                            <><span className="animate-spin text-lg">⚙️</span> جاري التحقق من السحابة...</>
+                            <><span className="animate-spin text-lg">⚙️</span> جاري التوثيق من الخادم المركزي...</>
                         ) : (
                             'تنشيط النظام الآن 🚀'
                         )}
@@ -140,7 +187,3 @@ const ActivationModule = ({ onActivated }) => {
 };
 
 window.ActivationModule = ActivationModule;
-
-
-
-
