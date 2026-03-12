@@ -1,7 +1,7 @@
 /**
- * survey.js - مديول الاستعلام الميداني الذكي (V10.0 Platinum)
+ * survey.js - مديول الاستعلام الميداني الذكي (V10.1 Platinum)
  * متكامل مع نظام إيكو فاين برو، CRM، XCore، والموقع الجغرافي الدقيق
- * يدعم المعاينات الميدانية للعملاء والضامنين مع تقييم متعدد المعايير
+ * تم إصلاح توافق React Hooks، روابط الخرائط، وتوافق الضامنين.
  */
 
 const { useState, useEffect, useMemo, useCallback, useRef } = React;
@@ -23,7 +23,6 @@ const SurveyModule = ({ currentUser }) => {
     const [locationLoading, setLocationLoading] = useState(false);
     const [photos, setPhotos] = useState([]);
     const [signature, setSignature] = useState(null);
-    const [signatureModal, setSignatureModal] = useState(false);
     const [criteriaScores, setCriteriaScores] = useState({
         housing_quality: 5,
         neighborhood: 5,
@@ -52,6 +51,11 @@ const SurveyModule = ({ currentUser }) => {
         signature: null,
         criteria_scores: criteriaScores,
     });
+
+    // تحديث معايير التقييم في formData تلقائياً (تم نقلها خارج الـ JSX)
+    useEffect(() => {
+        setFormData(prev => ({ ...prev, criteria_scores: criteriaScores }));
+    }, [criteriaScores]);
 
     // =========================== الإشعارات ===========================
     const showNotification = useCallback((type, message) => {
@@ -91,7 +95,7 @@ const SurveyModule = ({ currentUser }) => {
                 setLocation({ lat: latitude, lng: longitude, accuracy, address: '' });
                 setFormData(prev => ({ ...prev, latitude, longitude, accuracy }));
                 
-                // عكس الإحداثيات للحصول على العنوان (باستخدام Nominatim)
+                // عكس الإحداثيات للحصول على العنوان
                 try {
                     const response = await fetch(
                         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=ar`
@@ -113,10 +117,8 @@ const SurveyModule = ({ currentUser }) => {
         );
     }, [showNotification]);
 
-    // =========================== التقاط الصور (وهمي) ===========================
+    // =========================== التقاط الصور والتوقيع ===========================
     const capturePhoto = () => {
-        // في التطبيق الفعلي، نستخدم <input type="file" capture="environment" accept="image/*" />
-        // هنا نكتفي بمحاكاة رفع الصور
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.accept = 'image/*';
@@ -137,10 +139,7 @@ const SurveyModule = ({ currentUser }) => {
         setFormData(prev => ({ ...prev, photos: prev.photos.filter((_, i) => i !== index) }));
     };
 
-    // =========================== التوقيع الإلكتروني (وهمي) ===========================
     const captureSignature = () => {
-        // في التطبيق الفعلي، نستخدم مكتبة توقيع مثل signature_pad
-        // هنا نكتفي برفع صورة توقيع
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
@@ -162,10 +161,21 @@ const SurveyModule = ({ currentUser }) => {
         setFormData(prev => ({ ...prev, customer_id: custId, guarantor_id: '' }));
     };
 
-    // الضامنون المرتبطون بالعميل (من بيانات العميل)
+    // الضامنون المرتبطون بالعميل (دعم التوافق مع crm.js)
     const customerGuarantors = useMemo(() => {
-        if (!selectedCustomer || !selectedCustomer.guarantor_ids) return [];
-        return customers.filter(c => selectedCustomer.guarantor_ids.includes(c.id));
+        if (!selectedCustomer) return [];
+        // إذا كان النظام القديم يستخدم guarantor_ids
+        if (selectedCustomer.guarantor_ids) {
+            return customers.filter(c => selectedCustomer.guarantor_ids.includes(c.id));
+        }
+        // إذا كان من crm.js الحديث الذي يدمج الضامنين في المصفوفة
+        if (selectedCustomer.guarantors) {
+            return selectedCustomer.guarantors.map((g, idx) => ({
+                id: g.national_id || `g_${idx}`, 
+                full_name: g.full_name
+            }));
+        }
+        return [];
     }, [selectedCustomer, customers]);
 
     // =========================== حساب التقييم باستخدام XCore ===========================
@@ -179,10 +189,8 @@ const SurveyModule = ({ currentUser }) => {
             }
         }
 
-        // خوارزمية احتياطية: متوسط المعايير مع وزن
         const scores = surveyData.criteria_scores || criteriaScores;
         const avg = Object.values(scores).reduce((a, b) => a + b, 0) / Object.keys(scores).length;
-        // تحويل إلى نسبة مئوية (المعايير من 1-10 مثلاً)
         const percent = (avg / 10) * 100;
         return {
             score: Math.round(percent),
@@ -205,12 +213,10 @@ const SurveyModule = ({ currentUser }) => {
 
         setLoading(true);
         try {
-            // حساب التقييم
             const evaluation = await calculateScoreFromSurvey(formData);
             const finalRecommendation = formData.recommendation === 'pending' ? evaluation.recommendation : formData.recommendation;
             const finalScore = evaluation.score;
 
-            // إنشاء سجل الاستعلام
             const surveyRecord = {
                 ...formData,
                 recommendation: finalRecommendation,
@@ -221,11 +227,9 @@ const SurveyModule = ({ currentUser }) => {
 
             const saved = await window.db.add('surveys', surveyRecord);
 
-            // تحديث نقاط العميل إذا كان القرار نهائياً
             if (finalRecommendation !== 'pending') {
                 const customer = customers.find(c => c.id === formData.customer_id);
                 if (customer) {
-                    // دمج مع XCore لتحديث الائتمان
                     let newScore = customer.credit_score || 50;
                     if (finalRecommendation === 'recommend') {
                         newScore = Math.min(100, newScore + 15);
@@ -270,7 +274,14 @@ const SurveyModule = ({ currentUser }) => {
             address: '',
             photos: [],
             signature: null,
-            criteria_scores: criteriaScores,
+            criteria_scores: {
+                housing_quality: 5, neighborhood: 5, cleanliness: 5,
+                stability: 5, guarantor_presence: 5,
+            },
+        });
+        setCriteriaScores({
+            housing_quality: 5, neighborhood: 5, cleanliness: 5,
+            stability: 5, guarantor_presence: 5,
         });
         setLocation({ lat: null, lng: null, accuracy: null, address: '' });
         setPhotos([]);
@@ -279,7 +290,19 @@ const SurveyModule = ({ currentUser }) => {
     };
 
     // =========================== عرض القائمة ===========================
-    const getCustomerName = (id) => customers.find(c => c.id === id)?.full_name || 'غير معروف';
+    const getCustomerName = (id) => {
+        const cust = customers.find(c => c.id === id);
+        if (cust) return cust.full_name;
+        // البحث في الضامنين المدمجين
+        for (const c of customers) {
+            if (c.guarantors) {
+                const g = c.guarantors.find(g => g.national_id === id || `g_${c.guarantors.indexOf(g)}` === id);
+                if (g) return g.full_name;
+            }
+        }
+        return 'غير معروف';
+    };
+
     const getSurveyStatusColor = (rec) => {
         if (rec === 'recommend') return 'bg-green-100 text-green-700 border-green-200';
         if (rec === 'reject') return 'bg-red-100 text-red-700 border-red-200';
@@ -447,7 +470,7 @@ const SurveyModule = ({ currentUser }) => {
                                         </button>
                                         {location.lat && (
                                             <a 
-                                                href={`https://www.google.com/maps?q=${location.lat},${location.lng}`} 
+                                                href={`https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`} 
                                                 target="_blank" 
                                                 rel="noopener noreferrer"
                                                 className="bg-slate-100 text-slate-700 px-6 py-4 rounded-2xl font-black text-sm hover:bg-slate-200 transition-colors flex items-center"
@@ -571,11 +594,6 @@ const SurveyModule = ({ currentUser }) => {
                                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">6. ملاحظات التقرير</h5>
                                 <textarea rows="4" required className="w-full p-4 bg-slate-50 border rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" placeholder="اكتب ملاحظاتك عن المعاينة..." value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})}></textarea>
                             </section>
-
-                            {/* تحديث معايير التقييم في formData */}
-                            {useEffect(() => {
-                                setFormData(prev => ({ ...prev, criteria_scores: criteriaScores }));
-                            }, [criteriaScores])}
                         </form>
                     </div>
 
