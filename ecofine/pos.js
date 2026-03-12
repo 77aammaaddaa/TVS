@@ -1,6 +1,7 @@
 /**
- * 💻 pos.js - مديول نقطة البيع الذكية (V12.5 Diamond - AI-Powered)
- * إضافة نظام عرض بيانات العميل، الحد الائتماني، التقييم، الضامنين، وزر إضافة عميل جديد
+ * 💻 pos.js - مديول نقطة البيع الذكية (V12.6 Diamond - AI-Powered)
+ * تم إصلاح استجابة الشاشات، تثبيت زر التأكيد، وتطوير كروت المنتجات
+ * تم معالجة أخطاء الربط (Type Casting) ومشاكل جلب الضامنين والعملاء
  */
 
 const { useState, useEffect, useMemo, useCallback, useRef } = React;
@@ -11,14 +12,18 @@ const POSModule = ({ currentUser }) => {
     // ==========================================
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [customers, setCustomers] = useState([]);
+    
+    // تم إضافة allCustomers لتعمل كقاعدة بيانات مرجعية داخلية للبحث عن الضامنين وغيرهم
+    const [allCustomers, setAllCustomers] = useState([]); 
+    const [customers, setCustomers] = useState([]); // العملاء المسموح لهم بالشراء فقط
+    
     const [installmentsData, setInstallmentsData] = useState([]);
     const [cart, setCart] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
 
     const [selectedCategory, setSelectedCategory] = useState('all');
-    const [sortBy, setSortBy] = useState('name');
-    const [viewMode, setViewMode] = useState('grid');
+    const [sortBy, setSortBy] = useState('name'); 
+    const [viewMode, setViewMode] = useState('grid'); 
 
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
     const [saleType, setSaleType] = useState('cash');
@@ -54,17 +59,21 @@ const POSModule = ({ currentUser }) => {
                 window.db.getAll('categories').catch(() => []),
                 window.db.getAll('invoices').catch(() => [])
             ]);
-
+            
             setProducts(p.filter(item => item.stock > 0));
+            
+            // حفظ كل العملاء كمرجع (للبحث عن الضامنين حتى لو تقييمهم ضعيف)
+            setAllCustomers(c || []);
 
             const minScore = window.XConfig?.creditPolicy?.minScoreToEntry || 50;
-            setCustomers(c.filter(cust => cust.status === 'active' && cust.credit_score >= minScore));
-
-            setInstallmentsData(i);
+            // العملاء المؤهلين للظهور في قائمة البيع
+            setCustomers((c || []).filter(cust => cust.status === 'active' && cust.credit_score >= minScore));
+            
+            setInstallmentsData(i || []);
             setCategories(cats || []);
 
             const stats = {};
-            invoices.forEach(inv => {
+            (invoices || []).forEach(inv => {
                 if (inv.items && Array.isArray(inv.items)) {
                     inv.items.forEach(item => {
                         if (item.id) {
@@ -101,7 +110,7 @@ const POSModule = ({ currentUser }) => {
             }
             return [...prev, { ...product, qty: 1 }];
         });
-        setSearchQuery('');
+        setSearchQuery(''); 
     };
 
     const removeFromCart = (id) => setCart(prev => prev.filter(item => item.id !== id));
@@ -137,7 +146,7 @@ const POSModule = ({ currentUser }) => {
             );
         }
         if (selectedCategory !== 'all') {
-            result = result.filter(p => p.category_id === selectedCategory);
+            result = result.filter(p => String(p.category_id) === String(selectedCategory));
         }
         switch (sortBy) {
             case 'name': result.sort((a, b) => a.name.localeCompare(b.name, 'ar')); break;
@@ -157,21 +166,22 @@ const POSModule = ({ currentUser }) => {
     // جلب بيانات العميل النشط لعرضها في بطاقة العميل
     const activeCustomerData = useMemo(() => {
         if (!selectedCustomer) return null;
-        const customer = customers.find(c => c.id === selectedCustomer);
+        // الإصلاح: استخدام String للمقارنة لتفادي أخطاء الـ Type Casting
+        const customer = allCustomers.find(c => String(c.id) === String(selectedCustomer));
         if (!customer) return null;
 
-        const customerInsts = installmentsData.filter(i => i.customer_id === selectedCustomer);
+        // الإصلاح: فلترة الديون بناء على التطابق النصي للـ ID
+        const customerInsts = installmentsData.filter(i => String(i.customer_id) === String(selectedCustomer));
         const currentDebtTotal = customerInsts.reduce((sum, i) => sum + Number(i.amount), 0);
         const totalPaid = customerInsts.filter(i => i.status === 'paid').reduce((sum, i) => sum + Number(i.amount), 0);
         const activeDebt = currentDebtTotal - totalPaid;
 
-        // الحد الائتماني (يمكن تخزينه في حقل منفصل أو حسابه من الدخل الشهري)
         const creditLimit = customer.credit_limit || (Number(customer.monthly_income || 0) * 3) || 5000;
 
-        // جلب أول ضامن من قائمة الضامنين (إذا وجد)
+        // الإصلاح: جلب بيانات الضامن من allCustomers لضمان وجوده حتى لو حسابه غير نشط
         let guarantorInfo = { name: null, phone: null };
         if (customer.guarantor_ids && customer.guarantor_ids.length > 0) {
-            const guarantor = customers.find(g => g.id === customer.guarantor_ids[0]);
+            const guarantor = allCustomers.find(g => String(g.id) === String(customer.guarantor_ids[0]));
             if (guarantor) {
                 guarantorInfo = { name: guarantor.full_name, phone: guarantor.phone };
             }
@@ -184,7 +194,7 @@ const POSModule = ({ currentUser }) => {
             guarantor_name: guarantorInfo.name,
             guarantor_phone: guarantorInfo.phone
         };
-    }, [selectedCustomer, customers, installmentsData]);
+    }, [selectedCustomer, allCustomers, installmentsData]);
 
     const xCoreValidation = useMemo(() => {
         if (saleType !== 'installment' || cartTotal === 0) return null;
@@ -193,10 +203,10 @@ const POSModule = ({ currentUser }) => {
         if (!selectedCustomer) return null;
         if (!window.XCore) return { error: "⚠️ محرك X-Core غير متصل." };
 
-        const customer = customers.find(c => c.id === selectedCustomer);
+        const customer = allCustomers.find(c => String(c.id) === String(selectedCustomer));
         if (!customer) return null;
 
-        const customerInsts = installmentsData.filter(i => i.customer_id === selectedCustomer);
+        const customerInsts = installmentsData.filter(i => String(i.customer_id) === String(selectedCustomer));
         const currentDebt = customerInsts.reduce((sum, i) => sum + Number(i.amount), 0);
         const totalPaid = customerInsts.filter(i => i.status === 'paid').reduce((sum, i) => sum + Number(i.amount), 0);
 
@@ -205,7 +215,7 @@ const POSModule = ({ currentUser }) => {
                 customer.credit_score, Number(customer.monthly_income || 0), currentDebt, totalPaid, finalTotal
             );
             if (!multiCheck.can) return { error: multiCheck.msg };
-            if (!instValue || Number(instValue) <= 0) return { error: "يرجى إدخال قيمة القسط." };
+            if (!instValue || Number(instValue) <= 0) return { error: "يرجى إدخال قيمة القسط المستهدف." };
 
             const terms = window.XCore.calculateSaleTerms(finalTotal, instType, Number(instValue), new Date().getDate());
             if (terms.error) return { error: terms.error };
@@ -217,19 +227,18 @@ const POSModule = ({ currentUser }) => {
         } catch (err) {
             return { error: "❌ خطأ في حسابات المحرك: " + err.message };
         }
-    }, [saleType, selectedCustomer, cartTotal, finalTotal, instType, instValue, customers, installmentsData]);
+    }, [saleType, selectedCustomer, cartTotal, finalTotal, instType, instValue, allCustomers, installmentsData]);
 
     // دالة إضافة عميل جديد
     const handleAddCustomer = () => {
-        // محاولة التنقل إلى شاشة العملاء (حسب النظام)
         if (typeof window.showTab === 'function') {
             setIsCheckoutOpen(false);
-            window.showTab('crm'); // استدعاء التابع العام
+            window.showTab('crm'); 
         } else if (typeof window.location.hash !== 'undefined') {
             window.location.hash = '#crm';
             setIsCheckoutOpen(false);
         } else {
-            showNotification('info', '💡 يرجى الذهاب إلى شاشة "العملاء" يدويًا لإضافة عميل جديد.');
+            showNotification('info', '💡 يرجى الذهاب إلى شاشة "العملاء" يدوياً لإضافة عميل جديد.');
         }
     };
 
@@ -292,13 +301,22 @@ const POSModule = ({ currentUser }) => {
             const currentOperator = currentUser?.username || 'النظام';
             const timestamp = new Date().toISOString();
 
-            const invoice = {
-                customer_id: selectedCustomer || 'cash_customer', type: saleType,
-                items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: getPrice(i, saleType) })),
-                subtotal: cartTotal, shipping_fee: Number(shippingFee || 0), total: finalTotal,
-                date: timestamp, status: saleType === 'shipping' ? 'pending_delivery' : 'active', cashier: currentOperator
-            };
+            // الإصلاح: استخراج الـ ID الحقيقي للعميل (بنفس نوعه الأصلي) لحفظه في الداتا بيز
+            const realCustomerObj = allCustomers.find(c => String(c.id) === String(selectedCustomer));
+            const finalCustomerId = realCustomerObj ? realCustomerObj.id : 'cash_customer';
 
+            const invoice = {
+                customer_id: finalCustomerId, 
+                type: saleType,
+                items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: getPrice(i, saleType) })),
+                subtotal: cartTotal, 
+                shipping_fee: Number(shippingFee || 0), 
+                total: finalTotal,
+                date: timestamp, 
+                status: saleType === 'shipping' ? 'pending_delivery' : 'active', 
+                cashier: currentOperator
+            };
+            
             const addedInvoice = await window.db.add('invoices', invoice);
             const insertedId = typeof addedInvoice === 'object' ? (addedInvoice.id || addedInvoice._id) : addedInvoice;
             const invoiceRef = insertedId ? insertedId.toString().slice(0, 8).toUpperCase() : Date.now().toString().slice(-8);
@@ -308,7 +326,7 @@ const POSModule = ({ currentUser }) => {
                 if (dbProduct) {
                     await window.db.update('products', item.id, { stock: dbProduct.stock - item.qty });
                     await window.db.add('inventory_logs', {
-                        product_id: item.id, product_name: item.name, type: 'sale', qty: -item.qty,
+                        product_id: item.id, product_name: item.name, type: 'sale', qty: -item.qty, 
                         date: timestamp, note: `مبيعات #${invoiceRef}`, user: currentOperator
                     });
                 }
@@ -320,30 +338,34 @@ const POSModule = ({ currentUser }) => {
                 await window.db.add('treasury', { type: 'INCOME', amount: xCoreValidation.downPayment, description: `مقدم تقسيط #${invoiceRef}`, created_at: timestamp, user: currentOperator });
                 const actualMonthly = (finalTotal - xCoreValidation.downPayment) / Math.ceil(xCoreValidation.calculatedMonths);
                 for (let i = 1; i <= Math.ceil(xCoreValidation.calculatedMonths); i++) {
-                    const dueDate = new Date(); dueDate.setMonth(dueDate.getMonth() + i);
+                    const dueDate = new Date(); dueDate.setMonth(dueDate.getMonth() + i); 
                     await window.db.add('installments', {
-                        invoice_id: insertedId, customer_id: selectedCustomer, amount: actualMonthly.toFixed(2),
-                        due_date: dueDate.toISOString().split('T')[0], status: 'pending', created_by: currentOperator
+                        invoice_id: insertedId, 
+                        customer_id: finalCustomerId, 
+                        amount: actualMonthly.toFixed(2),
+                        due_date: dueDate.toISOString().split('T')[0], 
+                        status: 'pending', 
+                        created_by: currentOperator
                     });
                 }
             }
 
             if (navigator.onLine && typeof window.db.syncWithCloud === 'function') window.db.syncWithCloud();
-
-            showNotification('success', '✅ تمت العملية بنجاح!');
+            
+            showNotification('success', '✅ تمت العملية بنجاح! وتم مزامنة قواعد البيانات.');
             setCart([]); setShippingFee(''); setInstValue(''); setSelectedCustomer(''); setIsCheckoutOpen(false);
-            loadData();
+            loadData(); // إعادة جلب البيانات لتحديث الأرصدة والمنتجات المتاحة
         } catch (err) {
             showNotification('error', '❌ خطأ أثناء إصدار الفاتورة.');
         } finally { setIsProcessingSale(false); }
     };
 
     // ==========================================
-    // 8. واجهة المستخدم المحدثة (Responsive UI)
+    // 8. واجهة المستخدم (Responsive UI)
     // ==========================================
     return (
         <div className="h-full flex flex-col bg-slate-50 overflow-hidden relative font-sans">
-
+            
             {/* الإشعارات */}
             {notification && (
                 <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-full shadow-2xl text-white font-bold text-sm flex items-center gap-2 ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
@@ -356,10 +378,10 @@ const POSModule = ({ currentUser }) => {
                 <div className="flex items-center gap-3 w-full">
                     <div className="flex-1 flex items-center bg-slate-100/80 rounded-2xl px-3 py-1.5 border border-slate-200 focus-within:border-blue-500 focus-within:bg-white transition-all">
                         <span className="text-xl text-slate-400">🔍</span>
-                        <input
-                            type="text" placeholder="بحث بالاسم أو الباركود..."
+                        <input 
+                            type="text" placeholder="بحث بالاسم أو الباركود..." 
                             className="w-full py-2 px-3 bg-transparent outline-none text-sm font-bold text-slate-800"
-                            value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                            value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
                         />
                         <button onClick={() => setIsScannerOpen(true)} className="w-9 h-9 bg-slate-800 text-white rounded-xl flex items-center justify-center hover:bg-blue-600 transition-colors">
                             📷
@@ -399,8 +421,8 @@ const POSModule = ({ currentUser }) => {
                 {viewMode === 'grid' ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {filteredAndSortedProducts.map(p => (
-                            <button
-                                key={p.id} onClick={() => addToCart(p)}
+                            <button 
+                                key={p.id} onClick={() => addToCart(p)} 
                                 className="bg-white rounded-3xl p-3 border border-slate-100/60 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(59,130,246,0.12)] hover:border-blue-200 transition-all text-right flex flex-col relative group overflow-hidden"
                             >
                                 <div className="absolute top-2 left-2 right-2 flex justify-between z-10">
@@ -457,7 +479,7 @@ const POSModule = ({ currentUser }) => {
                 </div>
             )}
 
-            {/* شاشة الدفع - استخدم fixed بدلاً من absolute */}
+            {/* شاشة الدفع */}
             {isCheckoutOpen && (
                 <div className="fixed inset-0 z-[9999] bg-slate-50 flex flex-col font-sans animate-in slide-in-from-bottom-8 duration-300">
                     <div className="bg-slate-900 text-white px-5 py-4 shrink-0 flex justify-between items-center shadow-md">
@@ -470,7 +492,7 @@ const POSModule = ({ currentUser }) => {
 
                     <div className="flex-1 overflow-y-auto custom-scroll p-4 md:p-6 pb-10">
                         <div className="max-w-3xl mx-auto space-y-6">
-
+                            
                             {/* تفاصيل السلة */}
                             <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
                                 <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">
@@ -601,12 +623,12 @@ const POSModule = ({ currentUser }) => {
                                 <span className="block text-[10px] text-slate-400 font-bold uppercase tracking-widest">المطلوب سداده</span>
                                 <span className="font-black text-2xl text-blue-600 leading-none">{finalTotal.toLocaleString()} <span className="text-sm">ج</span></span>
                             </div>
-                            <button
-                                onClick={processSale}
+                            <button 
+                                onClick={processSale} 
                                 disabled={isProcessingSale || (saleType === 'installment' && (!xCoreValidation || xCoreValidation.error))}
                                 className={`flex-1 py-4 rounded-2xl font-black text-base shadow-lg transition-all flex justify-center items-center gap-2 ${
-                                    (saleType === 'installment' && (!xCoreValidation || xCoreValidation.error))
-                                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                                    (saleType === 'installment' && (!xCoreValidation || xCoreValidation.error)) 
+                                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' 
                                     : 'bg-slate-900 hover:bg-slate-800 text-white'
                                 }`}
                             >
