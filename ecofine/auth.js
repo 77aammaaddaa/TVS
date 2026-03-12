@@ -1,7 +1,7 @@
 /**
- * 🔐 auth.js - محرك الحماية وتوزيع الصلاحيات (Enterprise X-Guard V11.0)
- * النظام: Eco Fine Pro V11 | المطور: Techno Vision Solutions (Mr. X)
- * التحديث الجديد: Cloud Bootstrapping (تأسيس المالك الأول في السحابة) + تتبع الخمول (30 دقيقة)
+ * 🔐 auth.js - محرك الحماية وتوزيع الصلاحيات (Enterprise X-Guard V14.0 Multi-Tenant)
+ * النظام: Eco Fine Pro V14 | المطور: Techno Vision Solutions (Mr. X)
+ * التحديث: توافق تام مع البيئة المعزولة (Isolated Nodes) + دعم الخزائن المتعددة
  */
 
 // ==========================================
@@ -23,13 +23,14 @@
 })();
 
 // ==========================================
-// 2. محرك الحماية والتحقق (X-Guard)
+// 2. محرك الحماية والتحقق (X-Guard V14.0)
 // ==========================================
 const XGuard = {
+    // تم ترقية المسميات لتتناسب مع النظام المحاسبي الجديد (عقود، خزائن، تقسيط)
     roles: {
         'OWNER': { label: 'المالك / المدير العام', color: 'bg-slate-900' },
-        'MODERATOR': { label: 'مدير النظام', color: 'bg-blue-600' },
-        'CASHIER': { label: 'كاشير / مبيعات', color: 'bg-teal-600' },
+        'MODERATOR': { label: 'مدير النظام (Admin)', color: 'bg-blue-600' },
+        'CASHIER': { label: 'مسؤول خزينة وعقود', color: 'bg-teal-600' },
         'COLLECTOR': { label: 'محصل ميداني', color: 'bg-green-600' },
         'LAWYER': { label: 'الشؤون القانونية', color: 'bg-red-600' },
         'ACCOUNTANT': { label: 'محاسب مالي', color: 'bg-amber-600' },
@@ -39,7 +40,8 @@ const XGuard = {
 
     canAccess: (user, moduleId) => {
         if (!user || !user.permissions) return false;
-        if (user.permissions.includes('all') || user.role_title === 'OWNER') return true;
+        // تم دعم كلا المتغيرين (role و role_title) للتوافق مع البيانات القديمة والجديدة
+        if (user.permissions.includes('all') || user.role === 'OWNER' || user.role_title === 'OWNER') return true;
         return user.permissions.includes(moduleId);
     },
 
@@ -75,10 +77,10 @@ const AuthModule = ({ onLoginSuccess, orgConfig }) => {
     useEffect(() => {
         const checkInitialState = async () => {
             try {
-                // 1. فحص هل يوجد مستخدمين في قاعدة بيانات المؤسسة (السحابية أو المحلية)؟
+                // 1. فحص هل يوجد مستخدمين في قاعدة بيانات المؤسسة المعزولة (السحابية أو المحلية)؟
                 let users = [];
                 if (window._supabase) {
-                    // إذا كنا متصلين بالسحابة، ابحث في جدول users
+                    // إذا كنا متصلين بالسحابة، ابحث في جدول users للعميل الحالي
                     const { data, error } = await window._supabase.from('users').select('*').limit(1);
                     if (!error && data) users = data;
                 } else if (window.db) {
@@ -88,7 +90,7 @@ const AuthModule = ({ onLoginSuccess, orgConfig }) => {
                 
                 // 🚀 Bootstrapping Logic: لو مفيش أي مستخدم، افتح شاشة التأسيس للمالك
                 if (!users || users.length === 0) {
-                    console.log("🛡️ لا يوجد مستخدمين - تفعيل وضع تأسيس المالك الأول");
+                    console.log("🛡️ لا يوجد مستخدمين في هذا الخادم المعزول - تفعيل وضع تأسيس المالك الأول");
                     setView('setup_owner');
                     return;
                 }
@@ -101,7 +103,7 @@ const AuthModule = ({ onLoginSuccess, orgConfig }) => {
                 if (savedSession && lastActivity) {
                     const inactiveTimeMs = now - parseInt(lastActivity, 10);
                     if (inactiveTimeMs > 30 * 60 * 1000) { 
-                        console.log("⚠️ تم إنهاء الجلسة بسبب تجاوز 30 دقيقة من الخمول");
+                        console.log("⚠️ تم إنهاء الجلسة بسبب تجاوز 30 دقيقة من الخمول للحفاظ على أمان البيانات المالية");
                         localStorage.removeItem('ecofine_session');
                         localStorage.removeItem('ecofine_last_activity');
                         setError("تم تسجيل الخروج تلقائياً لعدم وجود تفاعل.");
@@ -160,7 +162,8 @@ const AuthModule = ({ onLoginSuccess, orgConfig }) => {
             }
             
             if (user && user.password === credentials.password) {
-                if (user.active === false) {
+                // الفحص متوافق مع الحقل active أو is_active 
+                if (user.active === false || user.is_active === false) {
                     setError("⚠️ هذا الحساب معطل حالياً بقرار من الإدارة");
                     setIsLoading(false);
                     return;
@@ -178,14 +181,14 @@ const AuthModule = ({ onLoginSuccess, orgConfig }) => {
                 setError("❌ اسم المستخدم أو كلمة المرور غير صحيحة");
             }
         } catch (err) {
-            setError("❌ خطأ في الاتصال بقاعدة البيانات.");
+            setError("❌ خطأ في الاتصال بقاعدة البيانات. تأكد من الربط.");
         } finally {
             setIsLoading(false);
         }
     };
 
     // ==========================================
-    // 👑 دالة تأسيس حساب المالك الأول (Bootstrapping)
+    // 👑 دالة تأسيس حساب المالك الأول (Bootstrapping in Isolated Node)
     // ==========================================
     const handleSetupOwner = async (e) => {
         e.preventDefault();
@@ -208,7 +211,7 @@ const AuthModule = ({ onLoginSuccess, orgConfig }) => {
                 created_at: new Date().toISOString()
             };
 
-            // الحفظ في السحابة
+            // الحفظ في السحابة الخاصة بالمؤسسة (Tenant DB)
             if (window._supabase) {
                 const { error: insertError } = await window._supabase.from('users').insert([newOwner]);
                 if (insertError) throw new Error(insertError.message);
@@ -240,7 +243,7 @@ const AuthModule = ({ onLoginSuccess, orgConfig }) => {
                         Eco Fine <span className="text-blue-500">Pro</span>
                     </h1>
                     <p className="text-[10px] text-blue-400 font-black uppercase tracking-[0.3em]">
-                        {orgConfig?.orgName ? `فرع: ${orgConfig.orgName}` : 'Enterprise Edition'}
+                        {orgConfig?.orgName ? `الكيان: ${orgConfig.orgName}` : 'V14.0 Enterprise ERP'}
                     </p>
                 </div>
 
@@ -252,15 +255,15 @@ const AuthModule = ({ onLoginSuccess, orgConfig }) => {
                     <div className="mb-8 text-center mt-2">
                         {view === 'setup_owner' ? (
                             <>
-                                <h2 className="text-amber-400 font-black text-xl mb-1">👑 تأسيس النظام</h2>
+                                <h2 className="text-amber-400 font-black text-xl mb-1">👑 تأسيس النظام (Bootstrapping)</h2>
                                 <p className="text-slate-400 text-[10px] font-bold leading-relaxed">
-                                    مرحباً بك. نظامك السحابي فارغ حالياً. قم بإنشاء حساب <br/> (المالك / المدير العام) الأول للبدء.
+                                    مرحباً بك. قاعدة بيانات الكيان المعزولة فارغة حالياً. <br/> قم بإنشاء حساب (المالك / المدير العام) الأول للبدء.
                                 </p>
                             </>
                         ) : (
                             <>
-                                <h2 className="text-white font-black text-lg">بوابة دخول الموظفين</h2>
-                                <p className="text-slate-400 text-[10px] font-bold mt-1">الرجاء إدخال بيانات الاعتماد للوصول للنظام</p>
+                                <h2 className="text-white font-black text-lg">بوابة الدخول الموحدة (X-Guard)</h2>
+                                <p className="text-slate-400 text-[10px] font-bold mt-1">الرجاء إدخال بيانات الاعتماد للوصول لنظام المؤسسة</p>
                             </>
                         )}
                     </div>
