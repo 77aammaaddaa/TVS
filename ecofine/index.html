@@ -49,7 +49,7 @@
             z-index: 99999; transition: opacity 0.6s ease-out, visibility 0.6s;
         }
 
-        /* 🖨️ إعدادات الطباعة السيادية (لإخفاء الواجهة وطباعة التقارير والفواتير فقط) */
+        /* 🖨️ إعدادات الطباعة السيادية */
         @media print {
             body * {
                 visibility: hidden;
@@ -87,44 +87,53 @@
 
     <div id="root"></div>
 
+    <!-- ================================================================= -->
+    <!-- 1️⃣ ملفات البنية التحتية الأساسية (يجب تحميلها أولاً) -->
+    <!-- ================================================================= -->
+    <script type="text/babel" src="settings.js"></script>           <!-- إعدادات النظام العامة -->
+    <script type="text/babel" src="database.js"></script>           <!-- قاعدة البيانات المحلية IndexedDB -->
+    <script type="text/babel" src="XConfig.js"></script>            <!-- إعدادات متقدمة / ثوابت -->
+    <script type="text/babel" src="X-Audit.js"></script>            <!-- نظام التدقيق والسجلات -->
+    <script type="text/babel" src="XCore.js"></script>              <!-- المحرك الائتماني الذكي -->
+    <script type="text/babel" src="notifications.js"></script>      <!-- نظام الإشعارات المحلية -->
 
-    
-    <script type="text/babel" src="settings.js"></script>
-    <script type="text/babel" src="database.js"></script>
-    <script type="text/babel" src="X-Audit.js"></script>
-    <script type="text/babel" src="XCore.js"></script>
-    <script type="text/babel" src="notifications.js"></script>
-    
+    <!-- ================================================================= -->
+    <!-- 2️⃣ المصادقة والتفعيل والصلاحيات -->
+    <!-- ================================================================= -->
+    <script type="text/babel" src="activation.js"></script>         <!-- شاشة التفعيل الأولى -->
+    <script type="text/babel" src="auth.js"></script>               <!-- المصادقة وتسجيل الدخول -->
+    <script type="text/babel" src="users.js"></script>              <!-- إدارة المستخدمين والصلاحيات -->
 
-    <script type="text/babel" src="crm.js"></script>
-    <script type="text/babel" src="survey.js"></script>
-    <script type="text/babel" src="legal.js"></script>
-    <script type="text/babel" src="inventory.js"></script>
-    <script type="text/babel" src="suppliers.js"></script>
-    <script type="text/babel" src="purchases.js"></script>
-    <script type="text/babel" src="pos.js"></script>
-        <script type="text/babel" src="users.js"></script>
+    <!-- ================================================================= -->
+    <!-- 3️⃣ الوحدات الأساسية (الأعمال) -->
+    <!-- ================================================================= -->
+    <script type="text/babel" src="crm.js"></script>                <!-- العملاء والضامنين -->
+    <script type="text/babel" src="survey.js"></script>             <!-- الاستعلام الميداني -->
+    <script type="text/babel" src="legal.js"></script>              <!-- الشؤون القانونية والقضايا -->
+    <script type="text/babel" src="inventory.js"></script>          <!-- المخزون والمنتجات -->
+    <script type="text/babel" src="suppliers.js"></script>          <!-- الموردين -->
+    <script type="text/babel" src="purchases.js"></script>          <!-- المشتريات -->
+    <script type="text/babel" src="pos.js"></script>                <!-- نقطة البيع (التقسيط) -->
+    <script type="text/babel" src="installments.js"></script>       <!-- إدارة الأقساط والتحصيل -->
+    <script type="text/babel" src="treasury.js"></script>           <!-- الخزينة والمصروفات -->
+    <script type="text/babel" src="accounting.js"></script>         <!-- محاسبة متقدمة -->
+    <script type="text/babel" src="hr.js"></script>                 <!-- الموارد البشرية -->
+    <script type="text/babel" src="marketing.js"></script>          <!-- الحملات التسويقية -->
+    <script type="text/babel" src="reports.js"></script>            <!-- التقارير والإحصائيات -->
+    <script type="text/babel" src="feedback.js"></script>           <!-- تقييم العملاء وملاحظاتهم -->
+    <script type="text/babel" src="collection.js"></script>         <!-- التحصيل الميداني -->
+    <script type="text/babel" src="data_bridge.js"></script>        <!-- جسر البيانات مع الأنظمة الخارجية -->
 
+    <!-- ================================================================= -->
+    <!-- 4️⃣ الإدارة العليا والمزامنة -->
+    <!-- ================================================================= -->
+    <script type="text/babel" src="super_admin.js"></script>        <!-- لوحة المشرف العام -->
+    <script type="text/babel" src="XSync.js"></script>              <!-- المزامنة مع السحابة -->
 
-
-    
-    <script type="text/babel" src="installments.js"></script>
-    <script type="text/babel" src="treasury.js"></script>
-    <script type="text/babel" src="accounting.js"></script>
-    <script type="text/babel" src="hr.js"></script>
-    <script type="text/babel" src="marketing.js"></script>
-    <script type="text/babel" src="reports.js"></script>
-    <script type="text/babel" src="data_bridge.js"></script>
-      <script type="text/babel" src="super_admin.js"></script>
-
-
-
-    
-  <script type="text/babel" src="XSync.js"></script>
-    
+    <!-- ================================================================= -->
+    <!-- 5️⃣ ملف التطبيق الرئيسي (يتم تحميله أخيراً) -->
+    <!-- ================================================================= -->
     <script type="text/babel" src="app.js"></script>
 
 </body>
 </html>
-
-
