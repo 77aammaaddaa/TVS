@@ -1,140 +1,333 @@
 // ==========================================
 // ملف database.js - المحرك المالي والمزامنة الهجينة (Hybrid Engine)
+// الإصدار المعدل والمصحح بالكامل
 // ==========================================
 
-// 1. تهيئة قاعدة البيانات المحلية باستخدام Dexie.js
+// ------------------------------------------
+// 1. التهيئة والإعدادات العامة
+// ------------------------------------------
+
+// التأكد من وجود Supabase (يتم تعريفه في superadmin.js)
+window.ensureSupabase = function() {
+if (typeof supabase === 'undefined') {
+console.error('❌ لم يتم تهيئة Supabase بعد. تأكد من تحميل superadmin.js أولاً.');
+return false;
+}
+return true;
+};
+
+// تهيئة قاعدة البيانات المحلية باستخدام Dexie.js
 const db = new Dexie("EcoFineXLiteDB");
 
-// تعريف الجداول المحلية (Schema)
+// تعريف الجداول المحلية مع تحسين الفهارس لدعم البحث السريع
 db.version(1).stores({
-    local_inventory: 'id, product_name, price, stock', // جدول المخزون
-    local_sales: 'invoice_id, timestamp',              // جدول الفواتير
-    sync_queue: '++id, operation_type'                 // طابور المزامنة (++ تعني Auto-increment)
+local_inventory: 'id, product_name, price, stock, cloud_product_id', // أضفنا cloud_product_id للربط مع السحابة
+local_sales: 'invoice_id, timestamp',
+sync_queue: '++id, operation_type, entity_id, attempts, last_attempt'
 });
 
-// 2. دالة حفظ الفاتورة (تعمل أوفلاين بسرعة 0.1 ثانية)
-// تُستدعى هذه الدالة من ملف app.js عند الضغط على "دفع الفاتورة"
-async function saveInvoiceToDB(invoiceData) {
-    // نستخدم (Transaction) لضمان: إما أن تكتمل كل العمليات بنجاح، أو يتم التراجع عنها بالكامل لو حدث خطأ
-    return db.transaction('rw', db.local_sales, db.local_inventory, db.sync_queue, async () => {
-        
-        // أ. حفظ الفاتورة في الجدول المحلي
-        await db.local_sales.add(invoiceData);
+// ترقية قاعدة البيانات للإصدار 2 (إذا لزم الأمر في المستقبل)
+// db.version(2).stores({ ... });
 
-        // ب. خصم الكميات من المخزون المحلي
-        for (const item of invoiceData.items) {
-            const product = await db.local_inventory.get(item.id);
-            if (product) {
-                await db.local_inventory.update(item.id, {
-                    stock: product.stock - item.qty
-                });
-            }
-        }
+// ------------------------------------------
+// 2. دوال مساعدة (Utilities)
+// ------------------------------------------
 
-        // ج. إضافة الفاتورة لطابور المزامنة للرفع السحابي لاحقاً
-        await db.sync_queue.add({
-            operation_type: 'insert_sale',
-            data_payload: invoiceData
-        });
+/**
 
-        // تحديث حالة المؤشر في الشاشة
-        updateSyncIndicator();
+· التحقق من الاتصال الفعلي بالإنترنت عبر محاولة الوصول إلى خادم موثوق (Supabase)
+· @returns {Promise<boolean>}
+  */
+  window.checkInternet = async function() {
+  if (!navigator.onLine) return false; // سريع إذا كان المتصفح يعرف أنه غير متصل
+  if (!ensureSupabase()) return false;
+  try {
+  // محاولة جلب حد أدنى من البيانات (أي استعلام خفيف) للتحقق من الاتصال الفعلي
+  const { error } = await supabase.from('licenses').select('id').limit(1).maybeSingle();
+  // إذا لم يكن هناك خطأ في الاتصال (وليس بالضرورة وجود بيانات)
+  return !error || error.message?.includes('Failed to fetch') === false; 
+  } catch (err) {
+  console.warn('⚠️ فشل الاتصال بالإنترنت (فحص الخادم):', err);
+  return false;
+  }
+  };
 
-    }).catch(err => {
-        console.error("خطأ حرج في تسجيل الفاتورة محلياً:", err);
-        throw err; // رمي الخطأ ليتم التقاطه وإظهاره للكاشير في app.js
-    });
-}
+/**
 
-// 3. محرك المزامنة الخلفي (Background Sync Engine)
+· تحديث مؤشر حالة المزامنة في الواجهة
+  */
+  async function updateSyncIndicator() {
+  const syncStatus = document.getElementById('sync-status');
+  if (!syncStatus) return;
+  const isOnline = await checkInternet(); // نستخدم الفحص الفعلي
+  const pendingCount = await db.sync_queue.count().catch(() => 0);
+  if (!isOnline) {
+  syncStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> غير متصل (أوفلاين)';
+  syncStatus.className = 'px-3 py-1 bg-red-500/20 text-red-500 text-xs rounded-full border border-red-500/50 flex items-center gap-2 transition-colors';
+  } else if (pendingCount > 0) {
+  syncStatus.innerHTML = <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span> في الانتظار: ${pendingCount};
+  syncStatus.className = 'px-3 py-1 bg-yellow-500/20 text-yellow-600 text-xs rounded-full border border-yellow-500/50 flex items-center gap-2 transition-colors';
+  } else {
+  syncStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> متصل ومزامن';
+  syncStatus.className = 'px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/50 flex items-center gap-2 transition-colors';
+  }
+  }
+
+// ------------------------------------------
+// 3. دوال إدارة المخزون (CRUD محلي)
+// ------------------------------------------
+
+/**
+
+· استيراد المنتجات من ملف Excel باستخدام SheetJS
+· @param {File} file - ملف الإكسل المرفوع
+  */
+  window.importExcel = async function(file) {
+  if (!file) return;
+  return new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+  try {
+  const data = new Uint8Array(e.target.result);
+  const workbook = XLSX.read(data, { type: 'array' });
+  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+  const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+  });
+  };
+
+/**
+
+· إضافة منتج جديد يدوياً (يمكن استخدامها من واجهة السوبر أدمن)
+  */
+  window.addProduct = async function(productData) {
+  // التحقق من البيانات
+  if (!productData.product_name) throw new Error('اسم المنتج مطلوب');
+  const newProduct = {
+  id: productData.id || prod_${Date.now()}_${Math.random().toString(36).substr(2, 6)},
+  product_name: productData.product_name,
+  price: parseFloat(productData.price) || 0,
+  stock: parseInt(productData.stock, 10) || 0,
+  cloud_product_id: productData.cloud_product_id || null
+  };
+  await db.local_inventory.put(newProduct);
+  return newProduct;
+  };
+
+/**
+
+· تحديث منتج
+  */
+  window.updateProduct = async function(id, updates) {
+  await db.local_inventory.update(id, updates);
+  };
+
+/**
+
+· حذف منتج
+  */
+  window.deleteProduct = async function(id) {
+  await db.local_inventory.delete(id);
+  };
+
+// ------------------------------------------
+// 4. دوال إدارة المبيعات والفواتير
+// ------------------------------------------
+
+/**
+
+· حفظ الفاتورة محلياً (تُستدعى من app.js)
+· @param {Object} invoiceData - بيانات الفاتورة
+  */
+  window.saveInvoiceToDB = async function(invoiceData) {
+  // التحقق من صحة البيانات الأساسية
+  if (!invoiceData.items || !Array.isArray(invoiceData.items) || invoiceData.items.length === 0) {
+  throw new Error('الفاتورة فارغة أو غير صحيحة');
+  }
+  // إضافة معرف فريد للفاتورة إذا لم يكن موجوداً
+  if (!invoiceData.invoice_id) {
+  invoiceData.invoice_id = INV-${Date.now()}-${Math.random().toString(36).substr(2, 6)};
+  }
+  invoiceData.timestamp = invoiceData.timestamp || new Date().toISOString();
+  return db.transaction('rw', db.local_sales, db.local_inventory, db.sync_queue, async () => {
+  // 1. حفظ الفاتورة في جدول local_sales
+  await db.local_sales.add(invoiceData);
+  });
+  };
+
+/**
+
+· استرجاع الفواتير المحفوظة محلياً
+  */
+  window.getLocalSales = async function(limit = 100) {
+  return await db.local_sales.orderBy('timestamp').reverse().limit(limit).toArray();
+  };
+
+// ------------------------------------------
+// 5. محرك المزامنة الخلفي (Background Sync)
+// ------------------------------------------
+
 let isSyncing = false;
 
-async function processSyncQueue() {
-    // التوقف فوراً إذا لم يكن هناك إنترنت، أو إذا كانت هناك مزامنة جارية بالفعل
-    if (!navigator.onLine || isSyncing) {
-        updateSyncIndicator();
-        return;
-    }
+/**
 
-    // جلب معرف العميل (Tenant ID) المحفوظ محلياً بواسطة بوابة superadmin.js
-    const tenantId = localStorage.getItem('xfine_tenant_id');
-    if (!tenantId) return; // النظام غير مفعل برخصة صالحة حتى الآن
+· معالجة طابور المزامنة ورفع البيانات إلى السحابة
+  */
+  async function processSyncQueue() {
+  // التحقق من وجود اتصال فعلي
+  const isOnline = await checkInternet();
+  if (!isOnline || isSyncing) {
+  updateSyncIndicator();
+  return;
+  }
+  const tenantId = localStorage.getItem('xfine_tenant_id');
+  if (!tenantId) return; // النظام غير مفعل
+  isSyncing = true;
+  updateSyncIndicator();
+  try {
+  // جلب المهام المعلقة (مرتبة حسب الأقدم)
+  const pendingTasks = await db.sync_queue.orderBy('id').toArray();
+  } catch (error) {
+  console.error('خطأ عام في محرك المزامنة:', error);
+  } finally {
+  isSyncing = false;
+  updateSyncIndicator();
+  }
+  }
 
-    isSyncing = true;
-    updateSyncIndicator();
+/**
 
-    try {
-        // جلب كل العمليات المعلقة في الطابور المحلي
-        const pendingTasks = await db.sync_queue.toArray();
+· معالجة عملية إدراج فاتورة في السحابة
+  */
+  async function processInsertSale(task, tenantId) {
+  try {
+  // 1. إدراج الفاتورة في cloud_sales
+  const cloudData = {
+  tenant_id: tenantId,
+  invoice_data_json: task.data_payload,
+  total: task.data_payload.total,
+  created_at: new Date().toISOString()
+  };
+  } catch (error) {
+  console.error('فشل في معالجة مهمة المزامنة:', error);
+  }
+  }
 
-        if (pendingTasks.length === 0) {
-            isSyncing = false;
-            updateSyncIndicator();
-            return; // لا يوجد فواتير متأخرة
-        }
+/**
 
-        for (const task of pendingTasks) {
-            if (task.operation_type === 'insert_sale') {
-                // تجهيز البيانات للسحابة (إضافة tenant_id لعزل بيانات هذا العميل)
-                const cloudData = {
-                    tenant_id: tenantId,
-                    invoice_data_json: task.data_payload,
-                    total: task.data_payload.total
-                };
+· مزامنة المخزون من السحابة إلى المحلي (تحديث الأسعار والكميات)
+  */
+  window.syncInventoryFromCloud = async function() {
+  const tenantId = localStorage.getItem('xfine_tenant_id');
+  if (!tenantId) throw new Error('لا يوجد tenant_id نشط');
+  if (!await checkInternet()) throw new Error('لا يوجد اتصال بالإنترنت');
+  const { data: cloudProducts, error } = await supabase
+  .from('cloud_inventory')
+  .select('*')
+  .eq('tenant_id', tenantId);
+  if (error) throw error;
+  // تحديث المخزون المحلي
+  await db.transaction('rw', db.local_inventory, async () => {
+  for (const prod of cloudProducts) {
+  await db.local_inventory.put({
+  id: prod.id, // استخدام نفس id السحابي
+  product_name: prod.product_name,
+  price: prod.price,
+  stock: prod.stock,
+  cloud_product_id: prod.id
+  });
+  }
+  });
+  // تحديث الواجهة
+  if (typeof window.loadProducts === 'function') {
+  window.loadProducts();
+  }
+  alert(✅ تم تحديث المخزون المحلي من السحابة (${cloudProducts.length} منتج).);
+  };
 
-                // المتغير 'supabase' سيكون معرفاً عالمياً قادماً من ملف superadmin.js
-                const { error } = await supabase
-                    .from('cloud_sales')
-                    .insert([cloudData]);
+// ------------------------------------------
+// 6. التشغيل الدوري والاستماع للأحداث
+// ------------------------------------------
 
-                if (!error) {
-                    // إذا نجح الرفع السحابي، احذف الفاتورة من طابور المهام المحلي
-                    await db.sync_queue.delete(task.id);
-                } else {
-                    console.error("فشل الرفع للسحابة، سيتم المحاولة لاحقاً:", error);
-                    break; // إيقاف المزامنة مؤقتاً لتجنب تكرار الأخطاء إذا كان السيرفر يعاني من ضغط
-                }
-            }
-        }
-    } catch (error) {
-        console.error("خطأ عام في محرك المزامنة الخفي:", error);
-    } finally {
-        isSyncing = false;
-        updateSyncIndicator();
-    }
-}
+// تشغيل المزامنة كل 10 ثوانٍ (مع مراعاة حالة الاتصال)
+setInterval(() => {
+processSyncQueue().catch(console.error);
+}, 10000);
 
-// 4. نظام مراقبة حالة الاتصال والمزامنة (UI Status)
-function updateSyncIndicator() {
-    const syncStatus = document.getElementById('sync-status');
-    if (!syncStatus) return;
-
-    if (!navigator.onLine) {
-        syncStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> غير متصل (أوفلاين)';
-        syncStatus.className = 'px-3 py-1 bg-red-500/20 text-red-500 text-xs rounded-full border border-red-500/50 flex items-center gap-2 transition-colors';
-    } else {
-        // التأكد من عدد الفواتير المعلقة في الطابور
-        db.sync_queue.count().then(count => {
-            if (count > 0) {
-                syncStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span> جاري المزامنة...';
-                syncStatus.className = 'px-3 py-1 bg-yellow-500/20 text-yellow-600 text-xs rounded-full border border-yellow-500/50 flex items-center gap-2 transition-colors';
-            } else {
-                syncStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> متصل ومزامن';
-                syncStatus.className = 'px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/50 flex items-center gap-2 transition-colors';
-            }
-        }).catch(() => {});
-    }
-}
-
-// 5. بروتوكول التشغيل التلقائي (Cron Job)
-// تشغيل المزامنة الخفية كل 10 ثوانٍ في الخلفية دون إزعاج الكاشير
-setInterval(processSyncQueue, 10000);
-
-// مراقبة الاتصال اللحظي لتفعيل المزامنة فور عودة الإنترنت
+// الاستماع لتغير حالة الاتصال
 window.addEventListener('online', () => {
-    updateSyncIndicator();
-    processSyncQueue();
+updateSyncIndicator();
+processSyncQueue();
 });
 window.addEventListener('offline', () => {
-    updateSyncIndicator();
+updateSyncIndicator();
 });
+
+// تحديث المؤشر عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+updateSyncIndicator();
+});
+
+// ------------------------------------------
+// 7. دوال إضافية للتصدير والنسخ الاحتياطي
+// ------------------------------------------
+
+/**
+
+· تصدير جميع البيانات المحلية (للنسخ الاحتياطي)
+  */
+  window.exportLocalData = async function() {
+  const inventory = await db.local_inventory.toArray();
+  const sales = await db.local_sales.toArray();
+  const queue = await db.sync_queue.toArray();
+  const exportData = {
+  inventory,
+  sales,
+  queue,
+  exportDate: new Date().toISOString(),
+  version: 1
+  };
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = backup_${new Date().toISOString().slice(0,10)}.json;
+  a.click();
+  URL.revokeObjectURL(url);
+  };
+
+/**
+
+· استيراد نسخة احتياطية (مع تحذير)
+  */
+  window.importBackup = async function(file) {
+  if (!confirm('⚠️ استيراد النسخة الاحتياطية سوف يستبدل جميع البيانات الحالية. هل أنت متأكد؟')) {
+  return;
+  }
+  try {
+  const text = await file.text();
+  const backup = JSON.parse(text);
+  } catch (err) {
+  console.error('❌ فشل استيراد النسخة الاحتياطية:', err);
+  alert(فشل الاستيراد: ${err.message});
+  }
+  };
+
+// ------------------------------------------
+// 8. تصدير الدوال المطلوبة إلى النطاق العام
+// ------------------------------------------
+window.db = db;
+window.updateSyncIndicator = updateSyncIndicator;
+
+console.log('✅ database.js تم تحميله بنجاح مع جميع التحسينات.');
+
+// تصدير الدوال الإضافية المطلوبة
+window.processSyncQueue = processSyncQueue;
+window.processInsertSale = processInsertSale;
+
+// دالة تهيئة إضافية للتحقق من البيئة
+window.initDatabase = async function() {
+await db.open();
+console.log('📦 قاعدة البيانات المحلية جاهزة');
+updateSyncIndicator();
+return db;
+};
