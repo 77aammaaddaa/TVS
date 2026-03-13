@@ -3,98 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoFine POS X-Lite</title>
-    
+    <title>EcoFine POS X-Lite (نسخة موحدة)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- مكتبة Supabase -->
+    <!-- المكتبات الأساسية -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Dexie (IndexedDB) -->
     <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
-    
-    <!-- SheetJS (Excel) -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-
     <style>
-        /* إخفاء الشاشات التي لا تعمل حالياً */
         .hidden-screen { display: none !important; }
-        /* تحسين شكل شريط التمرير */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans h-screen overflow-hidden selection:bg-blue-200">
+<body class="bg-gray-100 text-gray-800 font-sans h-screen overflow-hidden">
 
     <!-- شاشة التفعيل -->
     <div id="activation-screen" class="flex items-center justify-center h-full bg-slate-900">
         <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center">
             <h1 class="text-3xl font-bold text-slate-800 mb-2">EcoFine <span class="text-blue-600">X-Lite</span></h1>
-            <p class="text-gray-500 mb-6">نظام نقاط البيع السحابي الهجين</p>
-            
+            <p class="text-gray-500 mb-6">نظام نقاط البيع (نسخة موحدة)</p>
             <div class="mb-4">
-                <input type="text" id="license-input" placeholder="أدخل كود التفعيل هنا..." 
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center font-mono text-lg" dir="ltr">
+                <input type="text" id="license-input" placeholder="كود التفعيل" 
+                       class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-center font-mono" dir="ltr">
             </div>
-            <button id="activate-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
-                تفعيل النظام
+            <button id="activate-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">
+                تفعيل
             </button>
             <p id="activation-msg" class="mt-4 text-sm text-red-500 font-semibold"></p>
         </div>
     </div>
 
-    <!-- شاشة نقاط البيع (POS) -->
+    <!-- شاشة نقاط البيع -->
     <div id="pos-screen" class="h-full flex flex-col hidden-screen">
-        <header class="bg-slate-800 text-white p-4 flex justify-between items-center shadow-md z-10">
+        <header class="bg-slate-800 text-white p-4 flex justify-between items-center">
             <div class="flex items-center gap-4">
                 <h1 class="text-xl font-bold">EcoFine POS</h1>
-                <span id="sync-status" class="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/50 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> متصل ومزامن
+                <span id="sync-status" class="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> محلي
                 </span>
             </div>
-            <div class="flex items-center gap-4">
+            <div>
                 <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="hidden">
-                <button id="import-excel-btn" class="bg-slate-700 hover:bg-slate-600 text-sm py-2 px-4 rounded-md transition">
+                <button id="import-excel-btn" class="bg-slate-700 hover:bg-slate-600 text-sm py-2 px-4 rounded-md">
                     📥 استيراد مخزون
                 </button>
             </div>
         </header>
-
         <div class="flex flex-1 overflow-hidden">
-            <!-- قسم المنتجات والبحث -->
+            <!-- المنتجات -->
             <div class="w-2/3 flex flex-col p-4 bg-gray-50">
-                <div class="mb-4">
-                    <input type="text" id="search-input" placeholder="ابحث عن منتج بالاسم أو الباركود..." 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg">
-                </div>
-                <div id="product-grid" class="flex-1 overflow-y-auto grid grid-cols-3 lg:grid-cols-4 gap-4 p-2">
-                    <!-- يتم تعبئتها ديناميكياً عبر JavaScript -->
-                </div>
+                <input type="text" id="search-input" placeholder="ابحث عن منتج..." 
+                       class="w-full px-4 py-3 border rounded-xl mb-4 focus:ring-2 focus:ring-blue-500 text-lg">
+                <div id="product-grid" class="flex-1 overflow-y-auto grid grid-cols-3 lg:grid-cols-4 gap-4 p-2"></div>
             </div>
-
-            <!-- سلة المشتريات -->
-            <div class="w-1/3 bg-white border-r border-gray-200 flex flex-col shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)]">
-                <h2 class="text-lg font-bold p-4 border-b bg-slate-50 text-slate-700">سلة المبيعات (الفاتورة)</h2>
-                
-                <div id="cart-items" class="flex-1 overflow-y-auto p-2">
-                    <!-- يتم تعبئتها ديناميكياً -->
-                </div>
-
-                <div class="p-4 bg-slate-50 border-t border-gray-200 space-y-3">
-                    <div class="flex justify-between text-gray-600">
-                        <span>المجموع الفرعي:</span>
-                        <span id="cart-subtotal" class="font-bold">0.00</span>
-                    </div>
-                    <div class="flex justify-between items-center text-gray-600">
+            <!-- السلة -->
+            <div class="w-1/3 bg-white border-r flex flex-col">
+                <h2 class="text-lg font-bold p-4 border-b bg-slate-50">سلة المبيعات</h2>
+                <div id="cart-items" class="flex-1 overflow-y-auto p-2"></div>
+                <div class="p-4 bg-slate-50 border-t space-y-3">
+                    <div class="flex justify-between"><span>المجموع الفرعي:</span><span id="cart-subtotal" class="font-bold">0.00</span></div>
+                    <div class="flex justify-between items-center">
                         <span>الخصم:</span>
-                        <input type="number" id="cart-discount" value="0" min="0" class="w-20 px-2 py-1 border rounded text-left focus:ring-1 focus:ring-blue-500 outline-none">
+                        <input type="number" id="cart-discount" value="0" min="0" class="w-20 px-2 py-1 border rounded">
                     </div>
                     <div class="flex justify-between text-xl font-bold text-blue-700 pt-2 border-t">
-                        <span>الإجمالي:</span>
-                        <span id="cart-total">0.00</span>
+                        <span>الإجمالي:</span><span id="cart-total">0.00</span>
                     </div>
-                    <button id="checkout-btn" class="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg transition duration-200 text-lg">
+                    <button id="checkout-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl">
                         دفع الفاتورة
                     </button>
                 </div>
@@ -102,11 +78,11 @@
         </div>
     </div>
 
-    <!-- شاشة السوبر أدمن (مخفية) -->
+    <!-- شاشة السوبر أدمن -->
     <div id="superadmin-screen" class="absolute inset-0 bg-slate-900/95 z-50 flex items-center justify-center hidden-screen">
         <div class="bg-white w-3/4 max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-3/4">
             <div class="bg-red-600 text-white p-4 flex justify-between items-center">
-                <h2 class="text-xl font-bold flex items-center gap-2">🛡️ لوحة تحكم السوبر أدمن (X-Core)</h2>
+                <h2 class="text-xl font-bold">🛡️ لوحة تحكم السوبر أدمن</h2>
                 <button id="admin-close-btn" class="hover:bg-red-700 p-2 rounded">إغلاق</button>
             </div>
             <div class="p-6 flex-1 overflow-y-auto bg-gray-50">
@@ -114,34 +90,371 @@
                     <button id="generate-key-btn" class="bg-slate-800 text-white px-6 py-2 rounded-lg hover:bg-slate-700 font-bold">
                         ➕ توليد كود تفعيل جديد
                     </button>
-                    <div id="new-key-display" class="flex-1 bg-green-100 text-green-800 px-4 py-2 rounded-lg border border-green-300 font-mono text-center hidden">
-                        <!-- يتم عرض الكود الجديد هنا -->
-                    </div>
+                    <div id="new-key-display" class="flex-1 bg-green-100 text-green-800 px-4 py-2 rounded-lg font-mono text-center hidden"></div>
                 </div>
                 <div class="bg-white rounded-lg shadow border">
                     <table class="w-full text-right">
                         <thead class="bg-gray-100 border-b">
-                            <tr>
-                                <th class="p-3">معرف العميل (Tenant ID)</th>
-                                <th class="p-3">كود التفعيل</th>
-                                <th class="p-3">تاريخ الانتهاء</th>
-                                <th class="p-3">الحالة</th>
-                                <th class="p-3">إجراء</th>
-                            </tr>
+                            <tr><th class="p-3">معرف العميل</th><th class="p-3">كود التفعيل</th><th class="p-3">تاريخ الانتهاء</th><th class="p-3">الحالة</th><th class="p-3">إجراء</th></tr>
                         </thead>
-                        <tbody id="licenses-list" class="divide-y">
-                            <!-- يتم تعبئتها ديناميكياً -->
-                        </tbody>
+                        <tbody id="licenses-list" class="divide-y"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ترتيب استدعاء ملفات JavaScript مهم: superadmin.js أولاً (يُعرِّف supabase)، ثم database.js (يستخدم supabase)، ثم app.js (يستخدم الدوال) -->
-    <script src="superadmin.js"></script>
-    <script src="database.js"></script>
-    <script src="app.js"></script>
+    <script>
+        (function() {
+            // ---------- الإعدادات العامة ----------
+            const DB_NAME = "EcoFineLocalDB";
+            let db;
 
+            // تهيئة Dexie
+            (async function initDB() {
+                db = new Dexie(DB_NAME);
+                db.version(1).stores({
+                    local_inventory: 'id, product_name, price, stock',
+                    local_sales: 'invoice_id, timestamp',
+                    licenses: 'id, license_key, tenant_id, status, expiry_date'
+                });
+                await db.open();
+                console.log('✅ DB ready');
+                // تأكد من وجود تراخيص تجريبية
+                const count = await db.licenses.count();
+                if (count === 0) {
+                    // أضف ترخيص تجريبي
+                    await db.licenses.add({
+                        id: '1',
+                        license_key: 'DEMO123',
+                        tenant_id: 'T-DEMO',
+                        status: 'active',
+                        expiry_date: new Date(Date.now() + 365*24*60*60*1000).toISOString()
+                    });
+                }
+            })();
+
+            // ---------- دوال التفعيل ----------
+            const activationScreen = document.getElementById('activation-screen');
+            const posScreen = document.getElementById('pos-screen');
+            const superadminScreen = document.getElementById('superadmin-screen');
+            const licenseInput = document.getElementById('license-input');
+            const activateBtn = document.getElementById('activate-btn');
+            const activationMsg = document.getElementById('activation-msg');
+
+            // التحقق من وجود ترخيص صالح في localStorage
+            function checkStoredLicense() {
+                const tenant = localStorage.getItem('tenant_id');
+                const expiry = localStorage.getItem('expiry_date');
+                if (tenant && expiry && new Date(expiry) > new Date()) {
+                    return true;
+                }
+                return false;
+            }
+
+            // فتح POS إذا كان الترخيص صالحاً
+            if (checkStoredLicense()) {
+                activationScreen.classList.add('hidden-screen');
+                posScreen.classList.remove('hidden-screen');
+                if (typeof initPOS === 'function') initPOS();
+            }
+
+            // معالجة زر التفعيل
+            activateBtn.addEventListener('click', async () => {
+                const key = licenseInput.value.trim();
+                if (!key) {
+                    activationMsg.innerText = 'الرجاء إدخال الكود';
+                    return;
+                }
+                activationMsg.innerText = '';
+                activateBtn.disabled = true;
+                activateBtn.innerText = 'جاري التحقق...';
+
+                try {
+                    // البحث في جدول licenses المحلي
+                    const license = await db.licenses.where('license_key').equals(key).first();
+                    if (!license) {
+                        activationMsg.innerText = 'كود غير صحيح';
+                    } else if (license.status !== 'active') {
+                        activationMsg.innerText = 'الكود موقوف';
+                    } else if (new Date(license.expiry_date) < new Date()) {
+                        activationMsg.innerText = 'الكود منتهي الصلاحية';
+                    } else {
+                        // تفعيل ناجح
+                        localStorage.setItem('tenant_id', license.tenant_id);
+                        localStorage.setItem('expiry_date', license.expiry_date);
+                        activationScreen.classList.add('hidden-screen');
+                        posScreen.classList.remove('hidden-screen');
+                        if (typeof initPOS === 'function') initPOS();
+                    }
+                } catch (err) {
+                    activationMsg.innerText = 'خطأ: ' + err.message;
+                } finally {
+                    activateBtn.disabled = false;
+                    activateBtn.innerText = 'تفعيل';
+                }
+            });
+
+            // ---------- دوال السوبر أدمن ----------
+            const adminCloseBtn = document.getElementById('admin-close-btn');
+            const generateKeyBtn = document.getElementById('generate-key-btn');
+            const newKeyDisplay = document.getElementById('new-key-display');
+            const licensesList = document.getElementById('licenses-list');
+
+            // الدخول إلى السوبر أدمن عبر كود سري في البحث (يتم ربطه لاحقاً)
+            window.openSuperAdmin = function() {
+                posScreen.classList.add('hidden-screen');
+                superadminScreen.classList.remove('hidden-screen');
+                loadLicenses();
+            };
+
+            adminCloseBtn.addEventListener('click', () => {
+                superadminScreen.classList.add('hidden-screen');
+                posScreen.classList.remove('hidden-screen');
+            });
+
+            generateKeyBtn.addEventListener('click', async () => {
+                const newTenant = 'T-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                const newKey = 'KEY-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                const expiry = new Date(Date.now() + 365*24*60*60*1000).toISOString();
+                await db.licenses.add({
+                    id: Date.now().toString(),
+                    license_key: newKey,
+                    tenant_id: newTenant,
+                    status: 'active',
+                    expiry_date: expiry
+                });
+                newKeyDisplay.classList.remove('hidden');
+                newKeyDisplay.innerText = `الكود: ${newKey} | العميل: ${newTenant}`;
+                loadLicenses();
+            });
+
+            async function loadLicenses() {
+                const all = await db.licenses.toArray();
+                licensesList.innerHTML = '';
+                all.forEach(lic => {
+                    const tr = document.createElement('tr');
+                    const isActive = lic.status === 'active';
+                    tr.innerHTML = `
+                        <td class="p-3 border-b font-mono">${lic.tenant_id}</td>
+                        <td class="p-3 border-b font-mono text-blue-600">${lic.license_key}</td>
+                        <td class="p-3 border-b">${new Date(lic.expiry_date).toLocaleDateString('ar-EG')}</td>
+                        <td class="p-3 border-b font-bold ${isActive ? 'text-green-600' : 'text-red-600'}">${isActive ? 'نشط' : 'موقوف'}</td>
+                        <td class="p-3 border-b">
+                            <button class="px-3 py-1 text-sm rounded ${isActive ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}" 
+                                    onclick="toggleLicenseStatus('${lic.id}', '${isActive ? 'inactive' : 'active'}')">
+                                ${isActive ? 'إيقاف' : 'تفعيل'}
+                            </button>
+                        </td>
+                    `;
+                    licensesList.appendChild(tr);
+                });
+            }
+
+            window.toggleLicenseStatus = async function(id, newStatus) {
+                await db.licenses.update(id, { status: newStatus });
+                loadLicenses();
+            };
+
+            // ---------- دوال POS (مشتقة من app.js) ----------
+            let currentCart = [];
+            let currentProducts = [];
+
+            window.initPOS = async function() {
+                setupEventListeners();
+                await loadProducts();
+            };
+
+            async function loadProducts(search = '') {
+                if (!db) return;
+                if (search) {
+                    currentProducts = await db.local_inventory.where('product_name').startsWithIgnoreCase(search).toArray();
+                } else {
+                    currentProducts = await db.local_inventory.toArray();
+                }
+                renderProductGrid();
+            }
+
+            function renderProductGrid() {
+                const grid = document.getElementById('product-grid');
+                if (!grid) return;
+                grid.innerHTML = '';
+                if (currentProducts.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center text-gray-500 mt-10">لا توجد منتجات. استورد ملف إكسيل.</div>';
+                    return;
+                }
+                currentProducts.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-white p-4 rounded-xl shadow-sm border hover:shadow-md cursor-pointer';
+                    card.innerHTML = `
+                        <h3 class="font-bold truncate">${escapeHtml(p.product_name)}</h3>
+                        <p class="text-blue-700 font-extrabold text-lg mt-2">${p.price.toFixed(2)} ج.م</p>
+                        <p class="text-xs ${p.stock > 5 ? 'text-green-600' : 'text-red-600'}">المخزون: ${p.stock}</p>
+                    `;
+                    card.onclick = () => addToCart(p);
+                    grid.appendChild(card);
+                });
+            }
+
+            function addToCart(product) {
+                if (product.stock <= 0) return alert('الكمية غير متوفرة');
+                const existing = currentCart.find(item => item.id === product.id);
+                if (existing) {
+                    if (existing.qty < product.stock) existing.qty++;
+                    else alert('لا يمكن تجاوز المخزون');
+                } else {
+                    currentCart.push({ id: product.id, product_name: product.product_name, price: product.price, qty: 1 });
+                }
+                renderCart();
+            }
+
+            window.updateCartQty = function(id, delta) {
+                const idx = currentCart.findIndex(i => i.id === id);
+                if (idx === -1) return;
+                const newQty = currentCart[idx].qty + delta;
+                if (newQty <= 0) {
+                    currentCart.splice(idx, 1);
+                } else {
+                    const product = currentProducts.find(p => p.id === id);
+                    if (product && newQty > product.stock) {
+                        alert('لا يمكن تجاوز المخزون');
+                        return;
+                    }
+                    currentCart[idx].qty = newQty;
+                }
+                renderCart();
+            };
+
+            function renderCart() {
+                const container = document.getElementById('cart-items');
+                if (!container) return;
+                container.innerHTML = '';
+                currentCart.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center p-3 bg-white border rounded-lg mb-2';
+                    div.innerHTML = `
+                        <div><h4 class="font-bold">${escapeHtml(item.product_name)}</h4><p class="text-xs">${item.price.toFixed(2)} ج.م</p></div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center bg-gray-100 rounded-lg border">
+                                <button onclick="updateCartQty('${item.id}', 1)" class="px-2 py-1 hover:bg-gray-200 font-bold">+</button>
+                                <span class="px-2 font-bold">${item.qty}</span>
+                                <button onclick="updateCartQty('${item.id}', -1)" class="px-2 py-1 hover:bg-gray-200 font-bold">-</button>
+                            </div>
+                            <p class="font-bold w-16 text-left">${(item.price * item.qty).toFixed(2)}</p>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                calculateTotals();
+            }
+
+            function calculateTotals() {
+                const subtotal = currentCart.reduce((sum, i) => sum + i.price * i.qty, 0);
+                const discount = parseFloat(document.getElementById('cart-discount').value) || 0;
+                const total = Math.max(subtotal - discount, 0);
+                document.getElementById('cart-subtotal').innerText = subtotal.toFixed(2);
+                document.getElementById('cart-total').innerText = total.toFixed(2);
+            }
+
+            function escapeHtml(unsafe) {
+                return unsafe.replace(/[&<>"]/g, function(m) {
+                    if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; if (m === '"') return '&quot;';
+                    return m;
+                });
+            }
+
+            // استيراد إكسيل
+            document.getElementById('import-excel-btn').addEventListener('click', () => {
+                document.getElementById('excel-file-input').click();
+            });
+            document.getElementById('excel-file-input').addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!confirm('استيراد ملف جديد سيحل محل المخزون الحالي. هل أنت متأكد؟')) {
+                    e.target.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = async (ev) => {
+                    try {
+                        const data = new Uint8Array(ev.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const json = XLSX.utils.sheet_to_json(sheet);
+                        const products = json.map((row, idx) => ({
+                            id: `prod_${Date.now()}_${idx}`,
+                            product_name: row['الاسم'] || row['name'] || 'منتج',
+                            price: parseFloat(row['السعر'] || row['price'] || 0),
+                            stock: parseInt(row['المخزون'] || row['stock'] || 0)
+                        }));
+                        await db.local_inventory.clear();
+                        await db.local_inventory.bulkAdd(products);
+                        alert(`تم استيراد ${products.length} منتج`);
+                        loadProducts();
+                    } catch (err) {
+                        alert('فشل الاستيراد: ' + err.message);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+                e.target.value = '';
+            });
+
+            // الدفع
+            document.getElementById('checkout-btn').addEventListener('click', async () => {
+                if (currentCart.length === 0) return alert('السلة فارغة');
+                const subtotal = parseFloat(document.getElementById('cart-subtotal').innerText);
+                const discount = parseFloat(document.getElementById('cart-discount').value) || 0;
+                const total = parseFloat(document.getElementById('cart-total').innerText);
+                const invoice = {
+                    invoice_id: 'INV-' + Date.now(),
+                    items: currentCart.map(i => ({...i})),
+                    subtotal, discount, total,
+                    timestamp: new Date().toISOString()
+                };
+                // حفظ الفاتورة محلياً وخصم المخزون
+                await db.transaction('rw', db.local_sales, db.local_inventory, async () => {
+                    await db.local_sales.add(invoice);
+                    for (let item of invoice.items) {
+                        const prod = await db.local_inventory.get(item.id);
+                        if (prod) {
+                            await db.local_inventory.update(item.id, { stock: prod.stock - item.qty });
+                        }
+                    }
+                });
+                currentCart = [];
+                document.getElementById('cart-discount').value = 0;
+                renderCart();
+                await loadProducts();
+                alert('تمت عملية الدفع بنجاح');
+            });
+
+            // البحث مع كود سري للسوبر أدمن
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const val = e.target.value.trim();
+                    if (val === '7X-CORE-ADMIN') {
+                        openSuperAdmin();
+                        e.target.value = '';
+                    } else {
+                        loadProducts(val);
+                    }
+                });
+            }
+
+            // ربط أحداث الخصم
+            document.getElementById('cart-discount').addEventListener('input', calculateTotals);
+
+            // تجهيز الدوال العامة
+            window.updateCartQty = updateCartQty;
+            window.loadProducts = loadProducts;
+            window.addToCart = addToCart;
+
+            // إذا كان هناك ترخيص بالفعل، شغل initPOS
+            if (checkStoredLicense() && typeof initPOS === 'function') {
+                initPOS();
+            }
+        })();
+    </script>
 </body>
 </html>
