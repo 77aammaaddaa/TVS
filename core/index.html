@@ -3,153 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X-Cloud Diagnostic Tool</title>
+    <title>EcoFine POS X-Lite</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- مكتبة Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Dexie (IndexedDB) -->
+    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+    
+    <!-- SheetJS (Excel) -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
     <style>
-        #console {
-            background-color: #1a1a1a;
-            color: #00ff00;
-            font-family: 'Courier New', Courier, monospace;
-            min-height: 300px;
-        }
-        .log-error { color: #ff4444; }
-        .log-success { color: #00ff00; }
-        .log-warn { color: #ffff00; }
-        .log-info { color: #00ffff; }
+        /* إخفاء الشاشات التي لا تعمل حالياً */
+        .hidden-screen { display: none !important; }
+        /* تحسين شكل شريط التمرير */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-gray-100 p-5">
+<body class="bg-gray-100 text-gray-800 font-sans h-screen overflow-hidden selection:bg-blue-200">
 
-    <div class="max-w-4xl mx-auto space-y-6">
-        <div class="bg-white p-6 rounded-xl shadow-lg border-2 border-blue-500">
-            <h1 class="text-2xl font-bold mb-4 text-gray-800">🛠️ مختبر الربط بالسحابة (X-Tester)</h1>
+    <!-- شاشة التفعيل -->
+    <div id="activation-screen" class="flex items-center justify-center h-full bg-slate-900">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">EcoFine <span class="text-blue-600">X-Lite</span></h1>
+            <p class="text-gray-500 mb-6">نظام نقاط البيع السحابي الهجين</p>
             
-            <div class="grid grid-cols-1 gap-4">
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Project URL:</label>
-                    <input type="text" id="test-url" value="https://pyrcpouvcvjkgpjyuafz.supabase.co" 
-                           class="w-full p-2 border rounded font-mono text-sm bg-gray-50">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Anon Key:</label>
-                    <input type="text" id="test-key" placeholder="أدخل مفتاح anon هنا..."
-                           class="w-full p-2 border rounded font-mono text-xs bg-gray-50">
-                </div>
-                <button id="run-test" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition">
-                    تشغيل فحص الاتصال وتحليل الأخطاء
+            <div class="mb-4">
+                <input type="text" id="license-input" placeholder="أدخل كود التفعيل هنا..." 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center font-mono text-lg" dir="ltr">
+            </div>
+            <button id="activate-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
+                تفعيل النظام
+            </button>
+            <p id="activation-msg" class="mt-4 text-sm text-red-500 font-semibold"></p>
+        </div>
+    </div>
+
+    <!-- شاشة نقاط البيع (POS) -->
+    <div id="pos-screen" class="h-full flex flex-col hidden-screen">
+        <header class="bg-slate-800 text-white p-4 flex justify-between items-center shadow-md z-10">
+            <div class="flex items-center gap-4">
+                <h1 class="text-xl font-bold">EcoFine POS</h1>
+                <span id="sync-status" class="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/50 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> متصل ومزامن
+                </span>
+            </div>
+            <div class="flex items-center gap-4">
+                <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="hidden">
+                <button id="import-excel-btn" class="bg-slate-700 hover:bg-slate-600 text-sm py-2 px-4 rounded-md transition">
+                    📥 استيراد مخزون
                 </button>
             </div>
-        </div>
+        </header>
 
-        <div class="rounded-xl overflow-hidden shadow-2xl border-2 border-black">
-            <div class="bg-black p-2 flex justify-between items-center px-4">
-                <span class="text-white text-xs font-bold font-mono">X-CORE SYSTEM CONSOLE [DEBUG MODE]</span>
-                <button onclick="document.getElementById('console').innerHTML = ''" class="text-red-500 text-xs">Clear</button>
+        <div class="flex flex-1 overflow-hidden">
+            <!-- قسم المنتجات والبحث -->
+            <div class="w-2/3 flex flex-col p-4 bg-gray-50">
+                <div class="mb-4">
+                    <input type="text" id="search-input" placeholder="ابحث عن منتج بالاسم أو الباركود..." 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg">
+                </div>
+                <div id="product-grid" class="flex-1 overflow-y-auto grid grid-cols-3 lg:grid-cols-4 gap-4 p-2">
+                    <!-- يتم تعبئتها ديناميكياً عبر JavaScript -->
+                </div>
             </div>
-            <div id="console" class="p-4 text-sm overflow-y-auto max-h-[400px]">
-                > بانتظار تشغيل الفحص...
+
+            <!-- سلة المشتريات -->
+            <div class="w-1/3 bg-white border-r border-gray-200 flex flex-col shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)]">
+                <h2 class="text-lg font-bold p-4 border-b bg-slate-50 text-slate-700">سلة المبيعات (الفاتورة)</h2>
+                
+                <div id="cart-items" class="flex-1 overflow-y-auto p-2">
+                    <!-- يتم تعبئتها ديناميكياً -->
+                </div>
+
+                <div class="p-4 bg-slate-50 border-t border-gray-200 space-y-3">
+                    <div class="flex justify-between text-gray-600">
+                        <span>المجموع الفرعي:</span>
+                        <span id="cart-subtotal" class="font-bold">0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center text-gray-600">
+                        <span>الخصم:</span>
+                        <input type="number" id="cart-discount" value="0" min="0" class="w-20 px-2 py-1 border rounded text-left focus:ring-1 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="flex justify-between text-xl font-bold text-blue-700 pt-2 border-t">
+                        <span>الإجمالي:</span>
+                        <span id="cart-total">0.00</span>
+                    </div>
+                    <button id="checkout-btn" class="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg transition duration-200 text-lg">
+                        دفع الفاتورة
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        const consoleEl = document.getElementById('console');
+    <!-- شاشة السوبر أدمن (مخفية) -->
+    <div id="superadmin-screen" class="absolute inset-0 bg-slate-900/95 z-50 flex items-center justify-center hidden-screen">
+        <div class="bg-white w-3/4 max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-3/4">
+            <div class="bg-red-600 text-white p-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold flex items-center gap-2">🛡️ لوحة تحكم السوبر أدمن (X-Core)</h2>
+                <button id="admin-close-btn" class="hover:bg-red-700 p-2 rounded">إغلاق</button>
+            </div>
+            <div class="p-6 flex-1 overflow-y-auto bg-gray-50">
+                <div class="flex gap-4 mb-6">
+                    <button id="generate-key-btn" class="bg-slate-800 text-white px-6 py-2 rounded-lg hover:bg-slate-700 font-bold">
+                        ➕ توليد كود تفعيل جديد
+                    </button>
+                    <div id="new-key-display" class="flex-1 bg-green-100 text-green-800 px-4 py-2 rounded-lg border border-green-300 font-mono text-center hidden">
+                        <!-- يتم عرض الكود الجديد هنا -->
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow border">
+                    <table class="w-full text-right">
+                        <thead class="bg-gray-100 border-b">
+                            <tr>
+                                <th class="p-3">معرف العميل (Tenant ID)</th>
+                                <th class="p-3">كود التفعيل</th>
+                                <th class="p-3">تاريخ الانتهاء</th>
+                                <th class="p-3">الحالة</th>
+                                <th class="p-3">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="licenses-list" class="divide-y">
+                            <!-- يتم تعبئتها ديناميكياً -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        function log(message, type = 'info') {
-            const time = new Date().toLocaleTimeString();
-            const div = document.createElement('div');
-            div.className = `mb-1 ${'log-' + type}`;
-            div.innerHTML = `[${time}] ${message}`;
-            consoleEl.appendChild(div);
-            consoleEl.scrollTop = consoleEl.scrollHeight;
-        }
+    <!-- ترتيب استدعاء ملفات JavaScript مهم: superadmin.js أولاً (يُعرِّف supabase)، ثم database.js (يستخدم supabase)، ثم app.js (يستخدم الدوال) -->
+    <script src="superadmin.js"></script>
+    <script src="database.js"></script>
+    <script src="app.js"></script>
 
-        document.getElementById('run-test').onclick = async function() {
-            const url = document.getElementById('test-url').value.trim();
-            const key = document.getElementById('test-key').value.trim();
-            const btn = this;
-
-            btn.disabled = true;
-            btn.innerText = "جاري الفحص...";
-            consoleEl.innerHTML = ""; // مسح الكونسول
-
-            log("🚀 بدء عملية الفحص والتحليل...", 'info');
-
-            // 1. فحص تحميل المكتبة
-            if (typeof supabase === 'undefined') {
-                log("❌ خطأ حرج: مكتبة Supabase لم يتم تحميلها من الـ CDN!", 'error');
-                log("💡 الحل: تأكد من اتصال الإنترنت أو استخدم رابط CDN آخر في الـ HTML.", 'warn');
-                finish(); return;
-            }
-            log("✅ تم العثور على مكتبة Supabase بنجاح.", 'success');
-
-            // 2. محاولة إنشاء العميل
-            let testSupabase;
-            try {
-                testSupabase = supabase.createClient(url, key);
-                log("✅ تم إنشاء كائن العميل (Client) برمجياً.", 'success');
-            } catch (e) {
-                log(`❌ فشل إنشاء العميل: ${e.message}`, 'error');
-                finish(); return;
-            }
-
-            // 3. فحص الاتصال الفعلي (محاولة سحب بيانات)
-            log("📡 محاولة الاتصال بجدول 'licenses' وسحب البيانات...", 'info');
-            
-            const start = performance.now();
-            try {
-                const { data, error, status, statusText } = await testSupabase
-                    .from('licenses')
-                    .select('count')
-                    .limit(1);
-
-                const end = performance.now();
-                log(`🕒 زمن الاستجابة: ${Math.round(end - start)}ms`, 'info');
-
-                if (error) {
-                    log(`❌ خطأ من السحابة (Status: ${status} - ${statusText})`, 'error');
-                    analyzeError(error, status);
-                } else {
-                    log("🎉 نجاح باهر! الاتصال بالسحابة يعمل 100% والبيانات وصلت.", 'success');
-                    log(`📦 نتيجة الفحص: تم العثور على بيانات (Count: ${JSON.stringify(data)})`, 'info');
-                }
-            } catch (e) {
-                log("❌ خطأ غير متوقع في طلب الـ Fetch!", 'error');
-                log(`📝 تفاصيل الخطأ: ${e.message}`, 'error');
-                analyzeError(e);
-            }
-
-            finish();
-        };
-
-        function analyzeError(error, status) {
-            log("🔍 تحليل المشكلة...", 'warn');
-            
-            if (status === 403) {
-                log("🚨 تشخيص: مشكلة حماية (RLS Policy)!", 'error');
-                log("💡 السبب: السحابة متصلة، لكنها ترفض إعطاءك البيانات لأنك لم تفعل سياسة الوصول (Policy) لليوزر 'anon' على جدول licenses.", 'warn');
-                log("🛠️ الحل: اذهب لـ Supabase -> Authentication -> Policies وأضف سياسة SELECT للجميع.", 'info');
-            } 
-            else if (error.message && error.message.includes('fetch')) {
-                log("🚨 تشخيص: مشكلة اتصال شبكة أو رابط (URL) خطأ!", 'error');
-                log("💡 السبب: المتصفح لا يستطيع الوصول للرابط. قد يكون الرابط ناقصاً أو الإنترنت محجوباً.", 'warn');
-            }
-            else if (status === 401 || status === 400) {
-                log("🚨 تشخيص: مفتاح Anon غير صالح!", 'error');
-                log("💡 السبب: الـ Key الذي استخدمته قد يكون قديماً أو ناقصاً حرفاً واحداً.", 'warn');
-            }
-            else {
-                log(`🚨 تشخيص غير معروف: ${error.message || 'راجع الكونسول الرئيسي للمتصفح (F12)'}`, 'error');
-            }
-        }
-
-        function finish() {
-            const btn = document.getElementById('run-test');
-            btn.disabled = false;
-            btn.innerText = "تشغيل فحص الاتصال وتحليل الأخطاء";
-            log("🔚 انتهى الفحص.", 'info');
-        }
-    </script>
 </body>
 </html>
