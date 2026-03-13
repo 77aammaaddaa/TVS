@@ -3,17 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoFine POS X-Lite (نسخة موحدة)</title>
+    <title>EcoFine POS X-Lite (نسخة متكاملة)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- المكتبات الأساسية -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <style>
         .hidden-screen { display: none !important; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        /* نافذة منبثقة بسيطة */
+        .modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: 1rem;
+            max-width: 500px; width: 90%;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans h-screen overflow-hidden">
@@ -22,7 +32,7 @@
     <div id="activation-screen" class="flex items-center justify-center h-full bg-slate-900">
         <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center">
             <h1 class="text-3xl font-bold text-slate-800 mb-2">EcoFine <span class="text-blue-600">X-Lite</span></h1>
-            <p class="text-gray-500 mb-6">نظام نقاط البيع (نسخة موحدة)</p>
+            <p class="text-gray-500 mb-6">نظام نقاط البيع المتكامل</p>
             <div class="mb-4">
                 <input type="text" id="license-input" placeholder="كود التفعيل" 
                        class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-center font-mono" dir="ltr">
@@ -43,10 +53,13 @@
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> محلي
                 </span>
             </div>
-            <div>
-                <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="hidden">
-                <button id="import-excel-btn" class="bg-slate-700 hover:bg-slate-600 text-sm py-2 px-4 rounded-md">
-                    📥 استيراد مخزون
+            <div class="flex items-center gap-2">
+                <button id="add-product-btn" class="bg-blue-600 hover:bg-blue-700 text-sm py-2 px-4 rounded-md">
+                    ➕ إضافة منتج
+                </button>
+                <input type="file" id="import-file-input" accept=".xlsx, .xls, .csv" class="hidden">
+                <button id="import-btn" class="bg-slate-700 hover:bg-slate-600 text-sm py-2 px-4 rounded-md">
+                    📥 استيراد (Excel/CSV)
                 </button>
             </div>
         </header>
@@ -100,6 +113,20 @@
                         <tbody id="licenses-list" class="divide-y"></tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة منتج يدوي -->
+    <div id="add-product-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">إضافة منتج جديد</h2>
+            <input type="text" id="new-product-name" placeholder="اسم المنتج" class="w-full p-2 border rounded mb-3">
+            <input type="number" id="new-product-price" placeholder="السعر" class="w-full p-2 border rounded mb-3">
+            <input type="number" id="new-product-stock" placeholder="الكمية" class="w-full p-2 border rounded mb-4">
+            <div class="flex justify-end gap-2">
+                <button id="cancel-add-product" class="px-4 py-2 bg-gray-300 rounded">إلغاء</button>
+                <button id="save-add-product" class="px-4 py-2 bg-blue-600 text-white rounded">حفظ</button>
             </div>
         </div>
     </div>
@@ -201,7 +228,6 @@
             const newKeyDisplay = document.getElementById('new-key-display');
             const licensesList = document.getElementById('licenses-list');
 
-            // الدخول إلى السوبر أدمن عبر كود سري في البحث (يتم ربطه لاحقاً)
             window.openSuperAdmin = function() {
                 posScreen.classList.add('hidden-screen');
                 superadminScreen.classList.remove('hidden-screen');
@@ -280,7 +306,7 @@
                 if (!grid) return;
                 grid.innerHTML = '';
                 if (currentProducts.length === 0) {
-                    grid.innerHTML = '<div class="col-span-full text-center text-gray-500 mt-10">لا توجد منتجات. استورد ملف إكسيل.</div>';
+                    grid.innerHTML = '<div class="col-span-full text-center text-gray-500 mt-10">لا توجد منتجات. استورد ملف إكسيل/CSV أو أضف منتج يدوياً.</div>';
                     return;
                 }
                 currentProducts.forEach(p => {
@@ -363,43 +389,115 @@
                 });
             }
 
-            // استيراد إكسيل
-            document.getElementById('import-excel-btn').addEventListener('click', () => {
-                document.getElementById('excel-file-input').click();
+            // ---------- إضافة منتج يدوي ----------
+            const modal = document.getElementById('add-product-modal');
+            const addProductBtn = document.getElementById('add-product-btn');
+            const cancelAdd = document.getElementById('cancel-add-product');
+            const saveAdd = document.getElementById('save-add-product');
+            const newName = document.getElementById('new-product-name');
+            const newPrice = document.getElementById('new-product-price');
+            const newStock = document.getElementById('new-product-stock');
+
+            addProductBtn.addEventListener('click', () => {
+                modal.classList.remove('hidden');
+                newName.value = ''; newPrice.value = ''; newStock.value = '';
             });
-            document.getElementById('excel-file-input').addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                if (!confirm('استيراد ملف جديد سيحل محل المخزون الحالي. هل أنت متأكد؟')) {
-                    e.target.value = '';
+            cancelAdd.addEventListener('click', () => modal.classList.add('hidden'));
+            saveAdd.addEventListener('click', async () => {
+                const name = newName.value.trim();
+                const price = parseFloat(newPrice.value);
+                const stock = parseInt(newStock.value, 10);
+                if (!name || isNaN(price) || price < 0 || isNaN(stock) || stock < 0) {
+                    alert('الرجاء إدخال بيانات صحيحة');
                     return;
                 }
-                const reader = new FileReader();
-                reader.onload = async (ev) => {
-                    try {
-                        const data = new Uint8Array(ev.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const json = XLSX.utils.sheet_to_json(sheet);
-                        const products = json.map((row, idx) => ({
-                            id: `prod_${Date.now()}_${idx}`,
-                            product_name: row['الاسم'] || row['name'] || 'منتج',
-                            price: parseFloat(row['السعر'] || row['price'] || 0),
-                            stock: parseInt(row['المخزون'] || row['stock'] || 0)
-                        }));
-                        await db.local_inventory.clear();
-                        await db.local_inventory.bulkAdd(products);
-                        alert(`تم استيراد ${products.length} منتج`);
-                        loadProducts();
-                    } catch (err) {
-                        alert('فشل الاستيراد: ' + err.message);
-                    }
+                const newProduct = {
+                    id: 'prod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                    product_name: name,
+                    price: price,
+                    stock: stock
                 };
-                reader.readAsArrayBuffer(file);
-                e.target.value = '';
+                await db.local_inventory.add(newProduct);
+                await loadProducts();
+                modal.classList.add('hidden');
             });
 
-            // الدفع
+            // ---------- استيراد من Excel/CSV مع ربط الأعمدة ----------
+            const importBtn = document.getElementById('import-btn');
+            const fileInput = document.getElementById('import-file-input');
+
+            importBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // تأكيد المسح
+                if (!confirm('استيراد ملف جديد سيحل محل المخزون الحالي. هل أنت متأكد؟')) {
+                    fileInput.value = '';
+                    return;
+                }
+
+                try {
+                    let jsonData;
+                    const ext = file.name.split('.').pop().toLowerCase();
+
+                    if (ext === 'csv') {
+                        // قراءة CSV وتحويله إلى JSON باستخدام PapaParse (light) – سنستخدم طريقة بسيطة
+                        const text = await file.text();
+                        const lines = text.split('\n');
+                        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+                        const rows = [];
+                        for (let i = 1; i < lines.length; i++) {
+                            if (!lines[i].trim()) continue;
+                            const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                            const obj = {};
+                            headers.forEach((h, idx) => obj[h] = values[idx]);
+                            rows.push(obj);
+                        }
+                        jsonData = rows;
+                    } else {
+                        // Excel
+                        const data = new Uint8Array(await file.arrayBuffer());
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                        jsonData = XLSX.utils.sheet_to_json(sheet);
+                    }
+
+                    // محاولة تعيين الأعمدة تلقائياً
+                    const products = jsonData.map((row, idx) => {
+                        // البحث عن الاسم
+                        let name = row['الاسم'] || row['name'] || row['اسم'] || row['Name'] || row['product'] || 'منتج';
+                        // البحث عن السعر
+                        let price = parseFloat(row['السعر'] || row['price'] || row['سعر'] || row['Price'] || 0);
+                        // البحث عن المخزون
+                        let stock = parseInt(row['المخزون'] || row['stock'] || row['كمية'] || row['Quantity'] || 0, 10);
+
+                        if (isNaN(price)) price = 0;
+                        if (isNaN(stock)) stock = 0;
+
+                        return {
+                            id: `prod_${Date.now()}_${idx}_${Math.random().toString(36).substr(2, 4)}`,
+                            product_name: name,
+                            price: price,
+                            stock: stock
+                        };
+                    });
+
+                    // حفظ في قاعدة البيانات
+                    await db.local_inventory.clear();
+                    await db.local_inventory.bulkAdd(products);
+                    alert(`تم استيراد ${products.length} منتج بنجاح.`);
+                    await loadProducts();
+
+                } catch (err) {
+                    alert('فشل الاستيراد: ' + err.message);
+                } finally {
+                    fileInput.value = '';
+                }
+            });
+
+            // ---------- الدفع ----------
             document.getElementById('checkout-btn').addEventListener('click', async () => {
                 if (currentCart.length === 0) return alert('السلة فارغة');
                 const subtotal = parseFloat(document.getElementById('cart-subtotal').innerText);
@@ -428,7 +526,7 @@
                 alert('تمت عملية الدفع بنجاح');
             });
 
-            // البحث مع كود سري للسوبر أدمن
+            // ---------- البحث مع كود سري للسوبر أدمن ----------
             const searchInput = document.getElementById('search-input');
             if (searchInput) {
                 searchInput.addEventListener('input', (e) => {
@@ -453,6 +551,12 @@
             // إذا كان هناك ترخيص بالفعل، شغل initPOS
             if (checkStoredLicense() && typeof initPOS === 'function') {
                 initPOS();
+            }
+
+            // إضافة مستمع الأحداث لإعداد الـ event listeners (مثل إضافة منتج)
+            function setupEventListeners() {
+                // يتم تنفيذها عند initPOS
+                // لكن الأحداث الأساسية مربوطة بالفعل، نضيف هنا أي شيء إضافي
             }
         })();
     </script>
