@@ -6,8 +6,9 @@
 // ------------------------------------------
 // 1. إعدادات الاتصال بالسحابة (Supabase)
 // ------------------------------------------
-const SUPABASE_URL = 'ضع_رابط_المشروع_هنا';      // استخدم رابط مشروعك الفعلي
-const SUPABASE_ANON_KEY = 'ضع_مفتاح_anon_هنا';   // استخدم مفتاح anon الخاص بك
+// 1. إعدادات الاتصال بالماستر (EcoFine_Master)
+const MASTER_URL = 'https://pyrcpouvcvjkgpjyuafz.supabase.co';
+const MASTER_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5cmNwb3V2Y3Zqa2dwanl1YWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0ODc4NDgsImV4cCI6MjA4ODA2Mzg0OH0.vhrkZgIAh4Zp1TjLjwvelU5x31eSZZN5fBaPiaVKHCk';
 
 // تهيئة عميل Supabase وجعله متاحاً عالمياً للملفات الأخرى (مثل database.js)
 window.supabase = window.supabase || window.supabaseJs?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
