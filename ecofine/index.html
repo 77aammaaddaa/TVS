@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <meta name="theme-color" content="#0f172a">
-    <meta name="description" content="Eco Fine Pro V12.0 - Enterprise ERP & Installment Management System. Powered by Techno Vision Solutions.">
+    <meta name="description" content="Eco Fine Pro V14.0 - Decentralized Enterprise ERP & Credit System. Powered by Techno Vision Solutions.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <title>Eco Fine Pro V12.0 | Enterprise</title>
+    <title>Eco Fine Pro V14.0 | Enterprise</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -81,59 +81,13 @@
         </div>
         <h1 class="text-white font-black tracking-tighter text-4xl mb-3">Eco Fine <span class="text-blue-500">Pro</span></h1>
         <div class="bg-slate-800/50 text-blue-400 text-[10px] font-black px-4 py-1.5 rounded-lg uppercase tracking-[0.3em] shadow-lg border border-slate-700/50 backdrop-blur-sm">
-            Enterprise V12.0
+            Diamond Enterprise V14.0
         </div>
     </div>
 
     <div id="root"></div>
 
-    <!-- ================================================================= -->
-    <!-- 1️⃣ ملفات البنية التحتية الأساسية (يجب تحميلها أولاً) -->
-    <!-- ================================================================= -->
-    <script type="text/babel" src="settings.js"></script>           <!-- إعدادات النظام العامة -->
-    <script type="text/babel" src="database.js"></script>           <!-- قاعدة البيانات المحلية IndexedDB -->
-    <script type="text/babel" src="XConfig.js"></script>            <!-- إعدادات متقدمة / ثوابت -->
-    <script type="text/babel" src="X-Audit.js"></script>            <!-- نظام التدقيق والسجلات -->
-    <script type="text/babel" src="XCore.js"></script>              <!-- المحرك الائتماني الذكي -->
-    <script type="text/babel" src="notifications.js"></script>      <!-- نظام الإشعارات المحلية -->
-
-    <!-- ================================================================= -->
-    <!-- 2️⃣ المصادقة والتفعيل والصلاحيات -->
-    <!-- ================================================================= -->
-    <script type="text/babel" src="activation.js"></script>         <!-- شاشة التفعيل الأولى -->
-    <script type="text/babel" src="auth.js"></script>               <!-- المصادقة وتسجيل الدخول -->
-    <script type="text/babel" src="users.js"></script>              <!-- إدارة المستخدمين والصلاحيات -->
-
-    <!-- ================================================================= -->
-    <!-- 3️⃣ الوحدات الأساسية (الأعمال) -->
-    <!-- ================================================================= -->
-    <script type="text/babel" src="crm.js"></script>                <!-- العملاء والضامنين -->
-    <script type="text/babel" src="survey.js"></script>             <!-- الاستعلام الميداني -->
-    <script type="text/babel" src="legal.js"></script>              <!-- الشؤون القانونية والقضايا -->
-    <script type="text/babel" src="inventory.js"></script>          <!-- المخزون والمنتجات -->
-    <script type="text/babel" src="suppliers.js"></script>          <!-- الموردين -->
-    <script type="text/babel" src="purchases.js"></script>          <!-- المشتريات -->
-    <script type="text/babel" src="pos.js"></script>                <!-- نقطة البيع (التقسيط) -->
-    <script type="text/babel" src="installments.js"></script>       <!-- إدارة الأقساط والتحصيل -->
-    <script type="text/babel" src="treasury.js"></script>           <!-- الخزينة والمصروفات -->
-    <script type="text/babel" src="accounting.js"></script>         <!-- محاسبة متقدمة -->
-    <script type="text/babel" src="hr.js"></script>                 <!-- الموارد البشرية -->
-    <script type="text/babel" src="marketing.js"></script>          <!-- الحملات التسويقية -->
-    <script type="text/babel" src="reports.js"></script>            <!-- التقارير والإحصائيات -->
-    <script type="text/babel" src="feedback.js"></script>           <!-- تقييم العملاء وملاحظاتهم -->
-    <script type="text/babel" src="collection.js"></script>         <!-- التحصيل الميداني -->
-    <script type="text/babel" src="data_bridge.js"></script>        <!-- جسر البيانات مع الأنظمة الخارجية -->
-
-    <!-- ================================================================= -->
-    <!-- 4️⃣ الإدارة العليا والمزامنة -->
-    <!-- ================================================================= -->
-    <script type="text/babel" src="super_admin.js"></script>        <!-- لوحة المشرف العام -->
-    <script type="text/babel" src="XSync.js"></script>              <!-- المزامنة مع السحابة -->
-
-    <!-- ================================================================= -->
-    <!-- 5️⃣ ملف التطبيق الرئيسي (يتم تحميله أخيراً) -->
-    <!-- ================================================================= -->
-    <script type="text/babel" src="app.js"></script>
+    <script type="text/babel" src="settings.js"></script>           <script type="text/babel" src="database.js"></script>           <script type="text/babel" src="XConfig.js"></script>            <script type="text/babel" src="X-Audit.js"></script>            <script type="text/babel" src="XCore.js"></script>              <script type="text/babel" src="XScoreEngine.js"></script>       <script type="text/babel" src="notifications.js"></script>      <script type="text/babel" src="activation.js"></script>         <script type="text/babel" src="auth.js"></script>               <script type="text/babel" src="users.js"></script>              <script type="text/babel" src="crm.js"></script>                <script type="text/babel" src="survey.js"></script>             <script type="text/babel" src="legal.js"></script>              <script type="text/babel" src="inventory.js"></script>          <script type="text/babel" src="suppliers.js"></script>          <script type="text/babel" src="purchases.js"></script>          <script type="text/babel" src="pos.js"></script>                <script type="text/babel" src="installments.js"></script>       <script type="text/babel" src="treasury.js"></script>           <script type="text/babel" src="accounting.js"></script>         <script type="text/babel" src="hr.js"></script>                 <script type="text/babel" src="marketing.js"></script>          <script type="text/babel" src="reports.js"></script>            <script type="text/babel" src="feedback.js"></script>           <script type="text/babel" src="collection.js"></script>         <script type="text/babel" src="data_bridge.js"></script>        <script type="text/babel" src="super_admin.js"></script>        <script type="text/babel" src="XSync.js"></script>              <script type="text/babel" src="app.js"></script>
 
 </body>
 </html>
