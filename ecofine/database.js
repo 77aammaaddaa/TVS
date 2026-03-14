@@ -379,7 +379,5 @@ const db = {
     }
 };
 
-// تجميد الكائن لمنع التعديل العرضي
-Object.freeze(db);
 
 window.db = db;
