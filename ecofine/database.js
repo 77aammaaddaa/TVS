@@ -12,7 +12,7 @@ if (!window.indexedDB) {
 const db = {
     localDb: null,
     dbName: "EcoFine_Local_DB",
-    dbVersion: 15, // تم رفع الإصدار لإضافة فهارس جديدة دون破坏 البيانات الحالية
+    dbVersion: 15, // تم رفع الإصدار لإضافة فهارس جديدة دون مسح البيانات الحالية
 
     // ==========================================
     // 1. إعادة التهيئة الديناميكية (SaaS Routing) 🚀
@@ -379,5 +379,7 @@ const db = {
     }
 };
 
+// تجميد الكائن لمنع التعديل العرضي (تم إيقافه لحل مشكلة التهيئة Cannot assign to read only property)
+// Object.freeze(db);
 
 window.db = db;
