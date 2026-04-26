@@ -5,25 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <meta name="theme-color" content="#0f172a">
-    <meta name="description" content="Eco Fine Pro V14.0 - Decentralized Enterprise ERP & Credit System. Powered by Techno Vision Solutions.">
+    <meta name="description" content="Eco Fine Pro V14.1 - Decentralized Enterprise ERP & Credit System. Powered by Techno Vision Solutions.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9R8H6Y9YTG"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-9R8H6Y9YTG');
+    </script>
 
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-9R8H6Y9YTG"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-9R8H6Y9YTG');
-</script>
-
-    
-    
-    <title>Eco Fine Pro V14.0 | Enterprise  ايكو فاين برو </title>
+    <title>Eco Fine Pro V14.1 | Enterprise ايكو فاين برو</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,21 +29,45 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
+    <script type="text/babel" src="i18n.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     
     <style>
-        :root { --primary-dark: #0f172a; --accent-blue: #2563eb; }
+        /* 🎨 نظام الثيمات الديناميكي */
+        :root { 
+            --bg-main: #f8fafc; 
+            --bg-card: #ffffff; 
+            --text-primary: #0f172a; 
+            --accent-blue: #2563eb; 
+            --sidebar-bg: #0f172a;
+        }
+
+        /* الثيم المستقبلي (السيادي) */
+        [data-theme='futuristic'] {
+            --bg-main: #05010d;
+            --bg-card: #0d041a;
+            --text-primary: #f8fafc;
+            --accent-blue: #a855f7; /* تم استبدال الأزرق بالأرجواني النيون هنا */
+            --sidebar-bg: #090214;
+        }
+
         body { 
             font-family: 'IBM Plex Sans Arabic', sans-serif; 
-            background: #f8fafc; 
+            background: var(--bg-main); 
+            color: var(--text-primary);
             overscroll-behavior-y: none;
             -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
+        
         * { -webkit-tap-highlight-color: transparent; outline: none; }
+        
         .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: var(--accent-blue); }
+        
         .animate-in { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         
         @keyframes slideUp {
@@ -58,30 +76,19 @@
         }
         
         #splash-screen {
-            position: fixed; inset: 0; background: #0f172a;
+            position: fixed; inset: 0; background: var(--sidebar-bg);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 99999; transition: opacity 0.6s ease-out, visibility 0.6s;
         }
 
         /* 🖨️ إعدادات الطباعة السيادية */
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            #printable-report, #printable-report * {
-                visibility: visible;
-            }
+            body * { visibility: hidden; }
+            #printable-report, #printable-report * { visibility: visible; }
             #printable-report {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                margin: 0;
-                padding: 0;
+                position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0;
             }
-            .print\:hidden {
-                display: none !important;
-            }
+            .print\:hidden { display: none !important; }
         }
     </style>
 </head>
@@ -90,18 +97,50 @@
     <div id="splash-screen">
         <div class="relative w-24 h-24 mb-8">
             <div class="absolute inset-0 border-4 border-slate-800 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+            <div class="absolute inset-0 border-4 border-[var(--accent-blue)] rounded-full border-t-transparent animate-spin"></div>
             <div class="absolute inset-0 flex items-center justify-center font-black text-2xl text-white">7X</div>
         </div>
-        <h1 class="text-white font-black tracking-tighter text-4xl mb-3">Eco Fine <span class="text-blue-500">Pro</span></h1>
-        <div class="bg-slate-800/50 text-blue-400 text-[10px] font-black px-4 py-1.5 rounded-lg uppercase tracking-[0.3em] shadow-lg border border-slate-700/50 backdrop-blur-sm">
-            Diamond Enterprise V14.0
+        <h1 class="text-white font-black tracking-tighter text-4xl mb-3">Eco Fine <span style="color: var(--accent-blue);">Pro</span></h1>
+        <div class="bg-slate-800/50 text-[var(--accent-blue)] text-[10px] font-black px-4 py-1.5 rounded-lg uppercase tracking-[0.3em] shadow-lg border border-slate-700/50 backdrop-blur-sm">
+            Diamond Enterprise V14.1
         </div>
     </div>
 
     <div id="root"></div>
 
-    <script type="text/babel" src="settings.js"></script>           <script type="text/babel" src="database.js"></script>           <script type="text/babel" src="XConfig.js"></script>            <script type="text/babel" src="X-Audit.js"></script>            <script type="text/babel" src="XCore.js"></script>              <script type="text/babel" src="XScoreEngine.js"></script>       <script type="text/babel" src="notifications.js"></script>      <script type="text/babel" src="activation.js"></script>         <script type="text/babel" src="auth.js"></script>               <script type="text/babel" src="users.js"></script>              <script type="text/babel" src="crm.js"></script>                <script type="text/babel" src="survey.js"></script>             <script type="text/babel" src="legal.js"></script>              <script type="text/babel" src="inventory.js"></script>          <script type="text/babel" src="suppliers.js"></script>          <script type="text/babel" src="purchases.js"></script>          <script type="text/babel" src="pos.js"></script>                <script type="text/babel" src="installments.js"></script>       <script type="text/babel" src="treasury.js"></script>           <script type="text/babel" src="accounting.js"></script>         <script type="text/babel" src="hr.js"></script>                 <script type="text/babel" src="marketing.js"></script>          <script type="text/babel" src="reports.js"></script>            <script type="text/babel" src="feedback.js"></script>           <script type="text/babel" src="collection.js"></script>         <script type="text/babel" src="data_bridge.js"></script>        <script type="text/babel" src="super_admin.js"></script>        <script type="text/babel" src="XSync.js"></script>              <script type="text/babel" src="app.js"></script>
+    <script type="text/babel" src="XConfig.js"></script>
+    <script type="text/babel" src="database.js"></script>
+    <script type="text/babel" src="XCore.js"></script>
+    <script type="text/babel" src="X-Audit.js"></script>
+    
+    <script type="text/babel" src="XSync.js"></script>
+    <script type="text/babel" src="XScoreEngine.js"></script>
+    <script type="text/babel" src="data_bridge.js"></script>
+    
+    <script type="text/babel" src="auth.js"></script>
+    <script type="text/babel" src="activation.js"></script>
+    <script type="text/babel" src="users.js"></script>
+    <script type="text/babel" src="super_admin.js"></script>
+    
+    <script type="text/babel" src="settings.js"></script>
+    <script type="text/babel" src="inventory.js"></script>
+    <script type="text/babel" src="pos.js"></script>
+    <script type="text/babel" src="crm.js"></script>
+    <script type="text/babel" src="survey.js"></script>
+    <script type="text/babel" src="suppliers.js"></script>
+    <script type="text/babel" src="purchases.js"></script>
+    <script type="text/babel" src="installments.js"></script>
+    <script type="text/babel" src="collection.js"></script>
+    <script type="text/babel" src="treasury.js"></script>
+    <script type="text/babel" src="accounting.js"></script>
+    <script type="text/babel" src="hr.js"></script>
+    <script type="text/babel" src="marketing.js"></script>
+    <script type="text/babel" src="reports.js"></script>
+    <script type="text/babel" src="legal.js"></script>
+    <script type="text/babel" src="feedback.js"></script>
+    <script type="text/babel" src="notifications.js"></script>
+
+    <script type="text/babel" src="app.js"></script>
 
 </body>
 </html>
