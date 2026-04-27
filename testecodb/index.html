@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoFine POS X-Lite (النسخة السحابية الهجينة)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        .hidden-screen { display: none !important; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: 1rem;
+            max-width: 500px; width: 90%;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans h-screen overflow-hidden">
+
+    <div id="activation-screen" class="flex items-center justify-center h-full bg-slate-900">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">EcoFine <span class="text-blue-600">X-Lite</span></h1>
+            <p class="text-gray-500 mb-6">نظام نقاط البيع السحابي الهجين</p>
+            <div class="mb-4">
+                <input type="text" id="license-input" placeholder="كود التفعيل" 
+                       class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-center font-mono" dir="ltr">
+            </div>
+            <button id="activate-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">
+                تفعيل عبر السحابة
+            </button>
+            <p id="activation-msg" class="mt-4 text-sm text-red-500 font-semibold"></p>
+        </div>
+    </div>
+
+    <div id="pos-screen" class="h-full flex flex-col hidden-screen">
+        <header class="bg-slate-800 text-white p-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <h1 class="text-xl font-bold">EcoFine POS</h1>
+                <span id="sync-status" class="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> متصل بالسحابة
+                </span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="add-product-btn" class="bg-blue-600 hover:bg-blue-700 text-sm py-2 px-4 rounded-md">
+                    ➕ إضافة منتج
+                </button>
+                <input type="file" id="import-file-input" accept=".xlsx, .xls, .csv" class="hidden">
+                <button id="import-btn" class="bg-slate-700 hover:bg-slate-600 text-sm py-2 px-4 rounded-md">
+                    📥 استيراد (Excel/CSV)
+                </button>
+            </div>
+        </header>
+        <div class="flex flex-1 overflow-hidden">
+            <div class="w-2/3 flex flex-col p-4 bg-gray-50">
+                <input type="text" id="search-input" placeholder="ابحث عن منتج (أو أدخل كود الإدارة)..." 
+                       class="w-full px-4 py-3 border rounded-xl mb-4 focus:ring-2 focus:ring-blue-500 text-lg">
+                <div id="product-grid" class="flex-1 overflow-y-auto grid grid-cols-3 lg:grid-cols-4 gap-4 p-2"></div>
+            </div>
+            <div class="w-1/3 bg-white border-r flex flex-col">
+                <h2 class="text-lg font-bold p-4 border-b bg-slate-50">سلة المبيعات</h2>
+                <div id="cart-items" class="flex-1 overflow-y-auto p-2"></div>
+                <div class="p-4 bg-slate-50 border-t space-y-3">
+                    <div class="flex justify-between"><span>المجموع الفرعي:</span><span id="cart-subtotal" class="font-bold">0.00</span></div>
+                    <div class="flex justify-between items-center">
+                        <span>الخصم:</span>
+                        <input type="number" id="cart-discount" value="0" min="0" class="w-20 px-2 py-1 border rounded">
+                    </div>
+                    <div class="flex justify-between text-xl font-bold text-blue-700 pt-2 border-t">
+                        <span>الإجمالي:</span><span id="cart-total">0.00</span>
+                    </div>
+                    <button id="checkout-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl">
+                        دفع الفاتورة
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="superadmin-screen" class="absolute inset-0 bg-slate-900/95 z-50 flex items-center justify-center hidden-screen">
+        <div class="bg-white w-3/4 max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-3/4">
+            <div class="bg-red-600 text-white p-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold">🛡️ لوحة تحكم السوبر أدمن (Supabase)</h2>
+                <button id="admin-close-btn" class="hover:bg-red-700 p-2 rounded text-white font-bold">إغلاق</button>
+            </div>
+            <div class="p-6 flex-1 overflow-y-auto bg-gray-50">
+                <div class="flex gap-4 mb-6">
+                    <button id="generate-key-btn" class="bg-slate-800 text-white px-6 py-2 rounded-lg hover:bg-slate-700 font-bold">
+                        ➕ توليد كود تفعيل سحابي
+                    </button>
+                    <div id="new-key-display" class="flex-1 bg-green-100 text-green-800 px-4 py-2 rounded-lg font-mono text-center hidden flex items-center justify-center"></div>
+                </div>
+                <div class="bg-white rounded-lg shadow border">
+                    <table class="w-full text-right">
+                        <thead class="bg-gray-100 border-b">
+                            <tr><th class="p-3">معرف العميل</th><th class="p-3">كود التفعيل</th><th class="p-3">تاريخ الانتهاء</th><th class="p-3">الحالة</th><th class="p-3">إجراء</th></tr>
+                        </thead>
+                        <tbody id="licenses-list" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-product-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">إضافة منتج جديد</h2>
+            <input type="text" id="new-product-name" placeholder="اسم المنتج" class="w-full p-2 border rounded mb-3">
+            <input type="number" id="new-product-price" placeholder="السعر" class="w-full p-2 border rounded mb-3">
+            <input type="number" id="new-product-stock" placeholder="الكمية" class="w-full p-2 border rounded mb-4">
+            <div class="flex justify-end gap-2">
+                <button id="cancel-add-product" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">إلغاء</button>
+                <button id="save-add-product" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (async function() {
+            // ==========================================
+            // 1. إعدادات السحابة (Supabase)
+            // ==========================================
+            const MASTER_URL = 'https://pyrcpouvcvjkgpjyuafz.supabase.co';
+            const MASTER_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5cmNwb3V2Y3Zqa2dwanl1YWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0ODc4NDgsImV4cCI6MjA4ODA2Mzg0OH0.vhrkZgIAh4Zp1TjLjwvelU5x31eSZZN5fBaPiaVKHCk';
+            
+            let supabaseClient;
+            try {
+                supabaseClient = supabase.createClient(MASTER_URL, MASTER_KEY);
+            } catch (e) { console.error('Supabase Error:', e); }
+
+            // التشفير المبسط للتخزين المحلي
+            const encrypt = (text) => btoa(unescape(encodeURIComponent(text)));
+            const decrypt = (encoded) => decodeURIComponent(escape(atob(encoded)));
+            const setSecure = (k, v) => localStorage.setItem(k, encrypt(v));
+            const getSecure = (k) => { try { return localStorage.getItem(k) ? decrypt(localStorage.getItem(k)) : null; } catch(e){return null;} };
+
+            // ==========================================
+            // 2. إعدادات قواعد البيانات المحلية (Dexie)
+            // ==========================================
+            const db = new Dexie("EcoFineLocalDB");
+            db.version(1).stores({
+                local_inventory: 'id, product_name, price, stock',
+                local_sales: 'invoice_id, timestamp'
+                // تم إزالة جدول التراخيص المحلي لأننا نعتمد على السحابة
+            });
+            await db.open();
+
+            // ==========================================
+            // 3. نظام التفعيل السحابي (Gatekeeper)
+            // ==========================================
+            const actScreen = document.getElementById('activation-screen');
+            const posScreen = document.getElementById('pos-screen');
+            const superScreen = document.getElementById('superadmin-screen');
+
+            async function verifySystemAccess() {
+                const tenantId = getSecure('xfine_tenant_id');
+                const licenseKey = getSecure('xfine_license_key');
+                const expiry = getSecure('xfine_expiry_date');
+
+                if (!tenantId || !licenseKey || !expiry || new Date(expiry) < new Date()) {
+                    actScreen.classList.remove('hidden-screen');
+                    posScreen.classList.add('hidden-screen');
+                    return;
+                }
+
+                if (navigator.onLine && supabaseClient) {
+                    const { data, error } = await supabaseClient.from('licenses').select('status').eq('license_key', licenseKey).maybeSingle();
+                    if (error || !data || data.status !== 'active') {
+                        alert("الترخيص موقوف من قبل الإدارة.");
+                        localStorage.clear();
+                        location.reload();
+                        return;
+                    }
+                }
+
+                actScreen.classList.add('hidden-screen');
+                posScreen.classList.remove('hidden-screen');
+                initPOS();
+            }
+
+            document.getElementById('activate-btn').addEventListener('click', async () => {
+                const key = document.getElementById('license-input').value.trim();
+                const btn = document.getElementById('activate-btn');
+                const msg = document.getElementById('activation-msg');
+                if (!key) return;
+
+                btn.disabled = true;
+                btn.innerText = 'جاري التحقق من السحابة...';
+                
+                try {
+                    const { data, error } = await supabaseClient.from('licenses').select('*').eq('license_key', key).maybeSingle();
+                    if (error || !data) {
+                        msg.innerText = 'كود التفعيل غير صحيح أو غير موجود';
+                    } else if (data.status !== 'active') {
+                        msg.innerText = 'هذا الكود موقوف';
+                    } else if (new Date(data.expiry_date) < new Date()) {
+                        msg.innerText = 'هذا الكود منتهي الصلاحية';
+                    } else {
+                        setSecure('xfine_tenant_id', data.tenant_id);
+                        setSecure('xfine_license_key', data.license_key);
+                        setSecure('xfine_expiry_date', data.expiry_date);
+                        location.reload(); // ريلود ناجح لفتح النظام
+                    }
+                } catch (e) {
+                    msg.innerText = 'خطأ في الاتصال بالخادم';
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = 'تفعيل عبر السحابة';
+                }
+            });
+
+            // ==========================================
+            // 4. لوحة السوبر أدمن السحابية
+            // ==========================================
+            window.openSuperAdmin = function() {
+                posScreen.classList.add('hidden-screen');
+                superScreen.classList.remove('hidden-screen');
+                loadCloudLicenses();
+            };
+
+            document.getElementById('admin-close-btn').addEventListener('click', () => {
+                superScreen.classList.add('hidden-screen');
+                posScreen.classList.remove('hidden-screen');
+            });
+
+            document.getElementById('generate-key-btn').addEventListener('click', async () => {
+                const newTenant = 'T-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                const newKey = '7X-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                const expiry = new Date(Date.now() + 365*24*60*60*1000).toISOString();
+                
+                const { error } = await supabaseClient.from('licenses').insert([{
+                    license_key: newKey,
+                    tenant_id: newTenant,
+                    status: 'active',
+                    expiry_date: expiry,
+                    client_supabase_url: MASTER_URL,
+                    client_supabase_anon_key: MASTER_KEY
+                }]);
+
+                const display = document.getElementById('new-key-display');
+                display.classList.remove('hidden');
+                
+                if (error) {
+                    display.innerHTML = `<span class="text-red-600">خطأ: ${error.message}</span>`;
+                } else {
+                    display.innerText = `الكود: ${newKey} | العميل: ${newTenant}`;
+                    loadCloudLicenses();
+                }
+            });
+
+            async function loadCloudLicenses() {
+                const list = document.getElementById('licenses-list');
+                list.innerHTML = '<tr><td colspan="5" class="text-center p-4">جاري التحميل من السحابة...</td></tr>';
+                
+                const { data, error } = await supabaseClient.from('licenses').select('*').order('created_at', { ascending: false });
+                list.innerHTML = '';
+                
+                if (error || !data) return;
+
+                data.forEach(lic => {
+                    const tr = document.createElement('tr');
+                    const isActive = lic.status === 'active';
+                    tr.innerHTML = `
+                        <td class="p-3 border-b font-mono">${lic.tenant_id}</td>
+                        <td class="p-3 border-b font-mono text-blue-600">${lic.license_key}</td>
+                        <td class="p-3 border-b">${new Date(lic.expiry_date).toLocaleDateString('ar-EG')}</td>
+                        <td class="p-3 border-b font-bold ${isActive ? 'text-green-600' : 'text-red-600'}">${isActive ? 'نشط' : 'موقوف'}</td>
+                        <td class="p-3 border-b">
+                            <button class="px-3 py-1 text-sm rounded ${isActive ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}" 
+                                    onclick="toggleCloudLicense('${lic.id}', '${isActive ? 'inactive' : 'active'}')">
+                                ${isActive ? 'إيقاف' : 'تفعيل'}
+                            </button>
+                        </td>
+                    `;
+                    list.appendChild(tr);
+                });
+            }
+
+            window.toggleCloudLicense = async function(id, newStatus) {
+                await supabaseClient.from('licenses').update({ status: newStatus }).eq('id', id);
+                loadCloudLicenses();
+            };
+
+            // ==========================================
+            // 5. محرك نقاط البيع (POS Core)
+            // ==========================================
+            let currentCart = [];
+            let currentProducts = [];
+
+            window.initPOS = async function() {
+                await loadProducts();
+            };
+
+            async function loadProducts(search = '') {
+                if (search) {
+                    currentProducts = await db.local_inventory.where('product_name').startsWithIgnoreCase(search).toArray();
+                } else {
+                    currentProducts = await db.local_inventory.toArray();
+                }
+                renderProductGrid();
+            }
+
+            function renderProductGrid() {
+                const grid = document.getElementById('product-grid');
+                grid.innerHTML = '';
+                if (currentProducts.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center text-gray-500 mt-10">لا توجد منتجات. استورد ملف إكسيل/CSV أو أضف منتج يدوياً.</div>';
+                    return;
+                }
+                currentProducts.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-white p-4 rounded-xl shadow-sm border hover:shadow-md cursor-pointer select-none';
+                    card.innerHTML = `
+                        <h3 class="font-bold truncate">${escapeHtml(p.product_name)}</h3>
+                        <p class="text-blue-700 font-extrabold text-lg mt-2">${p.price.toFixed(2)} ج.م</p>
+                        <p class="text-xs font-bold ${p.stock > 5 ? 'text-green-600' : 'text-red-600'}">المخزون: ${p.stock}</p>
+                    `;
+                    card.onclick = () => addToCart(p);
+                    grid.appendChild(card);
+                });
+            }
+
+            function addToCart(product) {
+                if (product.stock <= 0) return alert('الكمية غير متوفرة بالمخزون');
+                const existing = currentCart.find(item => item.id === product.id);
+                if (existing) {
+                    if (existing.qty < product.stock) existing.qty++;
+                    else alert('الكمية المطلوبة تتجاوز المخزون');
+                } else {
+                    currentCart.push({ id: product.id, product_name: product.product_name, price: product.price, qty: 1 });
+                }
+                renderCart();
+            }
+
+            window.updateCartQty = function(id, delta) {
+                const idx = currentCart.findIndex(i => i.id === id);
+                if (idx === -1) return;
+                const newQty = currentCart[idx].qty + delta;
+                if (newQty <= 0) {
+                    currentCart.splice(idx, 1);
+                } else {
+                    const product = currentProducts.find(p => p.id === id);
+                    if (product && newQty > product.stock) return alert('تجاوز المخزون!');
+                    currentCart[idx].qty = newQty;
+                }
+                renderCart();
+            };
+
+            function renderCart() {
+                const container = document.getElementById('cart-items');
+                container.innerHTML = '';
+                currentCart.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center p-3 bg-white border rounded-lg mb-2 shadow-sm';
+                    div.innerHTML = `
+                        <div class="flex-1 overflow-hidden"><h4 class="font-bold text-sm truncate">${escapeHtml(item.product_name)}</h4><p class="text-xs text-gray-500">${item.price.toFixed(2)} ج.م</p></div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex items-center bg-gray-100 rounded border">
+                                <button onclick="updateCartQty('${item.id}', 1)" class="px-2 hover:bg-gray-200 font-bold">+</button>
+                                <span class="px-2 font-bold text-sm">${item.qty}</span>
+                                <button onclick="updateCartQty('${item.id}', -1)" class="px-2 hover:bg-gray-200 font-bold">-</button>
+                            </div>
+                            <p class="font-bold text-blue-700 w-12 text-left">${(item.price * item.qty).toFixed(2)}</p>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                calculateTotals();
+            }
+
+            function calculateTotals() {
+                const subtotal = currentCart.reduce((sum, i) => sum + i.price * i.qty, 0);
+                const discount = parseFloat(document.getElementById('cart-discount').value) || 0;
+                const total = Math.max(subtotal - discount, 0);
+                document.getElementById('cart-subtotal').innerText = subtotal.toFixed(2);
+                document.getElementById('cart-total').innerText = total.toFixed(2);
+            }
+
+            function escapeHtml(unsafe) {
+                return unsafe.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m]);
+            }
+
+            // ---------- البحث والباب السري ----------
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                const val = e.target.value.trim();
+                if (val === '7X-CORE-ADMIN') {
+                    openSuperAdmin();
+                    e.target.value = '';
+                } else {
+                    loadProducts(val);
+                }
+            });
+
+            // ---------- أحداث أخرى ----------
+            document.getElementById('cart-discount').addEventListener('input', calculateTotals);
+
+            document.getElementById('checkout-btn').addEventListener('click', async () => {
+                if (currentCart.length === 0) return alert('السلة فارغة!');
+                const invoice = {
+                    invoice_id: 'INV-' + Date.now(),
+                    items: currentCart.map(i => ({...i})),
+                    total: parseFloat(document.getElementById('cart-total').innerText),
+                    timestamp: new Date().toISOString()
+                };
+                
+                await db.transaction('rw', db.local_sales, db.local_inventory, async () => {
+                    await db.local_sales.add(invoice);
+                    for (let item of invoice.items) {
+                        const prod = await db.local_inventory.get(item.id);
+                        if (prod) await db.local_inventory.update(item.id, { stock: prod.stock - item.qty });
+                    }
+                });
+                
+                currentCart = [];
+                document.getElementById('cart-discount').value = 0;
+                renderCart();
+                loadProducts();
+                alert('✅ تم دفع الفاتورة وتسجيلها محلياً');
+            });
+
+            // بدء التشغيل
+            verifySystemAccess();
+
+        })();
+    </script>
+</body>
+</html>
