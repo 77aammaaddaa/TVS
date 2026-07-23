@@ -3,17 +3,34 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Techno Vision Solutions -  شريكك الأمثل في التحول الرقمي  - تكنو فيجن سوليوشنزhkh ydvj </title>
+    <title>Techno Vision Solutions - حلول نمو رقمي احترافية للشركات الصغيرة والمتوسطة</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Techno Vision Solutions - شريكك الأمثل في التحول الرقمي. حلول مبتكرة في التسويق الرقمي، تطوير المواقع، رقمنة الأعمال، وإدارة المتاجر لنمو استثنائي في مصر والشرق الأوسط.">
-    <meta name="keywords" content="تسويق رقمي, تطوير مواقع, سوشيال ميديا, حلول جاهزة, تكنو فيجن, SEO, تصميم مواقع, استشارات تقنية, تحول رقمي, متجر إلكتروني, Composable System">
+    <meta name="description" content="Techno Vision Solutions تقدم حلول نمو رقمي متكاملة للتسويق، التشغيل، وإدارة الأعمال. استراتيجيات قابلة للتطبيق تحقق زيادة المبيعات وخفض التكاليف بدقة عالية.">
+    <meta name="keywords" content="نمو رقمي, تسويق رقمي, إدارة أعمال, تطوير مواقع, متاجر إلكترونية, Composable System, استشارات تسويقية">
     <meta name="author" content="Techno Vision Solutions">
     <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#FDD835">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Techno Vision Solutions - حلول نمو رقمي احترافية للشركات الصغيرة والمتوسطة">
+    <meta property="og:description" content="حلول متكاملة للتسويق، التشغيل، وإدارة الأعمال تضمن زيادة المبيعات وخفض التكاليف. نقدم نظامًا رقميًا يعمل بثبات ويدعم النمو المستدام.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://77aammaaddaa.github.io/TVS/">
+    <meta property="og:image" content="https://77aammaaddaa.github.io/TVS/assets/og-image.png">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Techno Vision Solutions - حلول نمو رقمي احترافية للشركات الصغيرة والمتوسطة">
+    <meta name="twitter:description" content="حلول متكاملة للتسويق الرقمي، التشغيل وإدارة الأعمال تدعم نمو شركتك وتحقق عوائد أسرع.">
+    <meta name="twitter:image" content="https://77aammaaddaa.github.io/TVS/assets/og-image.png">
     
     <!-- Verification & Analytics -->
     <meta name="google-site-verification" content="7ECP2S5Uo-CzhSxBbGxilt5QClMOAALsz3mUDl4o550" />
     <link rel="canonical" href="https://77aammaaddaa.github.io/TVS/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     
     <!-- Google Tag Manager -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-L13LZW4TWD"></script>
@@ -38,7 +55,7 @@
 
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Config -->
@@ -75,20 +92,74 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #FDD835; border-radius: 4px; }
         
-        .fade-in { opacity: 0; transform: translateY(20px); transition: 0.6s ease-out; }
+        .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.7s ease-out, transform 0.7s ease-out; }
         .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+        .scale-in { opacity: 0; transform: scale(0.95); transition: opacity 0.7s ease-out, transform 0.7s ease-out; }
+        .scale-in.visible { opacity: 1; transform: scale(1); }
+
+        .slide-left { opacity: 0; transform: translateX(-20px); transition: opacity 0.7s ease-out, transform 0.7s ease-out; }
+        .slide-left.visible { opacity: 1; transform: translateX(0); }
+
+        .slide-right { opacity: 0; transform: translateX(20px); transition: opacity 0.7s ease-out, transform 0.7s ease-out; }
+        .slide-right.visible { opacity: 1; transform: translateX(0); }
+
+        .pulse-glow { animation: pulseGlow 3.5s ease-in-out infinite; }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(253, 216, 53, 0.28); }
+            50% { box-shadow: 0 0 0 18px rgba(253, 216, 53, 0); }
+        }
 
         .hero-overlay {
             background: linear-gradient(rgba(17, 24, 39, 0.85), rgba(17, 24, 39, 0.95)), url('https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1920&q=80');
             background-size: cover;
             background-position: center;
-            background-attachment: fixed;
+            background-attachment: scroll;
+        }
+
+        @media (min-width: 768px) {
+            .hero-overlay { background-attachment: fixed; }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
         }
 
         /* Marquee Container */
         .marquee-container { overflow: hidden; white-space: nowrap; position: relative; }
         .marquee-content { display: inline-flex; animation: marquee 40s linear infinite; }
         .marquee-content:hover { animation-play-state: paused; }
+        .marquee-item { transition: transform 0.3s ease, background-color 0.3s ease; }
+        .marquee-item:hover { transform: translateY(-2px); background-color: rgba(253,216,53,0.1); }
+
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .floating-circle {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 9999px;
+            background: rgba(253, 216, 53, 0.15);
+            filter: blur(24px);
+            animation: floatWave 8s ease-in-out infinite;
+            z-index: 1;
+        }
+
+        @keyframes floatWave {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-20px) translateX(10px); }
+        }
 
         /* Sidebar Cart */
         .sidebar-cart { position: fixed; top: 0; left: -360px; width: 360px; height: 100%; z-index: 60; transition: left 0.3s ease; }
@@ -102,7 +173,7 @@
     <!-- Trust Bar -->
     <div class="bg-primary-yellow text-gray-900 text-xs sm:text-sm py-2 font-bold text-center relative z-50">
         <div class="max-w-7xl mx-auto px-4">
-            <span>★ 50+ مشروع ناجح | خبرة 4 سنوات | حلول تسويق + تطوير مواقع + إدارة متاجر إلكترونية</span>
+            <span>★ أكثر من 50 مشروعًا رقميًا ناجحًا | خبرة عملية 4 سنوات | حلول نمو متكاملة ترتكز على الأداء والنتائج</span>
         </div>
     </div>
 
@@ -131,26 +202,26 @@
 
             <!-- Actions -->
             <div class="flex items-center gap-3">
-                <a href="#contact" class="hidden md:block px-4 py-2 bg-primary-yellow text-gray-900 text-xs font-bold rounded-md hover:bg-yellow-500 transition">احجز استشارة</a>
-                <a href="#services" class="hidden md:block px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition">تصفح الخدمات</a>
+                <a href="#contact" class="hidden md:block px-4 py-2 bg-primary-yellow text-gray-900 text-xs font-bold rounded-md hover:bg-yellow-500 transition">اطلب استشارة نمو</a>
+                <a href="#services" class="hidden md:block px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition">اطلع على خدماتنا</a>
                 
-                <button onclick="toggleCart()" class="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition">
-                    <i class="fas fa-shopping-cart text-lg"></i>
-                    <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+                <button type="button" onclick="toggleCart()" aria-label="فتح سلة الخدمات" class="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition">
+                    <i class="fas fa-shopping-cart text-lg" aria-hidden="true"></i>
+                    <span id="cart-badge" aria-live="polite" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
                 </button>
 
-                <button id="theme-btn" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition">
-                    <i class="fas fa-sun text-lg"></i>
+                <button id="theme-btn" type="button" aria-label="تبديل الوضع الداكن" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition">
+                    <i id="theme-icon" class="fas fa-sun text-lg" aria-hidden="true"></i>
                 </button>
                 
-                <button id="menu-btn" class="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition">
-                    <i class="fas fa-bars text-lg"></i>
+                <button id="menu-btn" type="button" aria-label="فتح القائمة" aria-controls="mobile-menu" aria-expanded="false" class="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition">
+                    <i class="fas fa-bars text-lg" aria-hidden="true"></i>
                 </button>
             </div>
         </div>
 
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden lg:hidden bg-white dark:bg-gray-900 border-t dark:border-gray-800">
+        <div id="mobile-menu" class="hidden lg:hidden bg-white dark:bg-gray-900 border-t dark:border-gray-800" role="navigation" aria-label="روابط التنقل الرئيسية">
             <div class="px-4 py-4 space-y-3">
                 <a href="#hero" class="block font-medium hover:text-primary-yellow">الرئيسية</a>
                 <a href="#services" class="block font-medium hover:text-primary-yellow">الخدمات</a>
@@ -170,24 +241,22 @@
         <section id="hero" class="hero-overlay min-h-[85vh] flex items-center relative text-center px-4">
             <div class="max-w-4xl mx-auto relative z-10 pt-10">
                 <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight fade-in visible">
-                    نصنع نموّك… ونحوّل عملياتك لمكائن تشتغل وتجيب <span class="text-primary-yellow">أرباح بدون توقف</span>.
+                    نبني نموك الرقمي ونحوّل عملياتك إلى منظومة ذكية <span class="text-primary-yellow">تُنتج أرباحًا ثابتة</span>.
                 </h1>
                 <p class="text-lg sm:text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed fade-in visible" data-delay="200">
-                    نقدّم حلول تسويق وإدارة وتشغيل مبنية على البيانات، مصممة للأنشطة التجارية المتوسطه والصغيرة اللي عايزة توسع حجم مبيعاتها، تقلل التكلفة التشغيلية، وتبني نظام بيزنس يشتغل بكفاءة… حتى وهي نايمة.
+                    منصة متكاملة من خدمات التسويق، التشغيل، وإدارة الأعمال المبنية على البيانات، مصممة خصيصًا لرفع المبيعات وخفض التكاليف وتحويل عملية العمل إلى أداء مؤسسي أسرع.
                 </p>
                 
                 <div class="inline-block bg-white/10 backdrop-blur-md rounded-lg p-3 mb-8 border border-white/10 text-primary-yellow font-semibold text-sm sm:text-base fade-in visible" data-delay="300">
-                    من أول جذب العملاء… لحد التشغيل والتوسيق … لحد تحقيق الإيرادات — كل ده في نظام واحد متكامل.
+                    من اكتساب العملاء إلى التشغيل الذكي وتحويل الإيرادات — مسار واحد واضح ومباشر لنتائج ملموسة.
                 </div>
 
                 <div class="flex flex-col sm:flex-row justify-center gap-4 fade-in visible" data-delay="400">
                     <a href="#composable" class="px-8 py-4 bg-primary-yellow text-gray-900 font-bold rounded-full hover:bg-yellow-400 transition transform hover:scale-105 shadow-lg shadow-yellow-500/20">
-                        ابدأ مشروعك معنا
-                    </a>
-                    <a href="#contact" class="px-8 py-4 border-2 border-white text-white font-bold rounded-full hover:bg-white hover:text-gray-900 transition transform hover:scale-105">
-                        احجز استشارة مجانية
-                    </a>
-                </div>
+                            اطلب خطة نمو رقمية
+                        </a>
+                        <a href="#contact" class="px-8 py-4 border-2 border-white text-white font-bold rounded-full hover:bg-white hover:text-gray-900 transition transform hover:scale-105">
+                            ابدأ استشارتك الآن
 
                 <div class="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 text-right fade-in visible" data-delay="500">
                     <div class="bg-gray-800/60 backdrop-blur border border-gray-700 p-4 rounded-lg flex items-start gap-3">
@@ -216,24 +285,26 @@
         </section>
 
         <!-- About Us & Composable System -->
-        <section id="about" class="py-20 border-b dark:border-gray-800">
+        <section id="about" class="py-20 border-b dark:border-gray-800 fade-in slide-left" data-delay="120">
             <div class="max-w-7xl mx-auto px-4 lg:grid lg:grid-cols-2 lg:gap-16 items-start">
                 <div>
                     <span class="text-primary-yellow font-bold uppercase tracking-wider text-sm mb-2 block">من نحن</span>
-                    <h2 class="text-3xl font-extrabold mb-6 leading-tight">نحن متخصصون في بناء <span class="text-primary-yellow">المستقبل الرقمي</span>.</h2>
+                    <h2 class="text-3xl font-extrabold mb-6 leading-tight">قصة فريق يضع نموك الرقمي في المقدمة.</h2>
                     <p class="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-                        فريقنا يجمع بين مهندسين، مطورين، خبراء تسويق، ومحللي بيانات يعملون بنظام تشغيل متكامل يوفّر لك حلولًا ذكية تدفع عملك للنمو.
+                        بدأنا كفريق صغير يجمع بين مهندسين ومطوّرين وخبراء تسويق ومحللي بيانات، وكل واحد منا يحمل تجربة في تحويل التحديات اليومية إلى نتائج ملموسة.
                         <br><br>
-                        <strong>النتيجة؟</strong> منظومة شغّالة تحقق عائد حقيقي… مش مجرد "مشاهدات وإعلانات".
+                        اليوم، نصنع حلولًا رقمية ترتبط بعملك كما ترتبط القصة الجيدة بجمهورها: واضحة، متسلسلة، ومبنية على فهم حقيقي لأهدافك.
+                        <br><br>
+                        <strong>النتيجة:</strong> تجربة عمل متكاملة تقود التفاعل إلى فرص مبيعات وتهتم بكل خطوة من رحلة العميل.
                     </p>
 
                     <div class="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border-r-4 border-primary-yellow mb-8">
                         <h3 class="text-lg font-bold mb-2">🧩 الميزة التنافسية: Composable System</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                            نحن أول من يقدّم لك نموذج خدمات Composable System في المنطقة— نظام يسمح لك بتجميع خدماتك بدقة بناءً على احتياج مشروعك، بدون باقات جاهزة غير مفيدة.
+                            نمنحك هندسة مرنة للحلول الرقمية، تسمح لك بتجميع الخدمات الدقيقة التي تحتاجها بدون باقات جاهزة أو خطوات غير فعالة.
                         </p>
                         <p class="text-sm font-bold text-gray-800 dark:text-gray-200">
-                            خدمة + تحليل + تشغيل + قياس ROI = نمو مستدام.
+                            تصميم + تنفيذ + تشغيل + قياس = تجربة أعمال موثوقة ومدفوعة بالأرقام.
                         </p>
                     </div>
 
@@ -265,7 +336,7 @@
                         </div>
                     </div>
                     <div class="relative h-64 rounded-xl overflow-hidden shadow-lg group">
-                        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Team" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                        <img loading="lazy" src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="فريق عمل Techno Vision Solutions" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
                         <div class="absolute inset-0 bg-black/50 flex items-center justify-center p-6 text-center">
                             <p class="text-white font-bold">"نحن لا نركز على التفاعل فقط… بل نحدد نقطة التعادل، تكلفة الاكتساب، والعائد على الاستثمار."</p>
                         </div>
@@ -275,7 +346,7 @@
         </section>
 
         <!-- Services -->
-        <section id="services" class="py-20 bg-light-bg dark:bg-dark-bg/50">
+        <section id="services" class="py-20 bg-light-bg dark:bg-dark-bg/50 fade-in slide-right" data-delay="140">
             <div class="max-w-7xl mx-auto px-4 text-center mb-16">
                 <h2 class="text-3xl font-extrabold mb-4">خدماتنا الاحترافية</h2>
                 <p class="text-gray-600 dark:text-gray-400">حلول شاملة تغطي كل جوانب تواجدك الرقمي ونمو أعمالك.</p>
@@ -318,7 +389,7 @@
         </section>
 
         <!-- Team -->
-        <section id="team" class="py-20 bg-white dark:bg-gray-900 border-b dark:border-gray-800">
+        <section id="team" class="py-20 bg-white dark:bg-gray-900 border-b dark:border-gray-800 fade-in scale-in" data-delay="160">
             <div class="max-w-7xl mx-auto px-4 text-center mb-12">
                 <p class="text-primary-yellow font-medium mb-2">"وراء كل نجاح رقمي، فريق مبدع يقودك خطوة بخطوة نحو المستقبل."</p>
                 <h2 class="text-3xl font-extrabold">فريقنا الملهم</h2>
@@ -327,28 +398,36 @@
             <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                 <!-- Team Members -->
                 <div class="bg-light-bg dark:bg-gray-800 p-4 rounded-xl text-center shadow-sm hover:shadow-lg transition">
-                    <img src="https://i.pinimg.com/736x/e4/75/d3/e475d376939af25479920a32781c5f83.jpg" class="w-24 h-24 rounded-full mx-auto mb-3 object-cover border-2 border-primary-yellow" alt="محمد خالد">
+                    <div class="w-24 h-24 rounded-full mx-auto mb-3 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-3xl text-primary-yellow border-2 border-primary-yellow">
+                        <i class="fas fa-chess-king" aria-hidden="true"></i>
+                    </div>
                     <h3 class="font-bold">محمد خالد</h3>
                     <p class="text-xs text-primary-yellow font-bold mb-2">CEO & Marketing Director</p>
                     <p class="text-[10px] text-gray-500">قائد ذو رؤية استراتيجية للنمو المستدام.</p>
                 </div>
 
                 <div class="bg-light-bg dark:bg-gray-800 p-4 rounded-xl text-center shadow-sm hover:shadow-lg transition">
-                    <img src="https://i.pinimg.com/736x/e4/75/d3/e475d376939af25479920a32781c5f83.jpg" class="w-24 h-24 rounded-full mx-auto mb-3 object-cover border-2 border-primary-yellow" alt="يوسف عبده">
+                    <div class="w-24 h-24 rounded-full mx-auto mb-3 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-3xl text-primary-yellow border-2 border-primary-yellow">
+                        <i class="fas fa-users-cog" aria-hidden="true"></i>
+                    </div>
                     <h3 class="font-bold">يوسف عبده</h3>
                     <p class="text-xs text-primary-yellow font-bold mb-2">Project Manager & HR</p>
                     <p class="text-[10px] text-gray-500">خبير في إدارة المشاريع والفرق بكفاءة.</p>
                 </div>
 
                 <div class="bg-light-bg dark:bg-gray-800 p-4 rounded-xl text-center shadow-sm hover:shadow-lg transition">
-                    <img src="https://i.pinimg.com/1200x/93/1f/6d/931f6d92104130d0775a33a6e85ded65.jpg" class="w-24 h-24 rounded-full mx-auto mb-3 object-cover border-2 border-primary-yellow" alt="نورهان تامر">
+                    <div class="w-24 h-24 rounded-full mx-auto mb-3 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-3xl text-primary-yellow border-2 border-primary-yellow">
+                        <i class="fas fa-paint-brush" aria-hidden="true"></i>
+                    </div>
                     <h3 class="font-bold">نورهان تامر</h3>
                     <p class="text-xs text-primary-yellow font-bold mb-2">Creative Director</p>
                     <p class="text-[10px] text-gray-500">فنانة رقمية تصنع محتوى بصري جذاب.</p>
                 </div>
 
                 <div class="bg-light-bg dark:bg-gray-800 p-4 rounded-xl text-center shadow-sm hover:shadow-lg transition">
-                    <img src="https://i.pinimg.com/1200x/93/1f/6d/931f6d92104130d0775a33a6e85ded65.jpg" class="w-24 h-24 rounded-full mx-auto mb-3 object-cover border-2 border-primary-yellow" alt="حبيبة أشرف">
+                    <div class="w-24 h-24 rounded-full mx-auto mb-3 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-3xl text-primary-yellow border-2 border-primary-yellow">
+                        <i class="fas fa-headset" aria-hidden="true"></i>
+                    </div>
                     <h3 class="font-bold">حبيبة أشرف</h3>
                     <p class="text-xs text-primary-yellow font-bold mb-2">PR & Customer Service</p>
                     <p class="text-[10px] text-gray-500">تبني تجربة عملاء استثنائية وتواصل ذكي.</p>
@@ -362,33 +441,107 @@
                     <p class="text-xs text-primary-yellow font-bold mb-2">Videographer & Editor</p>
                     <p class="text-[10px] text-gray-500">مصور ومونتير محترف وعقلية تسويق البراند.</p>
                 </div>
+
+                <div class="bg-light-bg dark:bg-gray-800 p-4 rounded-xl text-center shadow-sm hover:shadow-lg transition">
+                    <div class="w-24 h-24 rounded-full mx-auto mb-3 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-3xl text-primary-yellow border-2 border-primary-yellow">
+                        <i class="fas fa-code" aria-hidden="true"></i>
+                    </div>
+                    <h3 class="font-bold">زياد خالد</h3>
+                    <p class="text-xs text-primary-yellow font-bold mb-2">مبرمج ومطور ويب</p>
+                    <p class="text-[10px] text-gray-500">يبني واجهات ويب سريعة ومتجاوبة مع أفضل ممارسات التطوير.</p>
+                </div>
             </div>
         </section>
 
-        <!-- Partners Marquee -->
-        <section id="partners" class="py-16 bg-light-bg dark:bg-dark-bg border-b dark:border-gray-800 overflow-hidden">
-            <div class="text-center mb-8 px-4">
-                <h2 class="text-2xl font-bold mb-2">شركاء نجاحنا</h2>
-                <p class="text-sm italic text-gray-500">"نفتخر بشراكتنا مع عملاء رائدين حققنا لهم نتائج ملموسة."</p>
-            </div>
-            
-            <div class="marquee-container py-4">
-                <div class="marquee-content gap-8 px-4">
-                    <a href="https://www.facebook.com/photo/?fbid=831173016086633" target="_blank" class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap hover:text-primary-yellow transition">مكانك ستور مصر</a>
-                    <a href="https://www.facebook.com/photo/?fbid=122149056830818728" target="_blank" class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap hover:text-primary-yellow transition">مكانك ستور السعودية</a>
-                    <span class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap">مكانك ستور الإمارات</span>
-                    <a href="https://www.facebook.com/photo?fbid=804901535711974" target="_blank" class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap hover:text-primary-yellow transition">وزير السعادة</a>
-                    <span class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap">سنتر عبدالله</span>
-                    <a href="https://www.facebook.com/photo/?fbid=693649002776782" target="_blank" class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap hover:text-primary-yellow transition">بقالة الزراير</a>
-                    <span class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap">صناع المستقبل</span>
-                    <a href="https://www.facebook.com/photo?fbid=1096461542486489" target="_blank" class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap hover:text-primary-yellow transition">MH For Tech</a>
-                    <a href="https://www.facebook.com/photo/?fbid=122093625735107389" target="_blank" class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap hover:text-primary-yellow transition">القبطان كافيه</a>
-                    <a href="https://www.facebook.com/photo/?fbid=489903427125068" target="_blank" class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap hover:text-primary-yellow transition">مكتبة عجيبة</a>
-                    <span class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap">فرص وشغل</span>
-                    <a href="https://www.facebook.com/photo/?fbid=1077190394417540" target="_blank" class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap hover:text-primary-yellow transition">مول السويس أونلاين</a>
-                    <!-- Duplicate for loop effect -->
-                    <span class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap">|</span>
-                    <span class="px-6 py-3 bg-white dark:bg-gray-800 rounded-full shadow-md font-bold text-sm whitespace-nowrap text-primary-yellow">كل شريك نجاح هو قصة نعتز بها</span>
+        <!-- Partners Section -->
+        <section id="partners" class="py-20 bg-gradient-to-br from-white via-slate-50 to-gray-100 dark:from-slate-950 dark:via-slate-900 dark:to-black border-b dark:border-gray-800 overflow-hidden fade-in" data-delay="130">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="lg:grid lg:grid-cols-[1.2fr_0.8fr] lg:gap-16 items-center fade-in slide-left" data-delay="170">
+                    <div class="mb-12 lg:mb-0">
+                        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-yellow/10 text-primary-yellow font-bold text-sm mb-4">شركاء النجاح</span>
+                        <h2 class="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">شركاء نجاحنا هم أفضل توصية لنا.</h2>
+                        <p class="max-w-2xl text-gray-600 dark:text-gray-300 leading-relaxed text-lg">نحن لا نقدم خدمات فقط، بل نبني شراكات استراتيجية مع عملاء استخدموا حلولنا لتحقيق نمو مبيعات فوري، تحسين تجربة العميل، وتقليل التكلفة التشغيلية.</p>
+
+                        <div class="mt-10 grid gap-4 sm:grid-cols-3">
+                            <div class="rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-lg transition">
+                                <p class="text-3xl font-extrabold text-primary-yellow">50+</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">مشروع ناجح</p>
+                            </div>
+                            <div class="rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-lg transition">
+                                <p class="text-3xl font-extrabold text-primary-yellow">75%</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">معدل رضا العملاء</p>
+                            </div>
+                            <div class="rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-lg transition">
+                                <p class="text-3xl font-extrabold text-primary-yellow">8+</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">عملاء نشطون شهرياً</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-[32px] bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-700 p-6 shadow-xl hover:-translate-y-1 transition">
+                            <p class="text-xs uppercase tracking-[0.24em] text-primary-yellow mb-3">متجر إلكتروني</p>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">مكانك ستور</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">شراكة متكاملة لإدارة المتجر، التسويق، والمبيعات مع دعم مستمر.</p>
+                        </div>
+                        <div class="rounded-[32px] bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-700 p-6 shadow-xl hover:-translate-y-1 transition">
+                            <p class="text-xs uppercase tracking-[0.24em] text-primary-yellow mb-3">السوشيال ميديا</p>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">وزير السعادة</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">إدارة محتوى وحملات إعلانية تقود إلى نمو تفاعل ومبيعات.</p>
+                        </div>
+                        <div class="rounded-[32px] bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-700 p-6 shadow-xl hover:-translate-y-1 transition">
+                            <p class="text-xs uppercase tracking-[0.24em] text-primary-yellow mb-3">تحليل ونتائج</p>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">MH For Tech</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">خدمات تدقيق الأداء ورفع كفاءة عمليات العلامة التجارية.</p>
+                        </div>
+                        <div class="rounded-[32px] bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-700 p-6 shadow-xl hover:-translate-y-1 transition">
+                            <p class="text-xs uppercase tracking-[0.24em] text-primary-yellow mb-3">إدارة متاجر</p>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">مول السويس أونلاين</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">حلول تشغيل وتحويل رقمي للمتاجر الإلكترونية المتطورة.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-16 rounded-[32px] bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-700 p-6 shadow-xl">
+                    <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm uppercase tracking-[0.24em] text-primary-yellow mb-2">شركاؤنا</p>
+                            <h3 class="text-2xl font-extrabold text-gray-900 dark:text-white">تجارب عملاء أكبر ونتائج أسرع</h3>
+                        </div>
+                        <a href="#composable" class="inline-flex items-center justify-center rounded-full bg-primary-yellow px-6 py-3 text-sm font-bold text-gray-900 hover:bg-yellow-400 transition">عرض باقة شراكة مخصصة</a>
+                    </div>
+
+                    <div class="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        <a href="https://www.facebook.com/photo/?fbid=831173016086633" target="_blank" rel="noopener noreferrer" class="group rounded-3xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-950 p-5 transition hover:bg-primary-yellow/10">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white">مكانك ستور مصر</p>
+                            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">تحسين المبيعات الرقمية وزيادة التحويل.</p>
+                        </a>
+                        <a href="https://www.facebook.com/photo/?fbid=122149056830818728" target="_blank" rel="noopener noreferrer" class="group rounded-3xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-950 p-5 transition hover:bg-primary-yellow/10">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white">مكانك ستور السعودية</p>
+                            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">حملات محلية موجهة ونتائج واضحة.</p>
+                        </a>
+                        <a href="https://www.facebook.com/photo?fbid=804901535711974" target="_blank" rel="noopener noreferrer" class="group rounded-3xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-950 p-5 transition hover:bg-primary-yellow/10">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white">وزير السعادة</p>
+                            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">شراكة لإدارة الحضور الرقمي وبناء الثقة.</p>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-16 marquee-container py-4" aria-label="عرض شركاء النجاح المتحرك">
+                    <div class="marquee-content gap-8 px-2">
+                        <span class="marquee-item px-6 py-3 bg-white dark:bg-slate-900 rounded-full shadow-md font-bold text-sm whitespace-nowrap">مكانك ستور مصر</span>
+                        <span class="marquee-item px-6 py-3 bg-white dark:bg-slate-900 rounded-full shadow-md font-bold text-sm whitespace-nowrap">مكانك ستور السعودية</span>
+                        <span class="marquee-item px-6 py-3 bg-white dark:bg-slate-900 rounded-full shadow-md font-bold text-sm whitespace-nowrap">مكانك ستور الإمارات</span>
+                        <span class="marquee-item px-6 py-3 bg-white dark:bg-slate-900 rounded-full shadow-md font-bold text-sm whitespace-nowrap">وزير السعادة</span>
+                        <span class="marquee-item px-6 py-3 bg-white dark:bg-slate-900 rounded-full shadow-md font-bold text-sm whitespace-nowrap">سنتر عبدالله</span>
+                        <span class="marquee-item px-6 py-3 bg-white dark:bg-slate-900 rounded-full shadow-md font-bold text-sm whitespace-nowrap">بقالة الزراير</span>
+                        <span class="marquee-item px-6 py-3 bg-white dark:bg-slate-900 rounded-full shadow-md font-bold text-sm whitespace-nowrap">صناع المستقبل</span>
+                        <span class="marquee-item px-6 py-3 bg-white dark:bg-slate-900 rounded-full shadow-md font-bold text-sm whitespace-nowrap">MH For Tech</span>
+                        <span class="marquee-item px-6 py-3 bg-white dark:bg-slate-900 rounded-full shadow-md font-bold text-sm whitespace-nowrap">القبطان كافيه</span>
+                        <span class="marquee-item px-6 py-3 bg-white dark:bg-slate-900 rounded-full shadow-md font-bold text-sm whitespace-nowrap">مكتبة عجيبة</span>
+                        <span class="marquee-item px-6 py-3 bg-white dark:bg-slate-900 rounded-full shadow-md font-bold text-sm whitespace-nowrap">مول السويس أونلاين</span>
+                        <span class="marquee-item px-6 py-3 bg-white dark:bg-slate-900 rounded-full shadow-md font-bold text-sm whitespace-nowrap text-primary-yellow">كل شريك نجاح هو قصة نعتز بها</span>
+                    </div>
                 </div>
             </div>
         </section>
@@ -409,11 +562,11 @@
         <section id="composable" class="py-20 bg-light-bg dark:bg-dark-bg/50">
             <div class="max-w-5xl mx-auto px-4">
                 <div class="text-center mb-8">
-                    <h2 class="text-3xl font-extrabold mb-3">صمّم باقتك بنظام "كوّمبوزابل"</h2>
+                    <h2 class="text-3xl font-extrabold mb-3">شكّل باقتك الرقمية المناسبة لمشروعك</h2>
                     <p class="text-gray-600 dark:text-gray-400 mb-6">
-                        مش عارف تختار؟ صمّم باقتك المثالية حسب احتياجك وميزانيتك.
+                        اختر المكونات التي تناسب أهدافك، وحوّلها إلى خطة تنفيذية واضحة مع دعم فني مستمر ونتائج سريعة.
                         <br>
-                        <span class="text-primary-yellow font-bold">"اصنع باقتك الرقمية المخصصة التي تزيد أرباحك!"</span>
+                        <span class="text-primary-yellow font-bold">باقة مخصصة تُسهل عليك النمو الرقمي.</span>
                     </p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden h-[800px] w-full">
@@ -426,16 +579,25 @@
         <section id="contact" class="py-20 bg-white dark:bg-gray-900">
             <div class="max-w-3xl mx-auto px-4">
                 <div class="text-center mb-10">
-                    <h2 class="text-3xl font-extrabold mb-4">تواصل معنا اليوم</h2>
-                    <p class="text-gray-600 dark:text-gray-400">جاهز للبدء؟ املأ النموذج وسنتواصل معك فوراً.</p>
+                    <h2 class="text-3xl font-extrabold mb-4">ابدأ مشروعك الرقمي الآن</h2>
+                    <p class="text-gray-600 dark:text-gray-400">دعنا نساعدك في تحويل فكرتك إلى حل رقمي عملي يحقق نتائج فعلية.</p>
                 </div>
                 <form id="contact-form" class="space-y-4 bg-light-bg dark:bg-gray-800 p-8 rounded-xl shadow-lg">
                     <div class="grid md:grid-cols-2 gap-4">
-                        <input type="text" id="name" placeholder="الاسم الكامل" required class="w-full px-4 py-3 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-yellow outline-none">
-                        <input type="email" id="email" placeholder="البريد الإلكتروني" required class="w-full px-4 py-3 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-yellow outline-none">
+                        <label class="block">
+                            <span class="sr-only">الاسم الكامل</span>
+                            <input type="text" id="name" name="name" placeholder="الاسم الكامل" required aria-required="true" autocomplete="name" class="w-full px-4 py-3 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-yellow outline-none">
+                        </label>
+                        <label class="block">
+                            <span class="sr-only">البريد الإلكتروني</span>
+                            <input type="email" id="email" name="email" placeholder="البريد الإلكتروني" required aria-required="true" autocomplete="email" class="w-full px-4 py-3 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-yellow outline-none">
+                        </label>
                     </div>
-                    <textarea id="message" rows="4" placeholder="كيف يمكننا مساعدتك؟" required class="w-full px-4 py-3 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-yellow outline-none"></textarea>
-                    <button type="submit" class="w-full py-3 bg-primary-yellow font-bold text-gray-900 rounded-lg hover:bg-yellow-500 transition shadow-md">أرسل الرسالة الآن</button>
+                    <label class="block">
+                        <span class="sr-only">الرسالة</span>
+                        <textarea id="message" name="message" rows="4" placeholder="كيف يمكننا مساعدتك؟" required aria-required="true" class="w-full px-4 py-3 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-yellow outline-none"></textarea>
+                    </label>
+                    <button type="submit" class="w-full py-3 bg-primary-yellow font-bold text-gray-900 rounded-lg hover:bg-yellow-500 transition shadow-md">أرسل طلب الاستشارة</button>
                 </form>
             </div>
         </section>
@@ -447,12 +609,12 @@
             <div class="col-span-1 md:col-span-2">
                 <h4 class="text-2xl font-bold text-primary-yellow mb-4">Techno Vision Solutions</h4>
                 <p class="text-gray-400 text-sm leading-relaxed mb-6 max-w-sm">
-                    تمكين الشركات الصغيرة والمتوسطة من تحقيق أقصى إمكانياتها الرقمية من خلال الابتكار والجودة.
+                    نقدم حلول نمو رقمي احترافية ترتكز على تنفيذ دقيق، دعم مستمر، ونتائج قابلة للقياس للشركات التي تسعى للتطور.
                 </p>
                 <div class="flex gap-4">
-                    <a href="https://www.facebook.com/TVS.SUEZ" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-yellow hover:text-gray-900 transition"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-yellow hover:text-gray-900 transition"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-yellow hover:text-gray-900 transition"><i class="fab fa-whatsapp"></i></a>
+                    <a href="https://www.facebook.com/TVS.SUEZ" target="_blank" rel="noopener noreferrer" aria-label="زيارة صفحة Techno Vision Solutions على فيسبوك" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-yellow hover:text-gray-900 transition"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>
+                    <a href="#" target="_blank" rel="noopener noreferrer" aria-label="زيارة صفحة Techno Vision Solutions على لينكد إن" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-yellow hover:text-gray-900 transition"><i class="fab fa-linkedin-in" aria-hidden="true"></i></a>
+                    <a href="#" target="_blank" rel="noopener noreferrer" aria-label="التواصل مع Techno Vision Solutions عبر واتساب" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-yellow hover:text-gray-900 transition"><i class="fab fa-whatsapp" aria-hidden="true"></i></a>
                 </div>
             </div>
             
@@ -484,8 +646,8 @@
     </footer>
 
     <!-- Floats -->
-    <a href="https://wa.me/201014878034?text=مرحباً،%20أريد%20الاستفسار%20عن%20خدماتكم" target="_blank" class="fixed bottom-5 left-5 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-lg hover:scale-110 transition flex items-center justify-center w-14 h-14">
-        <i class="fab fa-whatsapp text-3xl"></i>
+    <a href="https://wa.me/201014878034?text=مرحباً،%20أريد%20الاستفسار%20عن%20خدماتكم" target="_blank" rel="noopener noreferrer" aria-label="التواصل عبر واتساب" class="fixed bottom-5 left-5 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-lg hover:scale-110 transition flex items-center justify-center w-14 h-14">
+        <i class="fab fa-whatsapp text-3xl" aria-hidden="true"></i>
     </a>
     
     <button id="back-to-top" class="fixed bottom-24 left-5 z-40 bg-primary-yellow text-gray-900 p-3 rounded-full shadow-lg hover:bg-yellow-500 transition opacity-0 pointer-events-none w-10 h-10 flex items-center justify-center text-sm">
@@ -521,47 +683,64 @@
         // Products Database
         const products = [
             // Monthly
-            { id: 1, name: "نظام إدارة العملاء والحسابات", price: 1500, period: "شهر", icon: "fas fa-tasks", desc: "إدارة التقسيط، التحصيل، الدفعات والحسابات." },
-            { id: 2, name: "إدارة سوشيال ميديا (أساسية)", price: 3000, period: "شهر", icon: "fas fa-share-alt", desc: "1 حساب، 15 تصميم (10 بوست + 5 ستوري)." },
-            { id: 3, name: "إدارة سوشيال ميديا (متقدمة)", price: 5000, period: "شهر", icon: "fas fa-crown", desc: "1 حساب، 15 تصميم + 2 ريلز دقيقة." },
-            { id: 4, name: "فيديو برومو (3 فيديوهات)", price: 2500, period: "شهر", icon: "fas fa-video", desc: "3 فيديوهات برومو للنشاط التجاري." },
-            { id: 5, name: "إدارة متجر إلكتروني", price: 5000, period: "شهر", icon: "fas fa-store", desc: "تشغيل وصيانة المتجر." },
-            { id: 6, name: "إدارة إعلانات استراتيجية", price: 6500, period: "شهر", icon: "fas fa-ad", desc: "إدارة الحملات Meta/Google/TikTok مع تحليل." },
-            { id: 7, name: "كتابة محتوى تسويقي", price: 2000, period: "شهر", icon: "fas fa-pen-nib", desc: "محتوى رقمي للبوستات والمدونات." },
-            { id: 8, name: "تصميم جرافيك إضافي", price: 1800, period: "شهر", icon: "fas fa-palette", desc: "10 تصميمات إبداعية شهريًا." },
-            { id: 9, name: "إدارة البريد التسويقي", price: 2500, period: "شهر", icon: "fas fa-envelope-open-text", desc: "إعداد حملات، رسائل، وتحليل الأداء." },
-            { id: 10, name: "أتمتة العمليات التسويقية", price: 3000, period: "شهر", icon: "fas fa-cogs", desc: "ربط أدوات التسويق وتحليل الأداء." },
-            { id: 11, name: "إدارة حسابات TikTok", price: 4000, period: "شهر", icon: "fab fa-tiktok", desc: "10 فيديوهات قصيرة + تحليل التفاعل." },
-            { id: 12, name: "تحسين تجربة المستخدم UX", price: 2500, period: "شهر", icon: "fas fa-user-check", desc: "مراجعة واجهات الموقع والتطبيق." },
-            { id: 13, name: "إدارة سمعة العلامة التجارية", price: 2000, period: "شهر", icon: "fas fa-star", desc: "متابعة التعليقات والمراجعات." },
-            { id: 14, name: "استشارات تسويق رقمي", price: 1500, period: "شهر", icon: "fas fa-comments", desc: "اجتماعات تحليلية مع خطة عمل." },
-            { id: 15, name: "إدارة حملات فيسبوك", price: 3500, period: "شهر", icon: "fab fa-facebook", desc: "تصميم وإطلاق الحملات وتحليل النتائج." },
-            { id: 16, name: "إدارة حملات جوجل", price: 3500, period: "شهر", icon: "fab fa-google", desc: "إعداد وتحسين الحملات." },
-            { id: 17, name: "تحليل البيانات التسويقية", price: 2500, period: "شهر", icon: "fas fa-chart-line", desc: "تقارير شهرية مع توصيات عملية." },
-            { id: 18, name: "تحسين SEO (شهري)", price: 3000, period: "شهر", icon: "fas fa-search", desc: "متابعة الكلمات الرئيسية وتحليل الأداء." },
-            { id: 19, name: "إدارة حساب LinkedIn", price: 2500, period: "شهر", icon: "fab fa-linkedin", desc: "نشر المحتوى وتحليل الأداء." },
-            { id: 20, name: "استشارات التحول الرقمي", price: 3000, period: "شهر", icon: "fas fa-digital-tachograph", desc: "دعم تقني وتحسين الأنظمة الرقمية." },
+            { id: 1, name: "نظام إدارة العملاء والحسابات", price: 2000, period: "شهر", icon: "fas fa-tasks", desc: "إدارة التقسيط، التحصيل، الدفعات والحسابات." },
+            { id: 2, name: "إدارة سوشيال ميديا (أساسية)", price: 3500, period: "شهر", icon: "fas fa-share-alt", desc: "1 حساب، 15 تصميم (10 بوست + 5 ستوري)." },
+            { id: 3, name: "إدارة سوشيال ميديا (متقدمة)", price: 5500, period: "شهر", icon: "fas fa-crown", desc: "1 حساب، 15 تصميم + 2 ريلز دقيقة." },
+            { id: 4, name: "فيديو برومو (3 فيديوهات)", price: 3000, period: "شهر", icon: "fas fa-video", desc: "3 فيديوهات برومو للنشاط التجاري." },
+            { id: 5, name: "إدارة متجر إلكتروني", price: 5500, period: "شهر", icon: "fas fa-store", desc: "تشغيل وصيانة المتجر." },
+            { id: 6, name: "إدارة إعلانات استراتيجية", price: 7000, period: "شهر", icon: "fas fa-ad", desc: "إدارة الحملات Meta/Google/TikTok مع تحليل." },
+            { id: 7, name: "كتابة محتوى تسويقي", price: 2500, period: "شهر", icon: "fas fa-pen-nib", desc: "محتوى رقمي للبوستات والمدونات." },
+            { id: 8, name: "تصميم جرافيك إضافي", price: 2300, period: "شهر", icon: "fas fa-palette", desc: "10 تصميمات إبداعية شهريًا." },
+            { id: 9, name: "إدارة البريد التسويقي", price: 3000, period: "شهر", icon: "fas fa-envelope-open-text", desc: "إعداد حملات، رسائل، وتحليل الأداء." },
+            { id: 10, name: "أتمتة العمليات التسويقية", price: 3500, period: "شهر", icon: "fas fa-cogs", desc: "ربط أدوات التسويق وتحليل الأداء." },
+            { id: 11, name: "إدارة حسابات TikTok", price: 4500, period: "شهر", icon: "fab fa-tiktok", desc: "10 فيديوهات قصيرة + تحليل التفاعل." },
+            { id: 12, name: "تحسين تجربة المستخدم UX", price: 3000, period: "شهر", icon: "fas fa-user-check", desc: "مراجعة واجهات الموقع والتطبيق." },
+            { id: 13, name: "إدارة سمعة العلامة التجارية", price: 2500, period: "شهر", icon: "fas fa-star", desc: "متابعة التعليقات والمراجعات." },
+            { id: 14, name: "استشارات تسويق رقمي", price: 2000, period: "شهر", icon: "fas fa-comments", desc: "اجتماعات تحليلية مع خطة عمل." },
+            { id: 15, name: "إدارة حملات فيسبوك", price: 4000, period: "شهر", icon: "fab fa-facebook", desc: "تصميم وإطلاق الحملات وتحليل النتائج." },
+            { id: 16, name: "إدارة حملات جوجل", price: 4000, period: "شهر", icon: "fab fa-google", desc: "إعداد وتحسين الحملات." },
+            { id: 17, name: "تحليل البيانات التسويقية", price: 3000, period: "شهر", icon: "fas fa-chart-line", desc: "تقارير شهرية مع توصيات عملية." },
+            { id: 18, name: "تحسين SEO (شهري)", price: 3500, period: "شهر", icon: "fas fa-search", desc: "متابعة الكلمات الرئيسية وتحليل الأداء." },
+            { id: 19, name: "إدارة حساب LinkedIn", price: 3000, period: "شهر", icon: "fab fa-linkedin", desc: "نشر المحتوى وتحليل الأداء." },
+            { id: 20, name: "استشارات التحول الرقمي", price: 3500, period: "شهر", icon: "fas fa-digital-tachograph", desc: "دعم تقني وتحسين الأنظمة الرقمية." },
             // One Time
-            { id: 21, name: "إنشاء متجر إلكتروني", price: 10000, period: "مرة واحدة", icon: "fas fa-laptop-code", desc: "متجر احترافي متكامل مع بوابات دفع." },
-            { id: 22, name: "تحسين SEO + تحليل موقع", price: 9000, period: "مرة واحدة", icon: "fas fa-microscope", desc: "تحليل شامل وتهيئة SEO مع خطة." },
-            { id: 23, name: "حملة إعلانية (7 أيام)", price: 2000, period: "مرة واحدة", icon: "fas fa-bullhorn", desc: "حملة واحدة Meta/Google/TikTok." },
-            { id: 24, name: "تطوير موقع مخصص", price: 12000, period: "مرة واحدة", icon: "fas fa-globe", desc: "تصميم وتطوير موقع من الصفر." },
-            { id: 25, name: "فيديو ترويجي احترافي", price: 5000, period: "مرة واحدة", icon: "fas fa-film", desc: "فيديو واحد عالي الجودة 1–2 دقيقة." },
-            { id: 26, name: "إعداد خطة تسويق", price: 7500, period: "مرة واحدة", icon: "fas fa-chess-board", desc: "تحليل السوق، المنافسين، ووضع استراتيجية." }
+            { id: 21, name: "إنشاء متجر إلكتروني", price: 10500, period: "مرة واحدة", icon: "fas fa-laptop-code", desc: "متجر احترافي متكامل مع بوابات دفع." },
+            { id: 22, name: "تحسين SEO + تحليل موقع", price: 9500, period: "مرة واحدة", icon: "fas fa-microscope", desc: "تحليل شامل وتهيئة SEO مع خطة." },
+            { id: 23, name: "حملة إعلانية (7 أيام)", price: 2500, period: "مرة واحدة", icon: "fas fa-bullhorn", desc: "حملة واحدة Meta/Google/TikTok." },
+            { id: 24, name: "تطوير موقع مخصص", price: 12500, period: "مرة واحدة", icon: "fas fa-globe", desc: "تصميم وتطوير موقع من الصفر." },
+            { id: 25, name: "فيديو ترويجي احترافي", price: 5500, period: "مرة واحدة", icon: "fas fa-film", desc: "فيديو واحد عالي الجودة 1–2 دقيقة." },
+            { id: 26, name: "إعداد خطة تسويق", price: 8000, period: "مرة واحدة", icon: "fas fa-chess-board", desc: "تحليل السوق، المنافسين، ووضع استراتيجية." }
         ];
 
+        const cartStorageKey = 'tvs-cart-v1';
         let cart = [];
 
-        // Init
-        document.addEventListener('DOMContentLoaded', () => {
-            renderProducts();
-            
-            // Theme Check
-            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
+        function saveCart() {
+            localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+        }
+
+        function loadCart() {
+            try {
+                const saved = localStorage.getItem(cartStorageKey);
+                cart = saved ? JSON.parse(saved) : [];
+            } catch (error) {
+                cart = [];
             }
-            
-            // Observers
+        }
+
+        function updateThemeIcon() {
+            const themeIcon = document.getElementById('theme-icon');
+            if (!themeIcon) return;
+            if (document.documentElement.classList.contains('dark')) {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            } else {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            }
+        }
+
+        function observeAnimatedElements() {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(e => {
                     if (e.isIntersecting) {
@@ -569,8 +748,24 @@
                         observer.unobserve(e.target);
                     }
                 });
-            }, { threshold: 0.1 });
-            document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+            }, { threshold: 0.15 });
+            document.querySelectorAll('.fade-in, .slide-left, .slide-right, .scale-in').forEach(el => observer.observe(el));
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCart();
+            renderProducts();
+            updateCart();
+            updateThemeIcon();
+            
+            // Theme Check
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                updateThemeIcon();
+            }
+            
+            observeAnimatedElements();
 
             // Back to Top
             const btt = document.getElementById('back-to-top');
@@ -588,18 +783,21 @@
         document.getElementById('theme-btn').addEventListener('click', () => {
             document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            updateThemeIcon();
         });
 
         // Menu Toggle
         document.getElementById('menu-btn').addEventListener('click', () => {
-            document.getElementById('mobile-menu').classList.toggle('hidden');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const isHidden = mobileMenu.classList.toggle('hidden');
+            document.getElementById('menu-btn').setAttribute('aria-expanded', String(!isHidden));
         });
 
         // Render Products
         function renderProducts() {
             const container = document.getElementById('product-list');
             container.innerHTML = products.map(p => `
-                <div class="bg-light-bg dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 flex flex-col hover:shadow-xl transition duration-300 fade-in">
+                <div class="bg-light-bg dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 flex flex-col hover:shadow-xl transition duration-300 fade-in scale-in">
                     <div class="p-5 flex-grow">
                         <div class="w-10 h-10 bg-primary-yellow/10 rounded-lg flex items-center justify-center mb-3 text-primary-yellow text-xl">
                             <i class="${p.icon}"></i>
@@ -631,10 +829,14 @@
         }
 
         function addToCart(id) {
-            const dur = parseInt(document.getElementById(`dur-${id}`).value);
+            const durElement = document.getElementById(`dur-${id}`);
+            const dur = Math.max(1, parseInt(durElement?.value || '1', 10));
             const exists = cart.find(i => i.id === id && i.duration === dur);
-            if (exists) exists.qty++;
-            else cart.push({ id, qty: 1, duration: dur });
+            if (exists) {
+                exists.qty++;
+            } else {
+                cart.push({ id, qty: 1, duration: dur });
+            }
             updateCart();
             if (!document.getElementById('sidebar-cart').classList.contains('open')) toggleCart();
         }
@@ -658,6 +860,7 @@
             } else {
                 cart.forEach((item, idx) => {
                     const p = products.find(x => x.id === item.id);
+                    if (!p) return;
                     const subtotal = p.price * item.qty * item.duration;
                     total += subtotal;
                     count += item.qty;
@@ -670,7 +873,7 @@
                                 </div>
                                 <div class="text-primary-yellow font-bold text-sm mt-1">${subtotal.toLocaleString()} ج.م</div>
                             </div>
-                            <button onclick="removeFromCart(${idx})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash-alt"></i></button>
+                            <button type="button" onclick="removeFromCart(${idx})" aria-label="إزالة ${p.name} من السلة" class="text-red-400 hover:text-red-600"><i class="fas fa-trash-alt" aria-hidden="true"></i></button>
                         </div>
                     `;
                 });
@@ -679,6 +882,7 @@
             totalEl.textContent = total.toLocaleString() + ' ج.م';
             badge.textContent = count;
             badge.classList.toggle('hidden', count === 0);
+            saveCart();
         }
 
         function checkout() {
