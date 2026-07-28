@@ -82,7 +82,7 @@ const parseNationalId = (id) => {
 // 🔑 محرك إنشاء الكود الفريد داخل المؤسسة
 // ==========================================
 const generateInternalCode = (nationalId) => {
-    if (!nationalId || nationalId.length < 14) return 'CUST-' + Date.now().toString().slice(-6);
+    if (!nationalId || nationalId.length < 14) return 'CLNT-' + Date.now().toString().slice(-6);
     const birthPart = nationalId.substring(1, 7); // (YYMMDD)
     const randomPart = Math.floor(1000 + Math.random() * 9000); // 4 أرقام عشوائية
     return `C${birthPart}-${randomPart}`;
@@ -119,25 +119,25 @@ const ConfirmModal = ({ title, data, onConfirm, onCancel }) => (
 // ==========================================
 // 💳 مكون عرض بطاقة العميل (للقائمة)
 // ==========================================
-const CustomerCard = ({ customer, onClick }) => {
+const ClientCard = ({ client, onClick }) => {
     return (
         <div onClick={onClick} className="bg-white p-5 rounded-[2rem] border shadow-sm relative overflow-hidden flex flex-col justify-between text-right hover:shadow-md transition-shadow cursor-pointer">
-            <div className={`absolute top-0 right-0 w-2 h-full ${customer.has_legal_issues ? 'bg-red-600' : (customer.credit_score >= 50 ? 'bg-green-500' : 'bg-amber-500')}`}></div>
+            <div className={`absolute top-0 right-0 w-2 h-full ${client.has_legal_issues ? 'bg-red-600' : (client.credit_score >= 50 ? 'bg-green-500' : 'bg-amber-500')}`}></div>
             <div className="flex justify-between items-start mb-4 pr-3">
-                <div className={`w-12 h-12 rounded-[1rem] flex flex-col items-center justify-center shadow-inner shrink-0 ${customer.credit_score >= 50 ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-                    <span className="font-black text-lg leading-none">{customer.credit_score}</span>
+                <div className={`w-12 h-12 rounded-[1rem] flex flex-col items-center justify-center shadow-inner shrink-0 ${client.credit_score >= 50 ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
+                    <span className="font-black text-lg leading-none">{client.credit_score}</span>
                 </div>
                 <div className="text-left flex flex-col items-end">
                     <h4 className="font-black text-slate-800 text-sm flex items-center justify-end gap-1">
-                        {customer.has_legal_issues && <span title="مطلوب في قضايا" className="text-red-500 text-lg animate-pulse">⚖️</span>}
-                        {customer.full_name}
+                        {client.has_legal_issues && <span title="مطلوب في قضايا" className="text-red-500 text-lg animate-pulse">⚖️</span>}
+                        {client.full_name}
                     </h4>
-                    <span className="text-[10px] font-black tracking-widest text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md mt-1 border border-slate-100">{customer.internal_code || 'بدون كود'}</span>
+                    <span className="text-[10px] font-black tracking-widest text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md mt-1 border border-slate-100">{client.internal_code || 'بدون كود'}</span>
                     <div className="flex flex-wrap justify-end gap-1 mt-2">
-                        <span className="text-[9px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-bold">{customer.phone}</span>
-                        <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md font-bold">{customer.province}</span>
-                        {customer.has_legal_issues && <span className="text-[9px] bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-black">مطلوب قانونياً</span>}
-                        {customer.is_guarantor && <span className="text-[9px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-md font-black">ضامن</span>}
+                        <span className="text-[9px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-bold">{client.phone}</span>
+                        <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md font-bold">{client.province}</span>
+                        {client.has_legal_issues && <span className="text-[9px] bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-black">مطلوب قانونياً</span>}
+                        {client.is_guarantor && <span className="text-[9px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-md font-black">ضامن</span>}
                     </div>
                 </div>
             </div>
@@ -167,7 +167,7 @@ const ScoreIndicator = ({ score, isEligible, hasLegalIssues }) => (
 // ==========================================
 // 📝 مكون نموذج الضامن
 // ==========================================
-const GuarantorForm = ({ guarantor, index, onUpdate, onRemove, customers, onBlur, disabled }) => (
+const GuarantorForm = ({ guarantor, index, onUpdate, onRemove, clients, onBlur, disabled }) => (
     <div className={`p-4 rounded-[1.5rem] border relative text-right ${guarantor.has_legal_issues ? 'bg-red-50/50 border-red-300' : (guarantor.is_existing ? 'bg-green-50/30 border-green-200' : 'bg-slate-50/80 border-slate-200')}`}>
         <button type="button" onClick={onRemove} className="absolute top-4 left-4 w-8 h-8 bg-red-50 text-red-500 rounded-lg flex items-center justify-center font-black">✕</button>
         
@@ -266,13 +266,13 @@ const GuarantorForm = ({ guarantor, index, onUpdate, onRemove, customers, onBlur
 // ==========================================
 const CRMModule = ({ currentUser }) => {
     // -------------------- الحالات --------------------
-    const [customers, setCustomers] = useState([]);
+    const [clients, setClients] = useState([]);
     const [legalCases, setLegalCases] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [notification, setNotification] = useState(null);
-    const [editingCustomer, setEditingCustomer] = useState(null); 
+    const [editingClient, setEditingClient] = useState(null); 
     const [isNidUnlocked, setIsNidUnlocked] = useState(false); // حالة قفل الرقم القومي
 
     // الحالة الأولية للنموذج
@@ -317,21 +317,21 @@ const CRMModule = ({ currentUser }) => {
     }, []);
 
     // -------------------- تحميل البيانات --------------------
-    const loadCustomers = useCallback(async () => {
+    const loadClients = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [custData, casesData] = await Promise.all([
-                window.db.getAll('customers').catch(() => []),
+            const [clientData, casesData] = await Promise.all([
+                window.db.getAll('clients').catch(() => []),
                 window.db.getAll('legal_cases').catch(() => [])
             ]);
 
-            const casesByCustomer = new Map();
+            const casesByClient = new Map();
             const casesByGuarantor = new Map();
 
             casesData.forEach(c => {
-                if (c.customer_id) {
-                    if (!casesByCustomer.has(c.customer_id)) casesByCustomer.set(c.customer_id, []);
-                    casesByCustomer.get(c.customer_id).push(c);
+                if (c.client_id) {
+                    if (!casesByClient.has(c.client_id)) casesByClient.set(c.client_id, []);
+                    casesByClient.get(c.client_id).push(c);
                 }
                 if (c.guarantor_ids && Array.isArray(c.guarantor_ids)) {
                     c.guarantor_ids.forEach(gid => {
@@ -341,8 +341,8 @@ const CRMModule = ({ currentUser }) => {
                 }
             });
 
-            const enhancedData = (custData || []).map(c => {
-                const asMain = casesByCustomer.get(c.id) || [];
+            const enhancedData = (clientData || []).map(c => {
+                const asMain = casesByClient.get(c.id) || [];
                 const asGuarantor = casesByGuarantor.get(c.id) || [];
                 const allCases = [...asMain, ...asGuarantor];
                 const hasOpenCases = allCases.some(cs => cs.status !== 'closed' && cs.status !== 'judged'); 
@@ -354,7 +354,7 @@ const CRMModule = ({ currentUser }) => {
                 };
             });
 
-            setCustomers(enhancedData);
+            setClients(enhancedData);
             setLegalCases(casesData);
         } catch (error) {
             console.error(error);
@@ -364,10 +364,12 @@ const CRMModule = ({ currentUser }) => {
         }
     }, [showNotification]);
 
-    useEffect(() => { loadCustomers(); }, [loadCustomers]);
+    useEffect(() => { loadClients(); }, [loadClients]);
 
     // -------------------- محرك التقييم الائتماني --------------------
     const calculateCreditScore = useCallback((data) => {
+        // NOTE: This function now expects client data, but for now we keep the XCore call as is.
+        // It should be updated to `calculateClientScore` if that exists in XCore.
         if (window.XCore && typeof window.XCore.calculateCustomerScore === 'function') {
             try {
                 const result = window.XCore.calculateCustomerScore(data);
@@ -444,19 +446,19 @@ const CRMModule = ({ currentUser }) => {
             return;
         }
 
-        const existing = customers.find(c => c.national_id === val);
+        const existing = clients.find(c => c.national_id === val);
         if (existing) {
             // جلب البيانات تلقائياً وتحديثها
-            if (!editingCustomer || editingCustomer.national_id !== val) {
+            if (!editingClient || editingClient.national_id !== val) {
                 showNotification('success', `🔄 تم العثور على العميل (${existing.full_name})، تم جلب بياناته لتحديثها.`);
                 
                 // جلب الضامنين الخاصين به
                 const mappedGuarantors = (existing.guarantor_ids || []).map(gid => {
-                    const g = customers.find(c => c.id === gid);
+                    const g = clients.find(c => c.id === gid);
                     return g ? { ...g, is_existing: true } : null;
                 }).filter(Boolean);
 
-                setEditingCustomer(existing);
+                setEditingClient(existing);
                 setFormData(prev => ({
                     ...initialFormState,
                     ...existing,
@@ -541,30 +543,30 @@ const CRMModule = ({ currentUser }) => {
             return;
         }
 
-        const existingCust = customers.find(c => c.national_id === val);
-        if (existingCust) {
-            if (existingCust.has_legal_issues) {
-                showNotification('error', `🚨 خطر ائتماني: الضامن (${existingCust.full_name}) عليه قضايا متعثرة في النظام!`);
+        const existingClient = clients.find(c => c.national_id === val);
+        if (existingClient) {
+            if (existingClient.has_legal_issues) {
+                showNotification('error', `🚨 خطر ائتماني: الضامن (${existingClient.full_name}) عليه قضايا متعثرة في النظام!`);
             } else {
-                showNotification('success', `✅ تم سحب بيانات الضامن (${existingCust.full_name}) يمكنك تحديثها.`);
+                showNotification('success', `✅ تم سحب بيانات الضامن (${existingClient.full_name}) يمكنك تحديثها.`);
             }
 
             const updated = [...(formData.guarantors || [])];
             updated[index] = {
                 ...updated[index],
-                full_name: existingCust.full_name,
+                full_name: existingClient.full_name,
                 national_id: val,
-                phone: existingCust.phone,
+                phone: existingClient.phone,
                 birth_date: parsed.birthDate,
                 age: parsed.age,
                 gender: parsed.gender,
-                province: existingCust.province,
-                job: existingCust.job || '',
-                job_type: existingCust.job_type || 'قطاع خاص',
-                monthly_income: existingCust.monthly_income || '',
+                province: existingClient.province,
+                job: existingClient.job || '',
+                job_type: existingClient.job_type || 'قطاع خاص',
+                monthly_income: existingClient.monthly_income || '',
                 is_existing: true,
-                credit_score: existingCust.credit_score || 50,
-                has_legal_issues: existingCust.has_legal_issues || false
+                credit_score: existingClient.credit_score || 50,
+                has_legal_issues: existingClient.has_legal_issues || false
             };
             setFormData({ ...formData, guarantors: updated });
             return;
@@ -612,11 +614,11 @@ const CRMModule = ({ currentUser }) => {
             // حفظ وتحديث الضامنين
             for (let g of (formData.guarantors || [])) {
                 if (g.is_existing) {
-                    const existingRec = customers.find(c => c.national_id === g.national_id);
+                    const existingRec = clients.find(c => c.national_id === g.national_id);
                     if (existingRec) {
                         finalGuarantorIds.push(existingRec.id);
                         // التحديث التلقائي لبيانات الضامن بناءً على الإدخال الأخير
-                        await window.db.update('customers', existingRec.id, {
+                        await window.db.update('clients', existingRec.id, {
                             ...existingRec,
                             full_name: g.full_name,
                             phone: g.phone,
@@ -649,13 +651,13 @@ const CRMModule = ({ currentUser }) => {
                         created_at: timestamp,
                         updated_at: timestamp
                     };
-                    const savedG = await window.db.add('customers', newGuarantor);
+                    const savedG = await window.db.add('clients', newGuarantor);
                     finalGuarantorIds.push(savedG.id || savedG._id);
                 }
             }
 
             // تجهيز بيانات العميل الرئيسي
-            const customerToSave = {
+            const clientToSave = {
                 ...formData,
                 credit_score: liveScore.score,
                 status: 'active',
@@ -663,33 +665,33 @@ const CRMModule = ({ currentUser }) => {
                 updated_at: timestamp
             };
 
-            if (editingCustomer) {
+            if (editingClient) {
                 // تحديث عميل مسجل
-                await window.db.update('customers', editingCustomer.id, customerToSave);
+                await window.db.update('clients', editingClient.id, clientToSave);
                 showNotification('success', '✅ تم تحديث بيانات العميل بنجاح (مع تحديث الضامنين).');
             } else {
                 // عميل جديد كلياً
-                customerToSave.internal_code = generateInternalCode(formData.national_id);
-                customerToSave.created_at = timestamp;
-                const newCustomer = await window.db.add('customers', customerToSave);
+                clientToSave.internal_code = generateInternalCode(formData.national_id);
+                clientToSave.created_at = timestamp;
+                const newClient = await window.db.add('clients', clientToSave);
                 
                 // تحديث حقل guarantor_for للضامنين ليعرفوا أنهم يضمنون هذا العميل
                 for (let gid of finalGuarantorIds) {
-                    const guarantorRec = await window.db.getById('customers', gid);
+                    const guarantorRec = await window.db.getById('clients', gid);
                     if (guarantorRec) {
                         const currentFor = guarantorRec.guarantor_for || [];
-                        if (!currentFor.includes(newCustomer.id || newCustomer._id)) {
-                            currentFor.push(newCustomer.id || newCustomer._id);
-                            await window.db.update('customers', guarantorRec.id, { guarantor_for: currentFor });
+                        if (!currentFor.includes(newClient.id || newClient._id)) {
+                            currentFor.push(newClient.id || newClient._id);
+                            await window.db.update('clients', guarantorRec.id, { guarantor_for: currentFor });
                         }
                     }
                 }
                 showNotification('success', '✅ تم تسجيل العميل الجديد واعتماده بنجاح.');
             }
 
-            await loadCustomers();
+            await loadClients();
             setIsModalOpen(false);
-            setEditingCustomer(null);
+            setEditingClient(null);
             setFormData(initialFormState);
             setIsNidUnlocked(false);
         } catch (err) {
@@ -702,15 +704,15 @@ const CRMModule = ({ currentUser }) => {
 
     // -------------------- فتح النوافذ --------------------
     const openAddModal = () => {
-        setEditingCustomer(null);
+        setEditingClient(null);
         setIsNidUnlocked(false);
         setFormData(initialFormState);
         setIsModalOpen(true);
     };
 
-    const openEditModal = (customer) => {
-        const guarantors = (customer.guarantor_ids || []).map(gid => {
-            const g = customers.find(c => c.id === gid);
+    const openEditModal = (client) => {
+        const guarantors = (client.guarantor_ids || []).map(gid => {
+            const g = clients.find(c => c.id === gid);
             return g ? {
                 full_name: g.full_name,
                 national_id: g.national_id,
@@ -729,28 +731,28 @@ const CRMModule = ({ currentUser }) => {
             } : null;
         }).filter(Boolean);
 
-        setEditingCustomer(customer);
+        setEditingClient(client);
         setIsNidUnlocked(false); // إغلاق الرقم القومي للحماية
         setFormData({
             ...initialFormState, // حماية ضد البيانات المفقودة (White Screen Fix)
-            ...customer,
+            ...client,
             guarantors: guarantors || []
         });
         setIsModalOpen(true);
     };
 
     // -------------------- تصفية العملاء للعرض --------------------
-    const filteredCustomers = useMemo(() => {
-        if (!searchTerm) return customers;
+    const filteredClients = useMemo(() => {
+        if (!searchTerm) return clients;
         const term = searchTerm.toLowerCase();
-        return customers.filter(c =>
+        return clients.filter(c =>
             c.full_name?.toLowerCase().includes(term) ||
             c.internal_code?.toLowerCase().includes(term) ||
             c.phone?.includes(term) ||
             c.national_id?.includes(term) ||
             c.email?.toLowerCase().includes(term)
         );
-    }, [customers, searchTerm]);
+    }, [clients, searchTerm]);
 
     // -------------------- التصميم والعرض --------------------
     return (
@@ -780,16 +782,16 @@ const CRMModule = ({ currentUser }) => {
                 </button>
             </div>
 
-            {isLoading && customers.length === 0 ? (
+            {isLoading && clients.length === 0 ? (
                 <div className="flex justify-center items-center h-64">
                     <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 px-2">
-                    {filteredCustomers.map(c => (
-                        <CustomerCard key={c.id} customer={c} onClick={() => openEditModal(c)} />
+                    {filteredClients.map(c => (
+                        <ClientCard key={c.id} client={c} onClick={() => openEditModal(c)} />
                     ))}
-                    {filteredCustomers.length === 0 && (
+                    {filteredClients.length === 0 && (
                         <div className="col-span-full flex flex-col items-center justify-center py-20 bg-slate-50 rounded-[2.5rem] border border-dashed border-slate-200">
                             <span className="text-6xl mb-4 opacity-50">👥</span>
                             <p className="text-slate-500 font-black text-sm uppercase">لا يوجد عملاء</p>
@@ -805,14 +807,14 @@ const CRMModule = ({ currentUser }) => {
                         <div className="flex justify-between items-start mb-4">
                             <button
                                 type="button"
-                                onClick={() => { setIsModalOpen(false); setEditingCustomer(null); }}
+                                onClick={() => { setIsModalOpen(false); setEditingClient(null); }}
                                 className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-lg active:scale-95 hover:bg-red-500 transition-colors"
                             >
                                 ✕
                             </button>
                             <div className="flex flex-col items-end">
                                 <h3 className="font-black text-lg">
-                                    {editingCustomer ? 'تعديل بيانات العميل' : 'ملف استعلام الائتمان'}
+                                    {editingClient ? 'تعديل بيانات العميل' : 'ملف استعلام الائتمان'}
                                 </h3>
                                 <p className="text-[10px] text-blue-400 font-black uppercase tracking-widest mt-1 bg-white/10 px-2 py-0.5 rounded-lg border border-white/5">
                                     {formData.internal_code || 'بدون كود مؤسسي'}
@@ -851,9 +853,9 @@ const CRMModule = ({ currentUser }) => {
                                                 value={formData.national_id}
                                                 onChange={e => setFormData({ ...formData, national_id: e.target.value.replace(/\D/g, '') })}
                                                 onBlur={e => handleNationalIdBlur(e.target.value)}
-                                                disabled={editingCustomer && !isNidUnlocked}
+                                                disabled={editingClient && !isNidUnlocked}
                                             />
-                                            {editingCustomer && (
+                                            {editingClient && (
                                                 <button 
                                                     type="button" 
                                                     onClick={handleUnlockNid} 
@@ -1043,7 +1045,7 @@ const CRMModule = ({ currentUser }) => {
                                             index={idx}
                                             onUpdate={updateGuarantor}
                                             onRemove={() => removeGuarantor(idx)}
-                                            customers={customers}
+                                            clients={clients}
                                             onBlur={handleGuarantorBlur}
                                             disabled={false} // إتاحة التعديل لتحديث بياناتهم
                                         />

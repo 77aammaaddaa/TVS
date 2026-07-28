@@ -7,65 +7,65 @@
 const { useState, useEffect, useMemo, useCallback } = React;
 
 const CollectionModule = () => {
-    const [customers, setCustomers] = useState([]);
+    const [clients, setClients] = useState([]);
     const [selectedId, setSelectedId] = useState('');
-    const [customerSummary, setCustomerSummary] = useState(null);
+    const [clientSummary, setClientSummary] = useState(null);
     const [pendingInstallments, setPendingInstallments] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [paymentData, setPaymentData] = useState({ amount: '', notes: '', date: new Date().toISOString().split('T')[0] });
 
     // 1. تحميل قائمة العملاء الذين لديهم فواتير نشطة فقط
-    const loadActiveCustomers = useCallback(async () => {
+    const loadActiveClients = useCallback(async () => {
         setIsLoading(true);
         try {
             const allInvoices = await db.getAll('invoices');
             const activeInvoices = allInvoices.filter(inv => inv.status === 'active');
-            const customerIds = [...new Set(activeInvoices.map(inv => inv.customer_id))];
+            const clientIds = [...new Set(activeInvoices.map(inv => inv.client_id))];
             
-            const allCustomers = await db.getAll('customers');
-            const filtered = allCustomers.filter(c => customerIds.includes(c.id));
-            setCustomers(filtered);
-        } catch (err) { console.error("Error loading customers:", err); }
+            const allClients = await db.getAll('clients');
+            const filtered = allClients.filter(c => clientIds.includes(c.id));
+            setClients(filtered);
+        } catch (err) { console.error("Error loading clients:", err); }
         finally { setIsLoading(false); }
     }, []);
 
-    useEffect(() => { loadActiveCustomers(); }, [loadActiveCustomers]);
+    useEffect(() => { loadActiveClients(); }, [loadActiveClients]);
 
     // 2. محرك الكشف الراداري عن حالة العميل عند الاختيار
     useEffect(() => {
         if (!selectedId) {
-            setCustomerSummary(null);
+            setClientSummary(null);
             setPendingInstallments([]);
             return;
         }
 
         const fetchDetails = async () => {
-            const [invoices, allInstallments, customer] = await Promise.all([
+            const [invoices, allInstallments, client] = await Promise.all([
                 db.getAll('invoices'),
                 db.getAll('installments'),
-                db.getById('customers', selectedId)
+                db.getById('clients', selectedId)
             ]);
 
-            const customerInvoices = invoices.filter(inv => inv.customer_id === selectedId && inv.status === 'active');
-            const customerInst = allInstallments.filter(inst => inst.customer_id === selectedId && inst.status === 'pending');
+            const clientInvoices = invoices.filter(inv => inv.client_id === selectedId && inv.status === 'active');
+            const clientInst = allInstallments.filter(inst => inst.client_id === selectedId && inst.status === 'pending');
 
             // حساب المديونية الإجمالية المتبقية
-            const totalRemaining = customerInst.reduce((sum, i) => sum + Number(i.amount), 0);
+            const totalRemaining = clientInst.reduce((sum, i) => sum + Number(i.amount), 0);
 
             // استشارة X-CORE للتحقق من وضع التأخير والقانونية
-            const creditLimit = customer.monthly_income * (customer.credit_score / 100) * window.XConfig.creditPolicy.creditLimitMultiplier;
+            const creditLimit = client.monthly_income * (client.credit_score / 100) * window.XConfig.creditPolicy.creditLimitMultiplier;
             // نأخذ أول فاتورة نشطة للفحص (في حال تعدد الفواتير)
-            const legalStatus = window.XCore.monitorLegalStatus(customerInst, customerInvoices[0]?.saleType || 'monthly', creditLimit);
+            const legalStatus = window.XCore.monitorLegalStatus(clientInst, clientInvoices[0]?.saleType || 'monthly', creditLimit);
 
-            setCustomerSummary({
-                name: customer.full_name,
-                score: customer.credit_score,
+            setClientSummary({
+                name: client.full_name,
+                score: client.credit_score,
                 totalRemaining,
                 status: legalStatus.status,
                 delayDays: legalStatus.days,
-                activeInvoicesCount: customerInvoices.length
+                activeInvoicesCount: clientInvoices.length
             });
-            setPendingInstallments(customerInst.sort((a,b) => new Date(a.due_date) - new Date(b.due_date)));
+            setPendingInstallments(clientInst.sort((a,b) => new Date(a.due_date) - new Date(b.due_date)));
         };
 
         fetchDetails();
@@ -88,14 +88,14 @@ const CollectionModule = () => {
                 type: 'INCOME',
                 category: 'INSTALLMENT_PAYMENT',
                 amount: Number(amount),
-                customer_id: selectedId,
+                client_id: selectedId,
                 date: paymentData.date,
-                description: `تحصيل قسط من ${customerSummary.name}`
+                description: `تحصيل قسط من ${clientSummary.name}`
             });
 
             alert("✅ تم تسجيل الدفع بنجاح وتحديث الخزينة");
             setSelectedId(''); // إعادة تعيين الواجهة
-            loadActiveCustomers();
+            loadActiveClients();
         } catch (err) { alert("❌ فشل في تسجيل الدفع: " + err.message); }
     };
 
@@ -111,45 +111,45 @@ const CollectionModule = () => {
                     onChange={(e) => setSelectedId(e.target.value)}
                 >
                     <option value="">-- اضغط للاختيار من العملاء النشطين --</option>
-                    {customers.map(c => <option key={c.id} value={c.id}>{c.full_name} ({c.national_id})</option>)}
+                    {clients.map(c => <option key={c.id} value={c.id}>{c.full_name} ({c.national_id})</option>)}
                 </select>
             </div>
 
-            {/* ب) الكشف الراداري (Customer Radar) */}
-            {customerSummary && (
+            {/* ب) الكشف الراداري (Client Radar) */}
+            {clientSummary && (
                 <div className="space-y-4 animate-in slide-in-from-bottom-5">
                     
                     {/* بطاقة الحالة القانونية والمالية */}
                     <div className={`p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden transition-colors duration-500 ${
-                        customerSummary.status === 'LEGAL' ? 'bg-red-600' : 
-                        customerSummary.status === 'OVERDUE' ? 'bg-amber-500' : 'bg-slate-900'
+                        clientSummary.status === 'LEGAL' ? 'bg-red-600' : 
+                        clientSummary.status === 'OVERDUE' ? 'bg-amber-500' : 'bg-slate-900'
                     }`}>
                         <div className="relative z-10 flex justify-between items-start">
                             <div>
-                                <h2 className="text-2xl font-black mb-1">{customerSummary.name}</h2>
+                                <h2 className="text-2xl font-black mb-1">{clientSummary.name}</h2>
                                 <p className="text-[10px] font-bold opacity-70 uppercase tracking-widest">
                                     الوضع الحالي: {
-                                        customerSummary.status === 'LEGAL' ? '🚨 ملف في الشؤون القانونية' : 
-                                        customerSummary.status === 'OVERDUE' ? '⚠️ متأخر عن السداد' : 
-                                        customerSummary.status === 'CAPPED' ? '🛑 وصل لسقف المديونية' : '✅ منتظم في السداد'
+                                        clientSummary.status === 'LEGAL' ? '🚨 ملف في الشؤون القانونية' : 
+                                        clientSummary.status === 'OVERDUE' ? '⚠️ متأخر عن السداد' : 
+                                        clientSummary.status === 'CAPPED' ? '🛑 وصل لسقف المديونية' : '✅ منتظم في السداد'
                                     }
                                 </p>
                             </div>
                             <div className="bg-white/20 px-4 py-2 rounded-2xl backdrop-blur-md text-center">
                                 <span className="block text-[8px] font-black uppercase">سكور الالتزام</span>
-                                <span className="text-xl font-black">{customerSummary.score}%</span>
+                                <span className="text-xl font-black">{clientSummary.score}%</span>
                             </div>
                         </div>
 
                         <div className="mt-8 grid grid-cols-2 gap-4 border-t border-white/10 pt-6">
                             <div>
                                 <p className="text-[10px] opacity-60 font-bold uppercase">إجمالي المديونية</p>
-                                <p className="text-2xl font-black">{customerSummary.totalRemaining.toLocaleString()} ج.م</p>
+                                <p className="text-2xl font-black">{clientSummary.totalRemaining.toLocaleString()} ج.م</p>
                             </div>
                             <div className="text-left">
                                 <p className="text-[10px] opacity-60 font-bold uppercase">أيام التأخير</p>
-                                <p className={`text-2xl font-black ${customerSummary.delayDays > 0 ? 'animate-pulse' : ''}`}>
-                                    {customerSummary.delayDays} يوم
+                                <p className={`text-2xl font-black ${clientSummary.delayDays > 0 ? 'animate-pulse' : ''}`}>
+                                    {clientSummary.delayDays} يوم
                                 </p>
                             </div>
                         </div>

@@ -1,22 +1,74 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>تسجيل الحضور والإنصراف</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Tahoma, Arial, sans-serif;
+        }
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+            color: #0f172a;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .card {
+            width: min(100%, 560px);
+            background: white;
+            border-radius: 28px;
+            padding: 24px;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+            border: 1px solid #e2e8f0;
+        }
+        .title { font-size: 24px; font-weight: 900; margin: 0 0 8px; }
+        .subtitle { font-size: 13px; color: #64748b; margin: 0 0 16px; }
+        .status-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 16px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1d4ed8; }
+        label { display: block; font-size: 12px; font-weight: 800; margin-bottom: 6px; color: #334155; }
+        input, select, button { width: 100%; box-sizing: border-box; border-radius: 16px; padding: 12px 14px; font-size: 14px; margin-bottom: 12px; }
+        input, select { border: 1px solid #cbd5e1; background: #f8fafc; }
+        button { border: none; background: #0f172a; color: white; font-weight: 800; cursor: pointer; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .logs { margin-top: 18px; display: grid; gap: 10px; }
+        .log-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; font-size: 13px; }
+        .pill { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; margin-top: 6px; }
+        .pill.success { background: #dcfce7; color: #166534; }
+        .pill.warning { background: #fef3c7; color: #92400e; }
+        .pill.error { background: #fee2e2; color: #991b1b; }
+    </style>
 </head>
-<body class="antialiased overflow-hidden selection:bg-blue-500 selection:text-white">
+<body>
+    <div class="card">
+        <h2 class="title">تسجيل الحضور والإنصراف</h2>
+        <p class="subtitle">يتم التحقق من الموقع الجغرافي قبل تسجيل الموظف بنجاح.</p>
 
-    <div id="attendance-form-container" class="p-6 bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-100 w-full mx-auto max-w-md text-center mt-4">
-        <h2 class="text-xl font-black mb-4">تسجيل الحضور والإنصراف</h2>
-        <input type="text" id="name" placeholder="اسم العامل" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-sm mb-3" />
-        <select id="type" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-sm mb-3">
-            <option value="حضور">حضور</option>
-            <option value="انصراف">انصراف</option>
-        </select>
-        <button id="submitBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-2xl font-black text-xs shadow-xl transition-colors active:scale-95">تسجيل</button>
+        <div id="statusBox" class="status-box">جارٍ طلب إذن الموقع...</div>
+
+        <form id="attendanceForm">
+            <label for="name">اسم الموظف</label>
+            <select id="name" name="name" required>
+                <option value="">جارٍ تحميل الموظفين...</option>
+            </select>
+
+            <label for="type">نوع التسجيل</label>
+            <select id="type" name="type" required>
+                <option value="حضور">حضور</option>
+                <option value="انصراف">انصراف</option>
+            </select>
+
+            <button id="submitBtn" type="submit">تسجيل</button>
+        </form>
+
+        <div class="logs" id="logsList"></div>
     </div>
 
+    <script src="database.js"></script>
     <script src="attendance.js"></script>
 </body>
 </html>

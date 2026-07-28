@@ -1,21 +1,101 @@
 // hr.js - مديول شؤون الموظفين ونظام النقاط (إصدار إكس القابضة V6)
 
-const HRModule = () => {
+const ATTENDANCE_STORAGE_KEY = 'ecofine_attendance_logs';
+const ATTENDANCE_SETTINGS_KEY = 'ecofine_attendance_settings';
+
+function getAttendanceSettings() {
+    try {
+        const saved = localStorage.getItem(ATTENDANCE_SETTINGS_KEY);
+        if (!saved) return { lat: 30.0444, lng: 31.2357, radius: 200 };
+        const parsed = JSON.parse(saved);
+        return { lat: Number(parsed.lat) || 30.0444, lng: Number(parsed.lng) || 31.2357, radius: Number(parsed.radius) || 200 };
+    } catch {
+        return { lat: 30.0444, lng: 31.2357, radius: 200 };
+    }
+}
+
+function saveAttendanceSettings(settings) {
+    localStorage.setItem(ATTENDANCE_SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function getAttendanceLogs() {
+    try {
+        return JSON.parse(localStorage.getItem(ATTENDANCE_STORAGE_KEY) || '[]');
+    } catch {
+        return [];
+    }
+}
+
+function saveAttendanceLogs(logs) {
+    localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(logs));
+}
+
+function toRadians(value) {
+    return value * (Math.PI / 180);
+}
+
+function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
+    const earthRadius = 6371000;
+    const dLat = toRadians(lat2 - lat1);
+    const dLon = toRadians(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadius * c;
+}
+
+const HRModule = ({ initialView = 'list' }) => {
     const [employees, setEmployees] = React.useState([]);
     const [points, setPoints] = React.useState([]);
-    const [activeTab, setActiveTab] = React.useState('list'); // 'list' or 'points'
+    const [activeTab, setActiveTab] = React.useState(initialView === 'attendance' ? 'attendance' : 'list');
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     
     const [empForm, setEmpForm] = React.useState({ name: '', role: '', base_salary: 0, point_value: 10 });
     const [pointForm, setPointForm] = React.useState({ emp_id: '', type: 'plus', amount: '', reason: '' });
+    const [attendanceStats, setAttendanceStats] = React.useState({ total: 0, approved: 0, outside: 0, latest: null });
+    const [attendanceForm, setAttendanceForm] = React.useState({ employeeId: '', type: 'حضور' });
+    const [attendanceSettings, setAttendanceSettings] = React.useState(getAttendanceSettings());
+    const [attendanceStatus, setAttendanceStatus] = React.useState('جارٍ التحقق من الموقع...');
+    const [attendancePosition, setAttendancePosition] = React.useState(null);
+    const [isSubmittingAttendance, setIsSubmittingAttendance] = React.useState(false);
 
-    const loadData = async () => {
+    const loadAttendanceStats = React.useCallback(() => {
+        const logs = getAttendanceLogs();
+        const approved = logs.filter(log => log.status === 'approved').length;
+        const outside = logs.filter(log => log.status === 'outside_range').length;
+        const latest = logs[0] || null;
+        setAttendanceStats({ total: logs.length, approved, outside, latest });
+    }, []);
+
+    const loadData = React.useCallback(async () => {
         const [e, p] = await Promise.all([db.getAll('employees'), db.getAll('salary_points')]);
         setEmployees(e || []);
         setPoints(p || []);
-    };
+        loadAttendanceStats();
+    }, [loadAttendanceStats]);
 
-    React.useEffect(() => { loadData(); }, []);
+    const requestAttendanceLocation = React.useCallback(() => {
+        if (!navigator.geolocation) {
+            setAttendanceStatus('الموقع غير مدعوم في هذا المتصفح.');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setAttendancePosition(position.coords);
+                setAttendanceStatus(`تم تحديد الموقع بنجاح: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`);
+            },
+            (error) => {
+                let message = 'تعذر الوصول إلى الموقع. يرجى السماح بالإذن.';
+                if (error.code === 1) message = 'تم رفض إذن الموقع.';
+                if (error.code === 2) message = 'تعذر تحديد الموقع حاليًا.';
+                setAttendanceStatus(message);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }, []);
+
+    React.useEffect(() => { loadData(); }, [loadData]);
+    React.useEffect(() => { if (activeTab === 'attendance') requestAttendanceLocation(); }, [activeTab, requestAttendanceLocation]);
 
     // 1. إضافة موظف
     const handleSaveEmployee = async (e) => {
@@ -45,6 +125,53 @@ const HRModule = () => {
         alert("✅ تم تحديث ميزان الأداء للموظف");
     };
 
+    const handleAttendanceSubmit = async (e) => {
+        e.preventDefault();
+        const employee = employees.find(item => item.id === attendanceForm.employeeId);
+        const employeeName = employee?.name || employee?.full_name || employee?.username;
+        if (!employeeName) {
+            setAttendanceStatus('يرجى اختيار موظف من القائمة.');
+            return;
+        }
+        if (!attendancePosition) {
+            setAttendanceStatus('يرجى الانتظار حتى يتم تحديد الموقع.');
+            return;
+        }
+
+        setIsSubmittingAttendance(true);
+        const distance = calculateDistanceMeters(attendanceSettings.lat, attendanceSettings.lng, attendancePosition.latitude, attendancePosition.longitude);
+        const isApproved = distance <= attendanceSettings.radius;
+
+        const newLog = {
+            name: employeeName,
+            type: attendanceForm.type,
+            timestamp: new Date().toISOString(),
+            latitude: attendancePosition.latitude,
+            longitude: attendancePosition.longitude,
+            distanceMeters: Math.round(distance),
+            status: isApproved ? 'approved' : 'outside_range'
+        };
+
+        const logs = [newLog, ...getAttendanceLogs()].slice(0, 20);
+        saveAttendanceLogs(logs);
+        loadAttendanceStats();
+        setAttendanceForm({ employeeId: '', type: 'حضور' });
+        setAttendanceStatus(isApproved ? `تم تسجيل ${attendanceForm.type} بنجاح داخل النطاق (${Math.round(distance)} متر).` : `تم تسجيل ${attendanceForm.type} لكن الموقع خارج النطاق (${Math.round(distance)} متر).`);
+        setIsSubmittingAttendance(false);
+    };
+
+    const handleAttendanceSettingsSave = (e) => {
+        e.preventDefault();
+        const settings = {
+            lat: Number(attendanceSettings.lat),
+            lng: Number(attendanceSettings.lng),
+            radius: Number(attendanceSettings.radius)
+        };
+        saveAttendanceSettings(settings);
+        setAttendanceSettings(settings);
+        setAttendanceStatus('تم حفظ إعدادات الموقع بنجاح.');
+    };
+
     // حساب الراتب المستحق حالياً
     const calculateSalary = (empId, base) => {
         const empPoints = points.filter(p => p.emp_id === empId);
@@ -58,6 +185,7 @@ const HRModule = () => {
             <div className="flex bg-white p-1 rounded-2xl shadow-sm border">
                 <button onClick={() => setActiveTab('list')} className={`flex-1 py-3 rounded-xl font-black text-xs ${activeTab === 'list' ? 'bg-slate-900 text-white' : 'text-slate-400'}`}>فريق العمل</button>
                 <button onClick={() => setActiveTab('points')} className={`flex-1 py-3 rounded-xl font-black text-xs ${activeTab === 'points' ? 'bg-slate-900 text-white' : 'text-slate-400'}`}>نظام النقاط</button>
+                <button onClick={() => setActiveTab('attendance')} className={`flex-1 py-3 rounded-xl font-black text-xs ${activeTab === 'attendance' ? 'bg-slate-900 text-white' : 'text-slate-400'}`}>الحضور والإنصراف</button>
             </div>
 
             {activeTab === 'list' ? (
@@ -85,7 +213,7 @@ const HRModule = () => {
                         ))}
                     </div>
                 </div>
-            ) : (
+            ) : activeTab === 'points' ? (
                 <div className="space-y-6 animate-in slide-in-from-bottom">
                     {/* فورم إضافة النقاط */}
                     <form onSubmit={handleAddPoints} className="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
@@ -121,6 +249,70 @@ const HRModule = () => {
                                 </span>
                             </div>
                         ))}
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-6 animate-in slide-in-from-bottom">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white p-4 rounded-3xl border shadow-sm">
+                            <p className="text-[10px] font-black text-slate-400 uppercase">إجمالي السجلات</p>
+                            <p className="text-2xl font-black text-slate-800 mt-2">{attendanceStats.total}</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-3xl border shadow-sm">
+                            <p className="text-[10px] font-black text-slate-400 uppercase">مقبول</p>
+                            <p className="text-2xl font-black text-green-600 mt-2">{attendanceStats.approved}</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-3xl border shadow-sm">
+                            <p className="text-[10px] font-black text-slate-400 uppercase">خارج النطاق</p>
+                            <p className="text-2xl font-black text-amber-600 mt-2">{attendanceStats.outside}</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <form onSubmit={handleAttendanceSubmit} className="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
+                            <h4 className="font-black text-slate-800">نموذج تسجيل الحضور</h4>
+                            <p className="text-[11px] text-slate-500">{attendanceStatus}</p>
+                            <select required className="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm" value={attendanceForm.employeeId} onChange={e => setAttendanceForm({...attendanceForm, employeeId: e.target.value})}>
+                                <option value="">اختر الموظف...</option>
+                                {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
+                            </select>
+                            <select className="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm" value={attendanceForm.type} onChange={e => setAttendanceForm({...attendanceForm, type: e.target.value})}>
+                                <option value="حضور">حضور</option>
+                                <option value="انصراف">انصراف</option>
+                            </select>
+                            <button type="submit" disabled={isSubmittingAttendance} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black">
+                                {isSubmittingAttendance ? 'جارٍ التسجيل...' : 'تسجيل الحضور/الانصراف'}
+                            </button>
+                        </form>
+
+                        <div className="space-y-4">
+                            <form onSubmit={handleAttendanceSettingsSave} className="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
+                                <h4 className="font-black text-slate-800">إعدادات الموقع</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase">خط العرض</label>
+                                        <input type="number" step="any" className="w-full p-3 bg-slate-50 border rounded-xl font-bold" value={attendanceSettings.lat} onChange={e => setAttendanceSettings({...attendanceSettings, lat: e.target.value})} />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase">خط الطول</label>
+                                        <input type="number" step="any" className="w-full p-3 bg-slate-50 border rounded-xl font-bold" value={attendanceSettings.lng} onChange={e => setAttendanceSettings({...attendanceSettings, lng: e.target.value})} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase">نطاق السماحية (متر)</label>
+                                    <input type="number" className="w-full p-3 bg-slate-50 border rounded-xl font-bold" value={attendanceSettings.radius} onChange={e => setAttendanceSettings({...attendanceSettings, radius: e.target.value})} />
+                                </div>
+                                <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-2xl font-black">حفظ الإعدادات</button>
+                            </form>
+
+                            {attendanceStats.latest && (
+                                <div className="bg-white p-4 rounded-3xl border shadow-sm">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase">آخر تسجيل</p>
+                                    <p className="font-black text-slate-800 mt-2">{attendanceStats.latest.name}</p>
+                                    <p className="text-sm text-slate-500">{attendanceStats.latest.type} • {new Date(attendanceStats.latest.timestamp).toLocaleString('ar-EG')}</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

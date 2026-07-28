@@ -3,7 +3,7 @@
  * المطور: Techno Vision Solutions (Mr. X)
  * الوظيفة: التقييم الائتماني المتكامل، اتخاذ قرارات التقسيط، حساب الزكاة، والمراقبة القانونية.
  * تاريخ آخر تحديث: 2026-03-13
- * 
+ *
  * التغييرات الرئيسية في هذا الإصدار:
  * - تحسين معالجة الأخطاء والتحقق من صحة المدخلات.
  * - دمج فحص أهلية الضامن (وحدانية الدور، الحظر) باستخدام قاعدة البيانات.
@@ -84,19 +84,19 @@
 
         /**
          * تقييم العميل وحساب درجته الائتمانية.
-         * @param {Object} customerData - بيانات العميل (من crm.js).
-         * @param {Array} customerData.guarantors - قائمة الضامنين (كل ضامن له credit_score).
-         * @param {string} customerData.job_type - نوع الوظيفة (GOV_EMPLOYEE, PRIVATE, etc).
-         * @param {number} customerData.monthly_income - الدخل الشهري.
-         * @param {string} customerData.residence_type - نوع السكن (OWNED, RENTED).
-         * @param {string} customerData.survey_status - حالة الاستعلام الميداني (verified, pending, rejected).
-         * @param {string} customerData.national_id - الرقم القومي.
+         * @param {Object} clientData - بيانات العميل (من crm.js).
+         * @param {Array} clientData.guarantors - قائمة الضامنين (كل ضامن له credit_score).
+         * @param {string} clientData.job_type - نوع الوظيفة (GOV_EMPLOYEE, PRIVATE, etc).
+         * @param {number} clientData.monthly_income - الدخل الشهري.
+         * @param {string} clientData.residence_type - نوع السكن (OWNED, RENTED).
+         * @param {string} clientData.survey_status - حالة الاستعلام الميداني (verified, pending, rejected).
+         * @param {string} clientData.national_id - الرقم القومي.
          * @returns {Object} { approved, finalScore, msg, breakdown }
          */
-        evaluateCustomer: function(customerData) {
+        evaluateClient: function(clientData) {
             try {
                 // التحقق من المدخلات الأساسية
-                if (!customerData || typeof customerData !== 'object') {
+                if (!clientData || typeof clientData !== 'object') {
                     throw new Error('بيانات العميل غير صالحة.');
                 }
 
@@ -106,7 +106,7 @@
                 const breakdown = [];
 
                 // استخراج الضامنين
-                const guarantors = Array.isArray(customerData.guarantors) ? customerData.guarantors : [];
+                const guarantors = Array.isArray(clientData.guarantors) ? clientData.guarantors : [];
 
                 // 1. فحص الحد الأدنى للضامنين
                 if (guarantors.length < gRules.minGuarantors) {
@@ -150,9 +150,9 @@
 
                 // وزن الدخل والوظيفة
                 let incomeContribution = 0;
-                if (customerData.job_type === 'GOV_EMPLOYEE' || (customerData.monthly_income || 0) > 3000) {
+                if (clientData.job_type === 'GOV_EMPLOYEE' || (clientData.monthly_income || 0) > 3000) {
                     incomeContribution = weights.income;
-                } else if ((customerData.monthly_income || 0) > 2000) {
+                } else if ((clientData.monthly_income || 0) > 2000) {
                     incomeContribution = weights.income * 0.7;
                 } else {
                     incomeContribution = weights.income * 0.3;
@@ -162,9 +162,9 @@
 
                 // وزن السكن والاستعلام
                 let residenceContribution = 0;
-                if (customerData.residence_type === 'OWNED') {
+                if (clientData.residence_type === 'OWNED') {
                     residenceContribution = weights.residence;
-                } else if (customerData.residence_type === 'RENTED' && customerData.survey_status === 'verified') {
+                } else if (clientData.residence_type === 'RENTED' && clientData.survey_status === 'verified') {
                     residenceContribution = weights.residence * 0.8;
                 } else {
                     residenceContribution = weights.residence * 0.4;
@@ -174,7 +174,7 @@
 
                 // وزن الهوية (الرقم القومي)
                 let identityContribution = 0;
-                if (customerData.national_id && customerData.national_id.length === 14) {
+                if (clientData.national_id && clientData.national_id.length === 14) {
                     identityContribution = weights.identity;
                 } else {
                     identityContribution = 0;
@@ -193,7 +193,7 @@
                     breakdown
                 };
             } catch (error) {
-                console.error('XCore.evaluateCustomer error:', error);
+                console.error('XCore.evaluateClient error:', error);
                 return {
                     approved: false,
                     finalScore: 0,
@@ -222,12 +222,12 @@
                 }
 
                 // جلب جميع العملاء والفواتير النشطة
-                const [allCustomers, allInvoices] = await Promise.all([
-                    window.db.getAll('customers').catch(() => []),
+                const [allClients, allInvoices] = await Promise.all([
+                    window.db.getAll('clients').catch(() => []),
                     window.db.getAll('invoices').catch(() => [])
                 ]);
 
-                const person = allCustomers.find(c => c.national_id === nationalId);
+                const person = allClients.find(c => c.national_id === nationalId);
 
                 // 1. فحص الحظر القانوني
                 if (person?.legal_ban_until && new Date(person.legal_ban_until) > new Date()) {
