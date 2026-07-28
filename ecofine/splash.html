@@ -49,36 +49,11 @@ Error generating stack: `+l.message+`
           0% { transform: scale(1); opacity: 0.6; }
           70%, 100% { transform: scale(1.6); opacity: 0; }
         }
+
+
+</body>
+</html>
       `})]})}Gs.createRoot(document.getElementById("root")).render(B(Ss.default.StrictMode,{children:B(bu,{})}));
 </script>
   <script>(function(){function m(a){var h=a.getAttribute("href");if(!h)return;try{var u=new URL(h,document.baseURI);if((u.protocol==="http:"||u.protocol==="https:")&&u.host!==location.host){a.target="_blank";a.rel="noopener noreferrer";}}catch(e){}}function s(){document.querySelectorAll("a[href]").forEach(m);}if(document.readyState!=="loading"){s();}else{document.addEventListener("DOMContentLoaded",s);}document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(a){m(a);}},true);})();</script>
   
-
-  <script>
-  (function () {
-    // --- Integration hook added for embedding this intro inside the main EcoFine site ---
-    // Tells the parent page (index.html) when it's safe to reveal the real app:
-    //  1) as soon as the user taps "تخطي" (Skip), or
-    //  2) automatically after 4.5s if no button is found, so the site is never stuck.
-    var notified = false;
-    function notifyParent(reason) {
-      if (notified) return;
-      notified = true;
-      try {
-        if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ source: 'ecofine-splash', type: 'done', reason: reason }, '*');
-        }
-      } catch (e) {}
-    }
-    document.addEventListener('click', function (e) {
-      var el = e.target;
-      for (var i = 0; el && i < 6; i++, el = el.parentElement) {
-        var t = (el.textContent || '').trim();
-        if (t === 'تخطي' || t === 'Skip') { notifyParent('skip'); break; }
-      }
-    }, true);
-    setTimeout(function () { notifyParent('timeout'); }, 4500);
-  })();
-  </script>
-</body>
-</html>
