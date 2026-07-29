@@ -1,16 +1,20 @@
-# EcoFine Project Structure
+# FinTech-Pro Integrated with EcoFine
 
 ## Overview
-This folder now uses a clearer structure for testing and maintenance while keeping the legacy EcoFine modules working.
+This project is now connected to the shared EcoFine structure so it can be expanded more easily.
 
 ## Structure
-- src/core: bootstrap and core runtime initialization
-- src/services: shared service helpers
-- src/ui: UI shell and presentation helpers
-- config: application configuration
-- public: static assets and future public files
-- __tests__: automated tests
+- src/: React app entry and UI
+- shared/: reusable UI, hooks, and config shared across EcoFine modules
+- public/: static assets
 
 ## Notes
-Legacy scripts such as app.js, auth.js, database.js, and others remain in the root for compatibility.
-Newer modules should be placed under src/ and loaded via index.html.
+The app is prepared for future expansion with shared shell, configuration, and routing support.
+
+## Run locally
+If dependencies are installed, use:
+
+```bash
+npm install
+npm run dev
+```
