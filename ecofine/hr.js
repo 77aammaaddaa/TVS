@@ -185,7 +185,7 @@ const HRModule = ({ initialView = 'list' }) => {
             <div className="flex bg-white p-1 rounded-2xl shadow-sm border">
                 <button onClick={() => setActiveTab('list')} className={`flex-1 py-3 rounded-xl font-black text-xs ${activeTab === 'list' ? 'bg-slate-900 text-white' : 'text-slate-400'}`}>فريق العمل</button>
                 <button onClick={() => setActiveTab('points')} className={`flex-1 py-3 rounded-xl font-black text-xs ${activeTab === 'points' ? 'bg-slate-900 text-white' : 'text-slate-400'}`}>نظام النقاط</button>
-                <button onClick={() => setActiveTab('attendance')} className={`flex-1 py-3 rounded-xl font-black text-xs ${activeTab === 'attendance' ? 'bg-slate-900 text-white' : 'text-slate-400'}`}>الحضور والإنصراف</button>
+
             </div>
 
             {activeTab === 'list' ? (
@@ -251,70 +251,7 @@ const HRModule = ({ initialView = 'list' }) => {
                         ))}
                     </div>
                 </div>
-            ) : (
-                <div className="space-y-6 animate-in slide-in-from-bottom">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-white p-4 rounded-3xl border shadow-sm">
-                            <p className="text-[10px] font-black text-slate-400 uppercase">إجمالي السجلات</p>
-                            <p className="text-2xl font-black text-slate-800 mt-2">{attendanceStats.total}</p>
-                        </div>
-                        <div className="bg-white p-4 rounded-3xl border shadow-sm">
-                            <p className="text-[10px] font-black text-slate-400 uppercase">مقبول</p>
-                            <p className="text-2xl font-black text-green-600 mt-2">{attendanceStats.approved}</p>
-                        </div>
-                        <div className="bg-white p-4 rounded-3xl border shadow-sm">
-                            <p className="text-[10px] font-black text-slate-400 uppercase">خارج النطاق</p>
-                            <p className="text-2xl font-black text-amber-600 mt-2">{attendanceStats.outside}</p>
-                        </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <form onSubmit={handleAttendanceSubmit} className="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
-                            <h4 className="font-black text-slate-800">نموذج تسجيل الحضور</h4>
-                            <p className="text-[11px] text-slate-500">{attendanceStatus}</p>
-                            <select required className="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm" value={attendanceForm.employeeId} onChange={e => setAttendanceForm({...attendanceForm, employeeId: e.target.value})}>
-                                <option value="">اختر الموظف...</option>
-                                {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
-                            </select>
-                            <select className="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm" value={attendanceForm.type} onChange={e => setAttendanceForm({...attendanceForm, type: e.target.value})}>
-                                <option value="حضور">حضور</option>
-                                <option value="انصراف">انصراف</option>
-                            </select>
-                            <button type="submit" disabled={isSubmittingAttendance} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black">
-                                {isSubmittingAttendance ? 'جارٍ التسجيل...' : 'تسجيل الحضور/الانصراف'}
-                            </button>
-                        </form>
-
-                        <div className="space-y-4">
-                            <form onSubmit={handleAttendanceSettingsSave} className="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
-                                <h4 className="font-black text-slate-800">إعدادات الموقع</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-400 uppercase">خط العرض</label>
-                                        <input type="number" step="any" className="w-full p-3 bg-slate-50 border rounded-xl font-bold" value={attendanceSettings.lat} onChange={e => setAttendanceSettings({...attendanceSettings, lat: e.target.value})} />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-400 uppercase">خط الطول</label>
-                                        <input type="number" step="any" className="w-full p-3 bg-slate-50 border rounded-xl font-bold" value={attendanceSettings.lng} onChange={e => setAttendanceSettings({...attendanceSettings, lng: e.target.value})} />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-black text-slate-400 uppercase">نطاق السماحية (متر)</label>
-                                    <input type="number" className="w-full p-3 bg-slate-50 border rounded-xl font-bold" value={attendanceSettings.radius} onChange={e => setAttendanceSettings({...attendanceSettings, radius: e.target.value})} />
-                                </div>
-                                <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-2xl font-black">حفظ الإعدادات</button>
-                            </form>
-
-                            {attendanceStats.latest && (
-                                <div className="bg-white p-4 rounded-3xl border shadow-sm">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase">آخر تسجيل</p>
-                                    <p className="font-black text-slate-800 mt-2">{attendanceStats.latest.name}</p>
-                                    <p className="text-sm text-slate-500">{attendanceStats.latest.type} • {new Date(attendanceStats.latest.timestamp).toLocaleString('ar-EG')}</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
             )}
 
             {/* مودال إضافة موظف */}

@@ -311,6 +311,8 @@ const AuthModule = ({ onLoginSuccess, orgConfig }) => {
                         >
                             {isLoading ? 'جاري المعالجة...' : view === 'setup_owner' ? 'إنشاء حساب المالك والبدء 🚀' : 'دخول آمن 🚀'}
                         </button>
+
+
                     </form>
                 </div>
 
