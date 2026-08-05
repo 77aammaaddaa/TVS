@@ -7,7 +7,7 @@ import { AssetPage } from '@/components/pages/AssetPage';
 import { ActivationPage } from '@/components/pages/ActivationPage';
 import { seedInitialData } from '@/db/seed';
 
-export const App: React.FC = () => {
+const App: React.FC = () => {
   // التحقق من حالة التفعيل من المخزن
   const { isActivated } = useAppStore();
   
