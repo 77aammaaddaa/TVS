@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { BottomNav } from '@/components/layout/BottomNav';
-import { Dashboard } from '@/pages/Dashboard';
-import { TxPage } from '@/pages/TxPage';
-import { AssetPage } from '@/pages/AssetPage';
-import { ActivationPage } from '@/pages/ActivationPage';
+import { Dashboard } from '@/components/pages/Dashboard';
+import { TxPage } from '@/components/pages/TxPage';
+import { AssetPage } from '@/components/pages/AssetPage';
+import { ActivationPage } from '@/components/pages/ActivationPage';
 import { seedInitialData } from '@/db/seed';
 
 export const App: React.FC = () => {

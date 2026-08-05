@@ -57,3 +57,8 @@ corebalance-os/
             ├── AssetPage.tsx  # شاشة الأصول ومحرك SVE
             ├── DebtPage.tsx   # شاشة إدارة المديونيات
             └── ConfigPage.tsx # شاشة الإعدادات والداتا سيت
+
+
+
+
+            
