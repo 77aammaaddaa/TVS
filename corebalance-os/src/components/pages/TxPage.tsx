@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useAppStore } from '@/store/useAppStore';
 import { useTx } from '@/hooks/useTx';
 import { TopNav } from '@/components/layout/TopNav';
 import { ArrowDownRight, ArrowUpRight, RefreshCcw, Filter } from 'lucide-react';
 import { TransType } from '@/types';
 
 export const TxPage: React.FC = () => {
-  const { activeEntity } = useAppStore();
   const { transactions } = useTx();
   const [filter, setFilter] = useState<TransType | 'الكل'>('الكل');
 

@@ -22,6 +22,7 @@ export const TopNav: React.FC = () => {
           return (
             <button
               key={entity}
+              type="button"
               onClick={() => setActiveEntity(entity)}
               className={`flex-1 relative z-10 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 touch-manipulation
                 ${isActive ? `${config.activeColor} shadow-md` : 'text-slate-500 hover:text-slate-700'}

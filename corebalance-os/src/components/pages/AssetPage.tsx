@@ -1,16 +1,15 @@
 import React from 'react';
-import { useAppStore } from '@/store/useAppStore';
 import { useAssets } from '@/hooks/useAssets';
 import { TopNav } from '@/components/layout/TopNav';
 import { Wallet, MonitorSmartphone, BrainCircuit, Globe } from 'lucide-react';
 import { ValuationMethod } from '@/types';
 
-export const AssetPage: React.FC = () => {
-  const { assets } = useAssets();
-  
-  const liquidAssets = assets.filter(a => a.asset_type === 'متداول');
-  const nonLiquidAssets = assets.filter(a => a.asset_type === 'غير متداول');
+interface AssetGroupProps {
+  title: string;
+  data: ReturnType<typeof useAssets>['assets'];
+}
 
+const AssetGroup: React.FC<AssetGroupProps> = ({ title, data }) => {
   const getMethodIcon = (method: ValuationMethod) => {
     switch (method) {
       case 'Hardware': return <MonitorSmartphone size={18} />;
@@ -20,7 +19,7 @@ export const AssetPage: React.FC = () => {
     }
   };
 
-  const AssetGroup = ({ title, data }: { title: string, data: typeof assets }) => (
+  return (
     <div className="mb-6">
       <h3 className="text-sm font-bold text-slate-500 mb-3 ml-1">{title}</h3>
       <div className="grid grid-cols-1 gap-3">
@@ -45,6 +44,13 @@ export const AssetPage: React.FC = () => {
       </div>
     </div>
   );
+};
+
+export const AssetPage: React.FC = () => {
+  const { assets } = useAssets();
+
+  const liquidAssets = assets.filter(a => a.asset_type === 'متداول');
+  const nonLiquidAssets = assets.filter(a => a.asset_type === 'غير متداول');
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24">

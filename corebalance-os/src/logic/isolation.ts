@@ -3,7 +3,7 @@
  * جدار الحماية المحاسبي والمنطقي لعزل الكيانات ومنع خلط السيولة
  */
 
-import { Asset, EntityId, Transaction } from '@/types';
+import { Asset, EntityId } from '@/types';
 
 /**
  * نتيجة فحص سلامة المعاملة

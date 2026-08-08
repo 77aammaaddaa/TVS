@@ -38,9 +38,11 @@ import { Dashboard } from '@/components/pages/Dashboard';
      <div className="relative w-full h-full max-w-md mx-auto bg-slate-50 shadow-2xl overflow-x-hidden">
        {currentTab === 'dashboard' && <Dashboard />}
        {currentTab === 'transactions' && <TxPage />}
-      {currentTab === 'assets' && <AssetPage />}
-      
+       {currentTab === 'assets' && <AssetPage />}
+       {currentTab === 'liabilities' && <div className="min-h-screen bg-slate-50 p-4">الخصوم</div>}
+
        <BottomNav currentTab={currentTab} onChangeTab={setCurrentTab} />
      </div>
    );
  };
+ 

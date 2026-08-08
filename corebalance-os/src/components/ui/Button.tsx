@@ -10,10 +10,11 @@ export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   fullWidth = false,
   className = '',
+  type = 'button',
   ...props
 }) => {
   const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200 active:scale-95 touch-manipulation select-none';
-  
+
   const variants = {
     primary: 'bg-slate-900 text-white hover:bg-slate-800 rounded-xl px-5 py-3 shadow-sm',
     secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 rounded-xl px-5 py-3',
@@ -25,7 +26,8 @@ export const Button: React.FC<ButtonProps> = ({
   const widthStyle = fullWidth ? 'w-full' : '';
 
   return (
-    <button 
+    <button
+      type={type}
       className={`${baseStyles} ${variants[variant]} ${widthStyle} ${className}`}
       {...props}
     >

@@ -3,7 +3,7 @@
  * محرك التقييم الذكي للأصول والتحديث المستمر للقيمة العادلة
  */
 
-import { Asset, SVEValuation, ValuationMethod } from '@/types';
+import { Asset, SVEValuation } from '@/types';
 
 /**
  * خريطة معامل الجودة والحالة الفنية للأجهزة (Hardware Quality Multiplier Table)
