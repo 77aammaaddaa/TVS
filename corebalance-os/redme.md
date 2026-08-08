@@ -61,4 +61,17 @@ corebalance-os/
 
 
 
-            
+            npm run dev
+
+
+> corebalance-os@3.0.0 dev
+> vite
+
+
+  VITE v5.4.21  ready in 300 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://192.168.1.3:3000/
+  ➜  Network: http://169.254.93.139:3000/
+  ➜  Network: http://172.22.32.1:3000/
+  ➜  press h + enter to show help
