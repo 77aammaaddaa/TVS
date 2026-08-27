@@ -1,6 +1,9 @@
 import { AppShell } from '../../shared/ui/AppShell';
 import { appConfig } from '../../shared/lib/appConfig';
 import { useEcoFine } from '../../shared/hooks/useEcoFine';
+import { AppShell } from '../shared/ui/AppShell';
+import { appConfig } from '../shared/lib/appConfig';
+import { useEcoFine } from '../shared/hooks/useEcoFine';
 
 export default function App() {
   const ecoFine = useEcoFine();

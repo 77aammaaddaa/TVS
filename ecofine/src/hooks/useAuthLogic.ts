@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { AuthView, User } from '@/types/auth';
+import type { AuthView, User } from '@/types/auth';
 
 export function useAuthLogic(onLoginSuccess: (user: User) => void) {
     const [view, setView] = useState<AuthView>('loading');

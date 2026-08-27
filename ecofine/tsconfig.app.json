@@ -25,9 +25,7 @@
   // Add these two properties at the bottom of compilerOptions:
   "baseUrl": ".",
   "paths": {
-    "@/*": [
-      "./src/*"
-    ]
+    "@/*": ["src/*"]
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "src/**/*"]
 }
