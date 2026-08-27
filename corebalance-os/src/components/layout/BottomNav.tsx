@@ -17,18 +17,19 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onChangeTab })
 
   return (
     <>
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+      <div className="fixed bottom-7 left-1/2 z-50 -translate-x-1/2">
         <button
           type="button"
-          className="bg-slate-900 text-white p-4 rounded-full shadow-xl shadow-slate-300 active:scale-90 transition-transform duration-200 touch-manipulation"
+          className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 via-violet-600 to-sky-500 text-white shadow-[0_18px_32px_rgba(79,70,229,0.42)] transition-all duration-200 active:scale-95 touch-manipulation"
           onClick={() => onChangeTab('transactions')}
+          aria-label="إضافة حركة جديدة"
         >
-          <Plus size={28} strokeWidth={2.5} />
+          <Plus size={30} strokeWidth={2.5} />
         </button>
       </div>
 
-      <nav className="fixed bottom-0 w-full bg-white border-t border-slate-100 pb-safe pt-2 px-2 z-40">
-        <div className="flex justify-between items-center h-14">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/80 bg-white/80 px-2 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] pt-2 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[440px] items-center justify-between gap-1 rounded-t-[24px] px-1">
           {navItems.map((item) => {
             if (item.id === 'fab') {
               return <div key={item.id} className="w-16" />;
@@ -42,16 +43,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onChangeTab })
                 key={item.id}
                 type="button"
                 onClick={() => onChangeTab(item.id)}
-                className="flex-1 flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform touch-manipulation"
+                className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-[18px] px-2 py-2 transition-all duration-200 active:scale-95 touch-manipulation ${
+                  isActive ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                }`}
               >
-                <Icon
-                  size={24}
-                  className={`transition-colors duration-200 ${isActive ? 'text-slate-900' : 'text-slate-400'}`}
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
-                <span className={`text-[10px] font-bold ${isActive ? 'text-slate-900' : 'text-slate-400'}`}>
-                  {item.label}
-                </span>
+                <Icon size={20} strokeWidth={isActive ? 2.4 : 2} />
+                <span className="text-[10px] font-bold">{item.label}</span>
               </button>
             );
           })}

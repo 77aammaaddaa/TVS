@@ -78,7 +78,7 @@ export function computeSVE(asset: Asset): SVEValuation {
   const age = asset.age_years ?? 0;
   const multiplier = asset.quality_multiplier ?? 1;
 
-  let fairValue = asset.current_value;
+  let fairValue: number;
 
   switch (asset.valuation_method) {
     case 'Hardware':
@@ -95,7 +95,7 @@ export function computeSVE(asset: Asset): SVEValuation {
 
     case 'Liquid':
     default:
-      fairValue = asset.current_value; // السيولة بنسبة 1:1
+      fairValue = asset.current_value;
       break;
   }
 

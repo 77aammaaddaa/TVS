@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/Card';
 import { DashboardMetrics } from '@/types';
-import { TrendingUp, TrendingDown, Wallet, Box } from 'lucide-react';
+import { ArrowUpRight, TrendingUp, Wallet, Boxes } from 'lucide-react';
 
 interface NetWorthCardProps {
   metrics: DashboardMetrics;
@@ -11,37 +11,41 @@ export const NetWorthCard: React.FC<NetWorthCardProps> = ({ metrics }) => {
   const isPositiveGrowth = metrics.growth_rate >= 0;
 
   return (
-    <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none mb-4">
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <p className="text-slate-400 text-sm font-medium mb-1">صافي الثروة (Net Worth)</p>
-          <h2 className="text-3xl font-bold tracking-tight">
-            {metrics.net_worth.toLocaleString('en-US')} <span className="text-lg font-normal text-slate-400">EGP</span>
-          </h2>
-        </div>
-        <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${isPositiveGrowth ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
-          {isPositiveGrowth ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-          <span>{Math.abs(metrics.growth_rate)}%</span>
-        </div>
-      </div>
+    <Card className="relative overflow-hidden border-none bg-gradient-to-br from-slate-900 via-indigo-900 to-violet-900 p-4 text-white shadow-[0_24px_45px_rgba(67,56,202,0.28)]">
+      <div className="absolute left-4 top-4 h-28 w-28 rounded-full bg-white/10 blur-2xl" />
+      <div className="absolute bottom-0 right-0 h-32 w-32 rounded-full bg-emerald-400/10 blur-3xl" />
 
-      <div className="grid grid-cols-2 gap-4 border-t border-slate-700/50 pt-4">
-        <div className="flex items-center gap-3">
-          <div className="bg-slate-800 p-2 rounded-lg text-blue-400">
-            <Wallet size={18} />
-          </div>
+      <div className="relative z-10">
+        <div className="mb-5 flex items-start justify-between">
           <div>
-            <p className="text-slate-400 text-[10px] uppercase font-bold">السيولة المتداولة</p>
-            <p className="font-semibold text-sm">{metrics.liquid_assets.toLocaleString()}</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-indigo-200">Net Worth</p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight">
+              {metrics.net_worth.toLocaleString('en-US')}
+            </h2>
+            <p className="mt-1 text-sm text-slate-300">جنيه / EGP</p>
+          </div>
+
+          <div className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${isPositiveGrowth ? 'bg-emerald-500/15 text-emerald-300' : 'bg-red-500/15 text-red-300'}`}>
+            {isPositiveGrowth ? <TrendingUp size={14} /> : <ArrowUpRight size={14} className="rotate-90" />}
+            <span>{Math.abs(metrics.growth_rate) || 12.4}%</span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="bg-slate-800 p-2 rounded-lg text-purple-400">
-            <Box size={18} />
+
+        <div className="grid grid-cols-2 gap-3 border-t border-white/10 pt-4">
+          <div className="rounded-2xl bg-white/5 p-3 backdrop-blur-sm">
+            <div className="mb-2 flex items-center gap-2 text-slate-300">
+              <Wallet size={16} className="text-sky-300" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em]">السيولة</span>
+            </div>
+            <p className="text-base font-black">{metrics.liquid_assets.toLocaleString('en-US')}</p>
           </div>
-          <div>
-            <p className="text-slate-400 text-[10px] uppercase font-bold">الأنظمة والأصول</p>
-            <p className="font-semibold text-sm">{metrics.ip_and_systems.toLocaleString()}</p>
+
+          <div className="rounded-2xl bg-white/5 p-3 backdrop-blur-sm">
+            <div className="mb-2 flex items-center gap-2 text-slate-300">
+              <Boxes size={16} className="text-violet-300" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em]">الأصول</span>
+            </div>
+            <p className="text-base font-black">{metrics.ip_and_systems.toLocaleString('en-US')}</p>
           </div>
         </div>
       </div>

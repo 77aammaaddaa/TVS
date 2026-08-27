@@ -75,3 +75,22 @@ corebalance-os/
   ➜  Network: http://169.254.93.139:3000/
   ➜  Network: http://172.22.32.1:3000/
   ➜  press h + enter to show help
+
+  
+## ⚡ طريقة التفعيل السريعة (Demo Mode)
+
+### الطريقة 1: كود تفعيل تجريبي
+```
+CBOS-DEMO-2024-ACTIVATION
+```
+
+أو
+
+```
+CBOS-CORE-BALANCE-OS
+```
+
+### الطريقة 2: كود خاص بك
+يمكنك استخدام أي كود يبدأ بـ `CBOS-` وسيتم قبوله في النسخة التجريبية.
+
+---

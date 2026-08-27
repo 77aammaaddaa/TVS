@@ -17,9 +17,8 @@ export const ActivationPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // محاكاة تأخير الاتصال بالسيرفر
       await new Promise(resolve => setTimeout(resolve, 1200));
-      
+
       const success = await activateApp(key);
       if (!success) {
         setError('كود التفعيل غير صالح أو منتهي الصلاحية.');
@@ -32,52 +31,60 @@ export const ActivationPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* خلفية تجميلية للواجهة */}
-      <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-64 h-64 bg-emerald-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,_#1e293b,_#0f172a_55%)] p-4 text-white">
+      <div className="absolute left-[-8%] top-[-10%] h-64 w-64 rounded-full bg-indigo-500/25 blur-3xl" />
+      <div className="absolute bottom-[-12%] right-[-8%] h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl" />
 
-      <div className="w-full max-w-sm z-10 text-center mb-8">
-        <div className="inline-flex bg-slate-800 p-4 rounded-3xl mb-4 shadow-lg border border-slate-700">
-          <ShieldCheck size={48} className="text-emerald-400" />
+      <div className="relative z-10 w-full max-w-md">
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-4 inline-flex rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-indigo-900/20 backdrop-blur-md">
+            <ShieldCheck size={46} className="text-emerald-400" />
+          </div>
+          <h1 className="text-3xl font-black tracking-tight">CoreBalance OS</h1>
+          <p className="mt-2 text-sm text-slate-300">نظام التشغيل المالي وإدارة الثروات</p>
         </div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">CoreBalance OS</h1>
-        <p className="text-sm text-slate-400 mt-2 font-medium">نظام التشغيل المالي وإدارة الثروات</p>
+
+        <Card className="rounded-[28px] border border-white/10 bg-white/8 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.45)] backdrop-blur-xl">
+          <div className="mb-5 flex items-center gap-2 text-lg font-bold text-white">
+            <KeyRound size={20} className="text-indigo-300" />
+            <span>تفعيل النسخة</span>
+          </div>
+
+          <form onSubmit={handleActivation} className="space-y-4">
+            <Input
+              label="كود التفعيل (License Key)"
+              type="text"
+              value={key}
+              onChange={(e) => setKey(e.target.value.toUpperCase())}
+              placeholder="CBOS-XXXX-XXXX-XXXX"
+              className="border-slate-700 bg-slate-900/60 text-center font-mono tracking-[0.2em] text-white placeholder:text-slate-500"
+              required
+              error={error}
+            />
+
+            <Button
+              type="submit"
+              fullWidth
+              className="mt-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 px-5 py-3 text-base font-bold text-white shadow-lg shadow-indigo-500/40 hover:from-indigo-400 hover:to-violet-400"
+              disabled={isLoading || key.length < 10}
+            >
+              {isLoading ? 'جاري التحقق...' : 'تأكيد التفعيل'}
+              {!isLoading && <ArrowLeft size={18} className="mr-2" />}
+            </Button>
+          </form>
+
+          <div className="mt-5 rounded-2xl border border-slate-700/70 bg-slate-900/30 p-3 text-xs text-slate-300">
+            <div className="flex items-center justify-between">
+              <span>نسخة تجريبية</span>
+              <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-[10px] font-bold text-emerald-300">مفعلة محليًا</span>
+            </div>
+          </div>
+
+          <p className="mt-5 text-center text-xs leading-relaxed text-slate-400">
+            يتطلب التفعيل الأولي اتصالاً بالإنترنت للتحقق من هوية الترخيص وربط الجهاز.
+          </p>
+        </Card>
       </div>
-
-      <Card className="w-full max-w-sm bg-white/10 backdrop-blur-lg border border-white/20 p-6 shadow-2xl rounded-3xl">
-        <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-          <KeyRound size={20} className="text-indigo-400" />
-          تفعيل النسخة
-        </h2>
-
-        <form onSubmit={handleActivation} className="flex flex-col gap-4">
-          <Input 
-            label="كود التفعيل (License Key)"
-            type="text"
-            value={key}
-            onChange={(e) => setKey(e.target.value.toUpperCase())}
-            placeholder="CBOS-XXXX-XXXX-XXXX"
-            className="bg-slate-900/50 border-slate-700 text-white placeholder-slate-500 font-mono text-center tracking-widest uppercase"
-            required
-            error={error}
-          />
-          
-          <Button 
-            type="submit" 
-            fullWidth 
-            className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30"
-            disabled={isLoading || key.length < 10}
-          >
-            {isLoading ? 'جاري التحقق...' : 'تأكيد التفعيل'}
-            {!isLoading && <ArrowLeft size={18} className="ml-2" />}
-          </Button>
-        </form>
-
-        <p className="text-xs text-center text-slate-400 mt-6 font-medium leading-relaxed">
-          يتطلب التفعيل الأولي اتصالاً بالإنترنت للتحقق من هوية الترخيص وربط الجهاز.
-        </p>
-      </Card>
     </div>
   );
 };
