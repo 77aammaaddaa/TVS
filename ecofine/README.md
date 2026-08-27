@@ -18,3 +18,7 @@ If dependencies are installed, use:
 npm install
 npm run dev
 ```
+deploy on vercel 
+
+https://ecofinepro.vercel.app/
+
