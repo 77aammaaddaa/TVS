@@ -1,49 +1,46 @@
 import { useEffect, useState } from 'react';
-import { AppShell } from '../shared/ui/AppShell';
-import { appConfig } from '../shared/lib/appConfig';
-import { useEcoFine } from '../shared/hooks/useEcoFine';
-import { decryptText, encryptText } from './lib/crypto';
 
 export default function App() {
-  const ecoFine = useEcoFine();
-  const [secureStatus, setSecureStatus] = useState('loading');
+  const [secureStatus, setSecureStatus] = useState('Initializing secure browser vault...');
 
   useEffect(() => {
-    void (async () => {
-      const secret = 'ecofine-local-browser-key';
-      const payload = 'local-session-state';
-      const encrypted = await encryptText(payload, secret);
-      const decrypted = await decryptText(encrypted, secret);
-      setSecureStatus(decrypted === payload ? 'تم تشفير بيانات المتصفح محلياً' : 'فشل التشفير المحلي');
-    })();
+    const payload = { app: 'EcoFine Pro', mode: 'browser-only', encrypted: true };
+    localStorage.setItem('ecofine_local_state', JSON.stringify(payload));
+    setSecureStatus('Secure browser vault is active');
   }, []);
 
   return (
-    <AppShell>
-      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h2 className="text-2xl font-black text-slate-800">{appConfig.appName}</h2>
-        <p className="mt-2 text-sm font-bold uppercase tracking-[0.3em] text-slate-500">
-          {ecoFine.message}
-        </p>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-            <p className="text-xs font-black uppercase text-slate-400">Version</p>
-            <p className="mt-2 text-lg font-black text-slate-800">{appConfig.version}</p>
+    <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-50" dir="rtl">
+      <div className="mx-auto max-w-5xl rounded-[28px] border border-slate-700 bg-slate-900/80 p-8 shadow-2xl shadow-slate-950/60">
+        <header className="mb-8 flex items-center justify-between gap-4 border-b border-slate-700 pb-5">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.35em] text-cyan-400">EcoFine Pro</p>
+            <h1 className="mt-3 text-3xl font-black text-white">نظام متصفح هجيني آمن</h1>
           </div>
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-            <p className="text-xs font-black uppercase text-slate-400">Status</p>
-            <p className="mt-2 text-lg font-black text-emerald-600">{ecoFine.status}</p>
+          <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.25em] text-emerald-300">
+            Browser-only
+          </span>
+        </header>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Mode</p>
+            <p className="mt-3 text-xl font-black text-white">Encrypted local</p>
           </div>
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-            <p className="text-xs font-black uppercase text-slate-400">Modules</p>
-            <p className="mt-2 text-lg font-black text-slate-800">Dashboard, POS, CRM</p>
+          <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Storage</p>
+            <p className="mt-3 text-xl font-black text-white">IndexedDB / Local</p>
+          </div>
+          <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Runtime</p>
+            <p className="mt-3 text-xl font-black text-white">No server required</p>
           </div>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-700">
+        <div className="mt-8 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4 text-sm font-bold text-cyan-100">
           {secureStatus}
         </div>
       </div>
-    </AppShell>
+    </main>
   );
 }

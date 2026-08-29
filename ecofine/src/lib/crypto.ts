@@ -31,7 +31,10 @@ export async function encryptText(value: string, secret: string): Promise<string
   const key = await deriveKey(secret);
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, textEncoder.encode(value));
-  return `enc:${btoa(String.fromCharCode(...new Uint8Array(encrypted), ...iv))}`;
+  const combined = new Uint8Array(iv.length + encrypted.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(encrypted), iv.length);
+  return `enc:${btoa(String.fromCodePoint(...combined))}`;
 }
 
 export async function decryptText(value: string, secret: string): Promise<string> {
@@ -41,7 +44,7 @@ export async function decryptText(value: string, secret: string): Promise<string
 
   const key = await deriveKey(secret);
   const binary = atob(value.slice(4));
-  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  const bytes = Uint8Array.from(binary, (char) => char.codePointAt(0) ?? 0);
   const ivLength = 12;
   const iv = bytes.slice(-ivLength);
   const ciphertext = bytes.slice(0, bytes.length - ivLength);
