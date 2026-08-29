@@ -12,6 +12,19 @@ dist
 dist-ssr
 *.local
 
+# Local-only / private data
+archive/
+private/
+secrets/
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.crt
+*.csr
+local-data/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +35,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Browser app static generated output
+coverage/
+
+# Legacy local-only build artifacts
+**/legacy-cache/**
+**/*.bak
+**/*.orig
+**/*.tmp

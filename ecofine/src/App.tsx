@@ -1,12 +1,22 @@
-import { AppShell } from '../../shared/ui/AppShell';
-import { appConfig } from '../../shared/lib/appConfig';
-import { useEcoFine } from '../../shared/hooks/useEcoFine';
+import { useEffect, useState } from 'react';
 import { AppShell } from '../shared/ui/AppShell';
 import { appConfig } from '../shared/lib/appConfig';
 import { useEcoFine } from '../shared/hooks/useEcoFine';
+import { decryptText, encryptText } from './lib/crypto';
 
 export default function App() {
   const ecoFine = useEcoFine();
+  const [secureStatus, setSecureStatus] = useState('loading');
+
+  useEffect(() => {
+    void (async () => {
+      const secret = 'ecofine-local-browser-key';
+      const payload = 'local-session-state';
+      const encrypted = await encryptText(payload, secret);
+      const decrypted = await decryptText(encrypted, secret);
+      setSecureStatus(decrypted === payload ? 'تم تشفير بيانات المتصفح محلياً' : 'فشل التشفير المحلي');
+    })();
+  }, []);
 
   return (
     <AppShell>
@@ -28,6 +38,10 @@ export default function App() {
             <p className="text-xs font-black uppercase text-slate-400">Modules</p>
             <p className="mt-2 text-lg font-black text-slate-800">Dashboard, POS, CRM</p>
           </div>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-700">
+          {secureStatus}
         </div>
       </div>
     </AppShell>
