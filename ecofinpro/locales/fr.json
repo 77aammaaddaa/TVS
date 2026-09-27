@@ -1,0 +1,220 @@
+{
+  "app": {
+    "title": "Eco Fine Pro V14.0 | ERP Enterprise",
+    "enterpriseEdition": "Édition Entreprise V14.0",
+    "loadingSystem": "Initialisation du système...",
+    "systemReady": "Système prêt"
+  },
+
+  "auth": {
+    "portalTitle": "Portail de Connexion Unifié (X-Guard)",
+    "bootstrapTitle": "👑 Initialisation du Système",
+    "bootstrapDesc": "Bienvenue. La base de données isolée est actuellement vide. Créez le premier compte Propriétaire/Directeur Général pour commencer.",
+    "loginDesc": "Veuillez entrer vos identifiants pour accéder au système d'entreprise",
+    "usernameLabel": "Nom d'utilisateur",
+    "passwordLabel": "Mot de passe",
+    "usernamePlaceholder": "Entrez le nom d'utilisateur",
+    "passwordPlaceholder": "••••••••",
+    "loginButton": "Connexion sécurisée 🚀",
+    "setupOwnerButton": "Créer compte Propriétaire et commencer 🚀",
+    "processing": "Traitement en cours...",
+    "errorInvalidCreds": "❌ Nom d'utilisateur ou mot de passe incorrect",
+    "errorAccountDisabled": "⚠️ Ce compte est actuellement désactivé par décision de la direction",
+    "errorConnection": "❌ Erreur de connexion à la base de données. Veuillez vérifier votre connexion.",
+    "errorSessionExpired": "Déconnecté automatiquement en raison d'inactivité.",
+    "ownerSetupSuccess": "Compte Propriétaire créé avec succès!"
+  },
+
+  "dashboard": {
+    "welcome": "Bienvenue,",
+    "greetingSubtext": "Aperçu des performances du système aujourd'hui",
+    "totalSales": "Ventes Totales",
+    "activeCustomers": "Clients Actifs",
+    "overdueInstallments": "Échéances En Retard",
+    "treasuryBalance": "Solde de Trésorerie",
+    "todayIndicators": "Indicateurs du Jour",
+    "totalRegistered": "Total Enregistré",
+    "needsUrgentAttention": "Nécessite une attention urgente",
+    "currentLiquidity": "Liquidité Actuelle",
+    "quickActions": "Raccourcis Rapides (Opérations)",
+    "pos": "Point de Vente",
+    "crm": "Gestion Clients",
+    "collection": "Recouvrement",
+    "inventory": "Entrepôt & Inventaire",
+    "systemHealthIndicators": "Indicateurs de Santé du Système",
+    "dataSyncRate": "Synchronisation des Données Cloud",
+    "collectionRate": "Taux de Recouvrement Général",
+    "creditRiskIndex": "Indice de Risque Crédit"
+  },
+
+  "menu": {
+    "leadershipAndPerformance": "Leadership & Performance",
+    "customersAndCredit": "Clients & Crédit",
+    "warehousesAndPurchases": "Entrepôts & Achats",
+    "operationsAndSales": "Opérations & Ventes",
+    "financeAndLegal": "Finance & Juridique",
+    "dataAndSettings": "Données & Paramètres",
+
+    "dashboard": "Tableau de Bord Central",
+    "reports": "Rapports & Analyses",
+    "hr": "Affaires Employés & Points",
+    "users": "Gestion des Permissions (UAC)",
+    "crm": "Clients & Garants",
+    "survey": "Enquête Terrain",
+    "inventory": "Entrepôt & Inventaire",
+    "suppliers": "Gestion Fournisseurs",
+    "purchases": "Achats & Approvisionnement",
+    "pos": "Point de Vente",
+    "marketing": "Marketing & Offres",
+    "accounting": "Comptabilité Générale & Zakat",
+    "collection": "Gestion Échéances & Recouvrement",
+    "treasury": "Trésorerie & Dépenses",
+    "legal": "Affaires Juridiques",
+    "notifications": "Centre de Notifications",
+    "audit": "Journal d'Audit Sécurité",
+    "dataImport": "Importer/Exporter (CSV)",
+    "settings": "Paramètres Généraux",
+    "sync": "Synchronisation Cloud",
+    "superAdmin": "Accès Souverain"
+  },
+
+  "modules": {
+    "moduleNotFound": "Module en développement ou non connecté",
+    "checkFileInclude": "Veuillez vérifier que le fichier du module est correctement inclus dans index.html.",
+    "accessDenied": "Accès Refusé",
+    "restrictedArea": "Ce panneau est souverain, seul la haute direction a accès."
+  },
+
+  "settings": {
+    "title": "Moteur de Paramètres Avancés (X-Config)",
+    "subtitle": "Contrôle absolu sur les règles et conditions d'entreprise. Tout changement ici s'applique immédiatement.",
+    "developerMode": "Mode Développeur",
+    "businessAndSystemPolicy": "Politique Entreprise & Système",
+
+    "tabs": {
+      "branding": "Identité de l'Entreprise",
+      "credit": "Conditions de Crédit",
+      "sales": "Contrôles de Vente",
+      "legal": "Affaires Juridiques",
+      "inventory": "Entrepôts & Alertes",
+      "advanced": "Paramètres Système (Développeur)"
+    },
+
+    "sections": {
+      "brandingTitle": "Identité de l'Entreprise",
+      "brandingDesc": "Ces paramètres affectent l'interface du système, les factures imprimées et les contrats.",
+      "creditTitle": "Politique de Crédit",
+      "creditDesc": "Changer ces valeurs affectera les décisions d'approbation/rejet pour les nouveaux clients dans le module Enquête.",
+      "salesTitle": "Conditions de Vente",
+      "legalTitle": "Politique Juridique",
+      "inventoryTitle": "Paramètres d'Entrepôt"
+    },
+
+    "fields": {
+      "storeName": "Nom de l'Entreprise (apparaît sur les contrats et factures)",
+      "currency": "Devise par défaut pour les transactions",
+      "themeColor": "Couleur du Thème Principal (Code HEX)",
+      "minScoreToEntry": "Seuil Minimum X-Score pour Approbation (%)",
+      "creditLimitMultiplier": "Facteur de Calcul Limite de Crédit (Multiple)",
+      "guarantorsWeight": "Force des Garants",
+      "incomeStability": "Stabilité du Revenu",
+      "residenceScore": "Score Résidence",
+      "identityHealth": "Santé Identité",
+      "minInvoiceAmount": "Montant Minimum pour Ouvrir Facture Échéance",
+      "downPaymentLogic": "Logique de Paiement Acompte",
+      "oneMonthPrepaid": "Payer un mois complet à l'avance",
+      "percentageBased": "Payer pourcentage du montant facture (20%)",
+      "flexible": "Flexible (caissier entre manuellement)",
+      "legalThresholdDaily": "Devient dossier après (jours) - Échéance journalière",
+      "legalThresholdMonthly": "Devient dossier après (jours) - Échéance mensuelle",
+      "banPeriodDays": "Période de bannissement client rejeté/instable (jours)",
+      "warningIntervalDays": "Intervalle entre notifications d'avertissement (jours)",
+      "globalMinStock": "Seuil défaut par défaut (alerte quand atteint)"
+    },
+
+    "actions": {
+      "saveConfig": "Mettre à jour & Appliquer Paramètres",
+      "adoptCreditPolicy": "Adopter Politique de Crédit",
+      "saveSalesTerms": "Enregistrer Conditions de Vente",
+      "applyLegalControl": "Appliquer Contrôle Juridique",
+      "saveInventorySettings": "Enregistrer Paramètres d'Entrepôt",
+      "processSaving": "Traitement enregistrement...",
+      "configSavedSuccess": "✅ Paramètres injectés avec succès dans toutes les artères du système!",
+      "errorSaving": "❌ Erreur lors de l'enregistrement."
+    },
+
+    "dangerZone": {
+      "title": "Zone Danger (Actions Critiques)",
+      "desc": "Outils développeur pour nettoyer et réinitialiser le cache du système principal.",
+      "clearCacheBtn": "Effacer Cache 🗑️",
+      "confirmClear": "⚠️ Attention: Cette action effacera le cache du navigateur. Êtes-vous sûr?"
+    },
+
+    "errorLogs": {
+      "title": "Journal d'Erreurs Système",
+      "allSystemsOperational": "Tous les systèmes opérationnels. 🟢"
+    }
+  },
+
+  "notifications": {
+    "centerTitle": "Centre de Notifications & Alertes",
+    "noNotifications": "Aucune nouvelle notification",
+    "markAsRead": "Marquer comme Lu",
+    "deleteNotification": "Supprimer"
+  },
+
+  "sync": {
+    "cloudSyncCenterTitle": "Centre de Synchronisation Cloud",
+    "onlineStatus": "🟢 Connecté au Cloud (Prêt pour Sync)",
+    "offlineStatus": "🔴 Mode Hors Ligne (Stockage Local Seulement)",
+    "syncing": "Synchronisation en cours...",
+    "syncSuccess": "✅ Synchronisé avec succès",
+    "syncError": "❌ Échec de synchronisation: ",
+    "pullFromCloud": "Télécharger Données du Cloud",
+    "pushToCloud": "Envoyer Données au Cloud"
+  },
+
+  "errors": {
+    "initTimeout": "Délai d'initialisation dépassé. Veuillez vérifier votre connexion internet et la disponibilité des fichiers de base de données.",
+    "appInitError": "Erreur inconnue lors de l'initialisation du système.",
+    "rootNotFound": "Élément #root non trouvé dans la page.",
+    "secretDoorAccessDenied": "🚫 Accès Refusé! Tentative d'accès non autorisé enregistrée.",
+    "noDatabaseFile": "Fichier database.js non chargé ou db est indéfini."
+  },
+
+  "common": {
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "view": "Voir",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "import": "Importer",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "warning": "Avertissement",
+    "info": "Info"
+  },
+
+  "roles": {
+    "owner": "Propriétaire / Directeur Général",
+    "moderator": "Administrateur Système (Admin)",
+    "cashier": "Caissier & Contrats",
+    "collector": "Collecteur Terrain",
+    "lawyer": "Affaires Juridiques",
+    "accountant": "Comptable Financier",
+    "hrManager": "Responsable Ressources Humaines",
+    "whManager": "Responsable Entrepôt"
+  },
+
+  "time": {
+    "systemTime": "Heure Système",
+    "loading": "Chargement...",
+    "processing": "Traitement..."
+  }
+}

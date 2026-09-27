@@ -1,0 +1,220 @@
+{
+  "app": {
+    "title": "Eco Fine Pro V14.0 | Enterprise ERP",
+    "enterpriseEdition": "Enterprise Edition V14.0",
+    "loadingSystem": "Initializing System...",
+    "systemReady": "System Ready"
+  },
+
+  "auth": {
+    "portalTitle": "Unified Login Portal (X-Guard)",
+    "bootstrapTitle": "👑 System Bootstrapping",
+    "bootstrapDesc": "Welcome. The isolated database is currently empty. Create the first Owner/General Manager account to begin.",
+    "loginDesc": "Please enter your credentials to access the Enterprise System",
+    "usernameLabel": "Username",
+    "passwordLabel": "Password",
+    "usernamePlaceholder": "Enter username",
+    "passwordPlaceholder": "••••••••",
+    "loginButton": "Secure Login 🚀",
+    "setupOwnerButton": "Create Owner Account & Start 🚀",
+    "processing": "Processing...",
+    "errorInvalidCreds": "❌ Invalid username or password",
+    "errorAccountDisabled": "⚠️ This account is currently disabled by management decision",
+    "errorConnection": "❌ Database connection error. Please check your connection.",
+    "errorSessionExpired": "Logged out automatically due to inactivity.",
+    "ownerSetupSuccess": "Owner account created successfully!"
+  },
+
+  "dashboard": {
+    "welcome": "Welcome,",
+    "greetingSubtext": "System performance overview for today",
+    "totalSales": "Total Sales",
+    "activeCustomers": "Active Customers",
+    "overdueInstallments": "Overdue Installments",
+    "treasuryBalance": "Treasury Balance",
+    "todayIndicators": "Today's Indicators",
+    "totalRegistered": "Total Registered",
+    "needsUrgentAttention": "Needs urgent attention",
+    "currentLiquidity": "Current Liquidity",
+    "quickActions": "Quick Actions (Operations)",
+    "pos": "Point of Sale",
+    "crm": "Customer Management",
+    "collection": "Collection",
+    "inventory": "Warehouse & Inventory",
+    "systemHealthIndicators": "System Health Indicators",
+    "dataSyncRate": "Cloud Data Synchronization",
+    "collectionRate": "General Collection Rate",
+    "creditRiskIndex": "Credit Risk Index"
+  },
+
+  "menu": {
+    "leadershipAndPerformance": "Leadership & Performance",
+    "customersAndCredit": "Customers & Credit",
+    "warehousesAndPurchases": "Warehouses & Purchases",
+    "operationsAndSales": "Operations & Sales",
+    "financeAndLegal": "Finance & Legal",
+    "dataAndSettings": "Data & Settings",
+
+    "dashboard": "Central Dashboard",
+    "reports": "Reports & Analytics",
+    "hr": "Employee Affairs & Points",
+    "users": "Permission Management (UAC)",
+    "crm": "Customers & Guarantors",
+    "survey": "Field Survey",
+    "inventory": "Warehouse & Inventory",
+    "suppliers": "Supplier Management",
+    "purchases": "Purchases & Supply",
+    "pos": "Point of Sale",
+    "marketing": "Marketing & Offers",
+    "accounting": "General Accounting & Zakat",
+    "collection": "Installment & Collection Management",
+    "treasury": "Treasury & Expenses",
+    "legal": "Legal Affairs",
+    "notifications": "Notifications Center",
+    "audit": "Security Audit Log",
+    "dataImport": "Import/Export (CSV)",
+    "settings": "General Settings",
+    "sync": "Cloud Synchronization",
+    "superAdmin": "Sovereign Access"
+  },
+
+  "modules": {
+    "moduleNotFound": "Module under development or not connected",
+    "checkFileInclude": "Please verify that the module file is correctly included in index.html.",
+    "accessDenied": "Access Denied",
+    "restrictedArea": "This panel is sovereign, only top management has access."
+  },
+
+  "settings": {
+    "title": "Advanced Settings Engine (X-Config)",
+    "subtitle": "Absolute control over business rules and conditions. Any change here applies immediately.",
+    "developerMode": "Developer Mode",
+    "businessAndSystemPolicy": "Business & System Policy",
+
+    "tabs": {
+      "branding": "Enterprise Identity",
+      "credit": "Credit Terms",
+      "sales": "Sales Controls",
+      "legal": "Legal Affairs",
+      "inventory": "Warehouses & Alerts",
+      "advanced": "System Settings (Developer)"
+    },
+
+    "sections": {
+      "brandingTitle": "Enterprise Identity",
+      "brandingDesc": "These settings affect the system interface, printed invoices, and contracts.",
+      "creditTitle": "Credit Policy",
+      "creditDesc": "Changing these values will affect approval/rejection decisions for new customers in the Survey module.",
+      "salesTitle": "Sales Terms",
+      "legalTitle": "Legal Policy",
+      "inventoryTitle": "Warehouse Settings"
+    },
+
+    "fields": {
+      "storeName": "Enterprise Name (appears on contracts and invoices)",
+      "currency": "Default Currency for Transactions",
+      "themeColor": "Primary Theme Color (HEX Code)",
+      "minScoreToEntry": "Minimum X-Score Threshold for Approval (%)",
+      "creditLimitMultiplier": "Credit Limit Calculation Factor (Multiple)",
+      "guarantorsWeight": "Guarantor Strength",
+      "incomeStability": "Income Stability",
+      "residenceScore": "Residence Score",
+      "identityHealth": "Identity Health",
+      "minInvoiceAmount": "Minimum Amount to Open Installment Invoice",
+      "downPaymentLogic": "Down Payment Settlement Logic",
+      "oneMonthPrepaid": "Pay one full month in advance",
+      "percentageBased": "Pay percentage of invoice amount (20%)",
+      "flexible": "Flexible (cashier enters manually)",
+      "legalThresholdDaily": "Converts to case after (days) - Daily installment",
+      "legalThresholdMonthly": "Converts to case after (days) - Monthly installment",
+      "banPeriodDays": "Ban period for rejected/unstable customer (days)",
+      "warningIntervalDays": "Interval between warning notifications (days)",
+      "globalMinStock": "Default shortage threshold (alert when reached)"
+    },
+
+    "actions": {
+      "saveConfig": "Update & Apply Settings",
+      "adoptCreditPolicy": "Adopt Credit Policy",
+      "saveSalesTerms": "Save Sales Terms",
+      "applyLegalControl": "Apply Legal Control",
+      "saveInventorySettings": "Save Warehouse Settings",
+      "processSaving": "Processing save...",
+      "configSavedSuccess": "✅ Settings successfully injected into all system arteries!",
+      "errorSaving": "❌ Error occurred during saving."
+    },
+
+    "dangerZone": {
+      "title": "Danger Zone (Critical Actions)",
+      "desc": "Developer tools to clean and reset the core system cache.",
+      "clearCacheBtn": "Clear Cache 🗑️",
+      "confirmClear": "⚠️ Warning: This action will clear the browser's cache. Are you sure?"
+    },
+
+    "errorLogs": {
+      "title": "System Error Log",
+      "allSystemsOperational": "All systems operational. 🟢"
+    }
+  },
+
+  "notifications": {
+    "centerTitle": "Notifications & Alerts Center",
+    "noNotifications": "No new notifications",
+    "markAsRead": "Mark as Read",
+    "deleteNotification": "Delete"
+  },
+
+  "sync": {
+    "cloudSyncCenterTitle": "Cloud Synchronization Center",
+    "onlineStatus": "🟢 Connected to Cloud (Ready for Sync)",
+    "offlineStatus": "🔴 Offline Mode (Local Storage Only)",
+    "syncing": "Syncing...",
+    "syncSuccess": "✅ Successfully synchronized",
+    "syncError": "❌ Sync failed: ",
+    "pullFromCloud": "Pull Data from Cloud",
+    "pushToCloud": "Push Data to Cloud"
+  },
+
+  "errors": {
+    "initTimeout": "Initialization timeout exceeded. Please check your internet connection and database file availability.",
+    "appInitError": "Unknown error during system initialization.",
+    "rootNotFound": "#root element not found in the page.",
+    "secretDoorAccessDenied": "🚫 Access Denied! Unauthorized access attempt logged.",
+    "noDatabaseFile": "database.js file not loaded or db is undefined."
+  },
+
+  "common": {
+    "close": "Close",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info"
+  },
+
+  "roles": {
+    "owner": "Owner / General Manager",
+    "moderator": "System Administrator (Admin)",
+    "cashier": "Treasury & Contracts Officer",
+    "collector": "Field Collector",
+    "lawyer": "Legal Affairs",
+    "accountant": "Financial Accountant",
+    "hrManager": "Human Resources Manager",
+    "whManager": "Warehouse Manager"
+  },
+
+  "time": {
+    "systemTime": "System Time",
+    "loading": "Loading...",
+    "processing": "Processing..."
+  }
+}

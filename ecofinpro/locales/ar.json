@@ -1,0 +1,220 @@
+{
+  "app": {
+    "title": "Eco Fine Pro V14.0 | ايكو فاين برو",
+    "enterpriseEdition": "Enterprise Edition V14.0",
+    "loadingSystem": "جاري تهيئة النظام...",
+    "systemReady": "جاهز للعمل"
+  },
+
+  "auth": {
+    "portalTitle": "بوابة الدخول الموحدة (X-Guard)",
+    "bootstrapTitle": "👑 تأسيس النظام (Bootstrapping)",
+    "bootstrapDesc": "مرحباً بك. قاعدة بيانات الكيان المعزولة فارغة حالياً. قم بإنشاء حساب (المالك / المدير العام) الأول للبدء.",
+    "loginDesc": "الرجاء إدخال بيانات الاعتماد للوصول لنظام المؤسسة",
+    "usernameLabel": "اسم المستخدم",
+    "passwordLabel": "كلمة المرور",
+    "usernamePlaceholder": "ادخل اسم المستخدم",
+    "passwordPlaceholder": "••••••••",
+    "loginButton": "دخول آمن 🚀",
+    "setupOwnerButton": "إنشاء حساب المالك والبدء 🚀",
+    "processing": "جاري المعالجة...",
+    "errorInvalidCreds": "❌ اسم المستخدم أو كلمة المرور غير صحيحة",
+    "errorAccountDisabled": "⚠️ هذا الحساب معطل حالياً بقرار من الإدارة",
+    "errorConnection": "❌ خطأ في الاتصال بقاعدة البيانات. تأكد من الربط.",
+    "errorSessionExpired": "تم تسجيل الخروج تلقائياً لعدم وجود تفاعل.",
+    "ownerSetupSuccess": "تم إنشاء حساب المالك بنجاح!"
+  },
+
+  "dashboard": {
+    "welcome": "مرحباً،",
+    "greetingSubtext": "نظرة عامة على أداء النظام اليوم",
+    "totalSales": "إجمالي المبيعات",
+    "activeCustomers": "العملاء النشطين",
+    "overdueInstallments": "الأقساط المتأخرة",
+    "treasuryBalance": "رصيد الخزينة",
+    "todayIndicators": "مؤشرات اليوم",
+    "totalRegistered": "إجمالي المسجلين",
+    "needsUrgentAttention": "يحتاج متابعة عاجلة",
+    "currentLiquidity": "السيولة الحالية",
+    "quickActions": "الاختارات السريعة (العمليات)",
+    "pos": "نقطة البيع",
+    "crm": "إدارة العملاء",
+    "collection": "التحصيل",
+    "inventory": "المخزن والجرد",
+    "systemHealthIndicators": "مؤشرات صحة النظام",
+    "dataSyncRate": "تطابق البيانات السحابية",
+    "collectionRate": "معدل التحصيل العام",
+    "creditRiskIndex": "مؤشر المخاطر الائتمانية"
+  },
+
+  "menu": {
+    "leadershipAndPerformance": "القيادة والأداء",
+    "customersAndCredit": "العملاء والائتمان",
+    "warehousesAndPurchases": "المخازن والمشتريات",
+    "operationsAndSales": "التشغيل والمبيعات",
+    "financeAndLegal": "المالية والقانون",
+    "dataAndSettings": "البيانات والإعدادات",
+
+    "dashboard": "لوحة التحكم المركزية",
+    "reports": "التقارير والإحصائيات",
+    "hr": "شؤون الموظفين والنقاط",
+    "users": "إدارة الصلاحيات (UAC)",
+    "crm": "العملاء والضامنين",
+    "survey": "الاستعلام الميداني",
+    "inventory": "المخزن والجرد",
+    "suppliers": "إدارة الموردين",
+    "purchases": "المشتريات والتوريد",
+    "pos": "نقطة البيع",
+    "marketing": "التسويق والعروض",
+    "accounting": "الحسابات العامة والزكاة",
+    "collection": "إدارة الأقساط والتحصيل",
+    "treasury": "الخزينة والمصاريف",
+    "legal": "الشؤون القانونية",
+    "notifications": "مركز الإشعارات",
+    "audit": "سجل المراقبة الأمني",
+    "dataImport": "استيراد وتصدير (CSV)",
+    "settings": "الإعدادات العامة",
+    "sync": "مزامنة السحابة",
+    "superAdmin": "الوصول السيادي"
+  },
+
+  "modules": {
+    "moduleNotFound": "الموديول قيد التطوير أو غير متصل",
+    "checkFileInclude": "يرجى التأكد من تضمين ملف الموديول بشكل صحيح في index.html.",
+    "accessDenied": "وصول مرفوض",
+    "restrictedArea": "هذه اللوحة سيادية، مصرح للإدارة العليا فقط بالدخول إليها."
+  },
+
+  "settings": {
+    "title": "محرك الإعدادات المتقدمة (X-Config Engine)",
+    "subtitle": "التحكم المطلق في قواعد وشروط البيزنس. أي تغيير هنا يطبق فوراً.",
+    "developerMode": "Developer Mode",
+    "businessAndSystemPolicy": "Business & System Policy",
+
+    "tabs": {
+      "branding": "هوية المؤسسة",
+      "credit": "شروط الائتمان",
+      "sales": "ضوابط البيع",
+      "legal": "الشؤون القانونية",
+      "inventory": "المخازن والتنبيهات",
+      "advanced": "إعدادات النظام (للمطور)"
+    },
+
+    "sections": {
+      "brandingTitle": "هوية المؤسسة",
+      "brandingDesc": "هذه الإعدادات تنعكس على واجهة النظام، الفواتير المطبوعة، والعقود.",
+      "creditTitle": "سياسة الائتمان",
+      "creditDesc": "تغيير هذه القيم سيؤثر على قرارات الموافقة أو الرفض للعملاء الجدد في موديول الاستعلام.",
+      "salesTitle": "شروط البيع",
+      "legalTitle": "السياسة القانونية",
+      "inventoryTitle": "إعدادات المخازن"
+    },
+
+    "fields": {
+      "storeName": "اسم المؤسسة (يظهر في العقود والفواتير)",
+      "currency": "العملة الافتراضية للتعامل",
+      "themeColor": "لون السمة الأساسي (HEX Code)",
+      "minScoreToEntry": "الحد الأدنى للـ X-Score للقبول (%)",
+      "creditLimitMultiplier": "معامل حساب سقف الائتمان (الضعف)",
+      "guarantorsWeight": "قوة الضامنين",
+      "incomeStability": "استقرار الدخل",
+      "residenceScore": "محل السكن",
+      "identityHealth": "صحة الهوية",
+      "minInvoiceAmount": "أقل مبلغ لفتح فاتورة تقسيط",
+      "downPaymentLogic": "منطق سداد الدفعة المقدمة",
+      "oneMonthPrepaid": "دفع قسط شهر كامل مقدماً",
+      "percentageBased": "دفع نسبة مئوية من الفاتورة (20%)",
+      "flexible": "مرن (كاشير يدخله يدوياً)",
+      "legalThresholdDaily": "يتحول لقضية بعد (أيام) - قسط يومي",
+      "legalThresholdMonthly": "يتحول لقضية بعد (أيام) - قسط شهري",
+      "banPeriodDays": "فترة حظر العميل المرفوض/المتعثر (أيام)",
+      "warningIntervalDays": "الفاصل بين إشعارات الإنذار (أيام)",
+      "globalMinStock": "حد النواقص الافتراضي (تنبيه عند الوصول لـ)"
+    },
+
+    "actions": {
+      "saveConfig": "تحديث وتطبيق الإعدادات",
+      "adoptCreditPolicy": "اعتماد سياسة الائتمان",
+      "saveSalesTerms": "حفظ شروط البيع",
+      "applyLegalControl": "تطبيق الرقابة القانونية",
+      "saveInventorySettings": "حفظ إعدادات المخازن",
+      "processSaving": "جاري الحفظ...",
+      "configSavedSuccess": "✅ تم حقن الإعدادات بنجاح في جميع شرايين النظام!",
+      "errorSaving": "❌ حدث خطأ أثناء الحفظ."
+    },
+
+    "dangerZone": {
+      "title": "منطقة الخطر (Danger Zone)",
+      "desc": "أدوات المطور لتنظيف وإعادة تعيين كاش النظام الأساسي.",
+      "clearCacheBtn": "تفريغ الكاش (Clear Cache) 🗑️",
+      "confirmClear": "⚠️ تحذير: هذا الإجراء سيقوم بتفريغ ذاكرة التخزين المؤقت للمتصفح. هل أنت متأكد؟"
+    },
+
+    "errorLogs": {
+      "title": "سجل أخطاء النظام",
+      "allSystemsOperational": "All systems operational. 🟢"
+    }
+  },
+
+  "notifications": {
+    "centerTitle": "مركز الإشعارات والتنبيهات",
+    "noNotifications": "لا توجد إشعارات جديدة",
+    "markAsRead": "تحديد كمقروء",
+    "deleteNotification": "حذف"
+  },
+
+  "sync": {
+    "cloudSyncCenterTitle": "مركز المزامنة السحابية",
+    "onlineStatus": "🟢 متصل بالسحابة (جاهز للمزامنة)",
+    "offlineStatus": "🔴 وضع الأوفلاين (تخزين محلي فقط)",
+    "syncing": "جاري المزامنة...",
+    "syncSuccess": "✅ تم المزامنة بنجاح",
+    "syncError": "❌ فشل في المزامنة: ",
+    "pullFromCloud": "سحب البيانات من السحابة",
+    "pushToCloud": "دفع البيانات للسحابة"
+  },
+
+  "errors": {
+    "initTimeout": "تجاوز الوقت المسموح لتهيئة النظام. يرجى التحقق من اتصالك بالإنترنت وتوافر ملفات قاعدة البيانات.",
+    "appInitError": "خطأ غير معروف في تهيئة النظام.",
+    "rootNotFound": "لم يتم العثور على عنصر #root في الصفحة.",
+    "secretDoorAccessDenied": "🚫 الوصول مرفوض! تم تسجيل محاولة اختراق.",
+    "noDatabaseFile": "ملف database.js غير محمل أو db غير معرف."
+  },
+
+  "common": {
+    "close": "إغلاق",
+    "confirm": "تأكيد",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "view": "عرض",
+    "search": "بحث",
+    "filter": "فلتر",
+    "export": "تصدير",
+    "import": "استيراد",
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "تم بنجاح",
+    "warning": "تحذير",
+    "info": "معلومة"
+  },
+
+  "roles": {
+    "owner": "المالك / المدير العام",
+    "moderator": "مدير النظام (Admin)",
+    "cashier": "مسؤول خزينة وعقود",
+    "collector": "محصل ميداني",
+    "lawyer": "الشؤون القانونية",
+    "accountant": "محاسب مالي",
+    "hrManager": "مدير موارد بشرية",
+    "whManager": "مدير مخازن"
+  },
+
+  "time": {
+    "systemTime": "توقيت النظام",
+    "loading": "جاري التحميل...",
+    "processing": "جاري المعالجة..."
+  }
+}
