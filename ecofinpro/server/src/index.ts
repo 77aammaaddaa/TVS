@@ -28,7 +28,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 const app = express();
 
 // Replace with your actual Vercel frontend URL
-const FRONTEND_URL = env.FRONTEND_URL || 'https://fin-tech-pro-deployed.vercel.app';
+const FRONTEND_URL = env.FRONTEND_URL || 'https://ecofinepro.vercel.app';
 const allowedOrigins = [
   FRONTEND_URL,
   'http://localhost:5173',
