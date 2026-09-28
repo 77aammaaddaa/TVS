@@ -1,46 +1,75 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+```
+# Dependencies
+node_modules/
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Local-only / private data
-archive/
-private/
-secrets/
+# Environment
 .env
+.env.local
 .env.*
-*.key
-*.pem
-*.p12
-*.crt
-*.csr
-local-data/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# Logs
+*.log
+
+# Build artifacts
+dist/
+build/
+target/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.ENV
+.python-version
+
+# Coverage
+.coverage
+coverage/
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# OS
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
 
-# Browser app static generated output
+# Testing
+.mypy_cache/
+.pytest_cache/
+.nyc_output/
 coverage/
 
-# Legacy local-only build artifacts
-**/legacy-cache/**
-**/*.bak
-**/*.orig
-**/*.tmp
+# Compression
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
+```

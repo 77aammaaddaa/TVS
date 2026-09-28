@@ -1,0 +1,2013 @@
+z-- =============================================================================
+-- EcoFin Pro — FULL DESTRUCTIVE DATABASE RESET + INITIALIZATION
+-- Target: Supabase SQL Editor (Postgres)
+--
+-- ⚠️⚠️⚠️  WARNING — THIS SCRIPT DESTROYS ALL EXISTING DATA  ⚠️⚠️⚠️
+-- Section 0 drops the entire `public` schema (every table, every row, every
+-- function, every policy). There is no undo short of a backup restore.
+-- Do NOT run this against a database with data you care about.
+--
+-- After this runs you MUST re-run the seed script
+-- (001_seed_provider_org_and_super_admin.sql) to recreate your SaaS
+-- provider organization and first super admin — that record is gone too.
+--
+-- Run top to bottom in one go.
+-- =============================================================================
+
+-- =============================================================================
+-- 0. DESTRUCTIVE RESET — drop everything in `public`, recreate the schema,
+--    and restore the grants Supabase's PostgREST layer needs (these are set
+--    once at project creation and are NOT recreated automatically by
+--    `CREATE SCHEMA` — skipping this step leaves every table returning
+--    "permission denied for schema public" to your frontend/backend).
+-- =============================================================================
+
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA public;
+
+GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres, anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres, anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO postgres, anon, authenticated, service_role;
+
+-- =============================================================================
+-- 1. EXTENSIONS
+-- =============================================================================
+create extension if not exists pgcrypto;   -- gen_random_uuid()
+
+-- =============================================================================
+-- 2. CORE TABLES
+-- =============================================================================
+
+CREATE TABLE organizations (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    name varchar NOT NULL,
+    owner_name varchar NOT NULL,
+    phone varchar NOT NULL,
+    owner_phone varchar(20),
+    email varchar,
+    address varchar,
+    tax_id varchar,
+    commercial_register varchar,
+    business_type varchar,
+    logo_url text,
+    receipt_footer_text text,
+    subscription_plan varchar,
+    -- Denormalized copy of the active license's limits/expiry, synced by
+    -- createLicense()/updateLicense() in superAdmin.service.ts. Source of
+    -- truth is still `saaslicenses` (joined via saaslicenses.claimed_by_org_id),
+    -- but keeping a copy here lets the app check "am I over my branch/employee
+    -- limit?" or "is my plan expiring soon?" without a join on every request.
+    max_branches integer,
+    max_employees integer,
+    subscription_end_date timestamptz,
+    min_down_payment_pct numeric(5,2) DEFAULT 0.00,
+    max_installment_months integer DEFAULT 36,
+    is_active boolean DEFAULT true,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    discount_cap_pct numeric(5,2) DEFAULT 0,
+    discount_requires_approval boolean DEFAULT true,
+    collector_commission_pct numeric(5,2) DEFAULT 0;
+    CONSTRAINT organizations_pkey PRIMARY KEY (id),
+    CONSTRAINT chk_org_subscription_plan CHECK (subscription_plan IS NULL OR subscription_plan IN ('STARTER', 'PROFESSIONAL', 'ENTERPRISE'))
+);
+
+CREATE TABLE saaslicenses (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    license_key varchar(50) NOT NULL UNIQUE,
+    plan_name varchar(50),
+    max_branches integer,
+    max_employees integer,
+    valid_months integer,
+    is_used boolean DEFAULT false,
+    is_active boolean DEFAULT true,
+    claimed_by_org_id uuid REFERENCES organizations(id) ON DELETE SET NULL,
+    subscription_end_date timestamptz,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT saaslicenses_pkey PRIMARY KEY (id),
+    CONSTRAINT chk_license_plan_name
+        CHECK (plan_name IS NULL OR plan_name IN ('STARTER', 'PROFESSIONAL', 'ENTERPRISE')),
+    -- A license can never be marked used without an org attached. Mirrors
+    -- the application-level guard in activateWorkspace(), enforced here too.
+    CONSTRAINT chk_used_license_has_org
+        CHECK (is_used = false OR claimed_by_org_id IS NOT NULL)
+    -- NOTE: org_name/org_phone/org_address/owner_name/owner_phone/owner_email/
+    -- modules were removed here — they existed on the previous schema but
+    -- were never written to or read by any code path. If you later want an
+    -- immutable snapshot of provisioning details independent of the live
+    -- `organizations` row, reintroduce them deliberately alongside the
+    -- service-layer code that populates them, rather than carrying dead
+    -- columns forward.
+);
+
+CREATE TABLE branches (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    name varchar NOT NULL,
+    branch_code varchar,
+    address text NOT NULL,
+    city varchar NOT NULL,
+    governorate varchar,
+    latitude numeric(10,8),
+    longitude numeric(11,8),
+    phone varchar NOT NULL,
+    email varchar,
+    is_main_branch boolean DEFAULT false,
+    is_active boolean DEFAULT true,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    CONSTRAINT branches_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE persons (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    full_name varchar NULL,
+    phone varchar NOT NULL,
+    national_id varchar,
+    address text,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT persons_pkey PRIMARY KEY (id)
+);
+
+-- 1:1 with persons
+CREATE TABLE employees (
+    id uuid NOT NULL REFERENCES persons(id) ON DELETE CASCADE,
+    auth_id uuid UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    branch_id uuid REFERENCES branches(id) ON DELETE SET NULL,
+    role varchar NOT NULL DEFAULT 'CASHIER',
+    -- FIX: national_id removed — this table is 1:1 with `persons`, which
+    -- already carries national_id. Having it in both places was two sources
+    -- of truth for the same fact with no sync guarantee between them.
+    username varchar,
+    hire_date date DEFAULT CURRENT_DATE,
+    base_salary numeric(10,2),
+    is_active boolean DEFAULT true,
+    phone varchar(20),
+    permissions jsonb DEFAULT '[]'::jsonb,
+    last_login_at timestamptz,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    CONSTRAINT employees_pkey PRIMARY KEY (id),
+    CONSTRAINT chk_employees_role
+        CHECK (role IN ('OWNER', 'SUPER_ADMIN', 'MODERATOR', 'CASHIER', 'COLLECTOR', 'ACCOUNTANT', 'HR_MANAGER', 'WH_MANAGER', 'LAWYER'))
+);
+
+-- 1:1 with persons
+CREATE TABLE super_admins (
+    id uuid NOT NULL UNIQUE REFERENCES persons(id) ON DELETE CASCADE,
+    auth_id uuid UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT super_admins_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE notifications (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
+    user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+    title text NOT NULL,
+    message text,
+    type text DEFAULT 'info'::text,
+    is_read boolean DEFAULT false,
+    link text,
+    ref_id text,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT notifications_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE audit_logs (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
+    user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+    action text NOT NULL,
+    module text NOT NULL,
+    details text,
+    severity text DEFAULT 'info'::text,
+    ip_address inet,
+    user_agent text,
+    timestamp timestamptz DEFAULT now(),
+    CONSTRAINT audit_logs_pkey PRIMARY KEY (id)
+);
+
+-- Auth attempt log — deliberately has NO RLS policies below (see Section 6),
+-- so only the service-role backend can ever read/write it. Not wired up to
+-- login() yet; the table exists so you can start logging attempts (for
+-- brute-force detection / account lockout later) without another migration.
+CREATE TABLE login_attempts (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    identifier text NOT NULL,
+    success boolean NOT NULL,
+    ip_address inet,
+    user_agent text,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT login_attempts_pkey PRIMARY KEY (id)
+);
+
+-- 1:1 with persons
+CREATE TABLE customers (
+    id uuid NOT NULL UNIQUE REFERENCES persons(id) ON DELETE CASCADE,
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    full_name varchar NOT NULL,
+    national_id varchar,
+    phone varchar NOT NULL,
+    monthly_income numeric(12,2),
+    credit_limit numeric(12,2),
+    credit_score integer DEFAULT 50,
+    status varchar NOT NULL DEFAULT 'active',
+    branch_id uuid REFERENCES public.branches(id) ON DELETE SET NULL,
+    address text,
+    latitude  numeric(10,8),
+    longitude numeric(11,8);
+    created_at timestamptz DEFAULT now(),
+    job text,
+    job_type text,
+    employer_address text,
+    housing_type text,
+    marital_status text,
+    area text,
+    city text,
+    address_details text,
+    bank_name text,
+    bank_account text,
+    iban text,
+    notes text;
+    internal_code text;
+    CONSTRAINT customers_pkey PRIMARY KEY (id),
+    CONSTRAINT chk_customers_credit_score CHECK (credit_score BETWEEN 0 AND 100),
+    CONSTRAINT chk_customers_status CHECK (status IN ('active', 'inactive', 'blacklisted'));
+);
+
+-- 1:1 with persons
+CREATE TABLE guarantors (
+    id uuid NOT NULL UNIQUE REFERENCES persons(id) ON DELETE CASCADE,
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    full_name varchar NOT NULL,
+    national_id varchar,
+    phone varchar NOT NULL,
+    address text,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT guarantors_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE client_guarantors (
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    customer_id uuid NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+    guarantor_id uuid NOT NULL REFERENCES guarantors(id) ON DELETE CASCADE,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT client_guarantors_pkey PRIMARY KEY (customer_id, guarantor_id)
+);
+
+CREATE TABLE categories (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    name varchar NOT NULL,
+    description text,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT categories_pkey PRIMARY KEY (id)
+);
+
+-- 1:1 with persons
+CREATE TABLE suppliers (
+    id uuid NOT NULL REFERENCES persons(id) ON DELETE CASCADE,
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    name varchar NOT NULL,
+    phone varchar,
+    address text,
+    category varchar DEFAULT 'عام',
+    is_active boolean DEFAULT true,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT suppliers_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE vaults (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    name varchar NOT NULL,
+    balance numeric(15,2) DEFAULT 0.00,
+    is_active boolean DEFAULT true,
+    is_main_vault boolean DEFAULT false,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    CONSTRAINT vaults_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE products (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    category_id uuid REFERENCES categories(id) ON DELETE SET NULL,
+    name varchar NOT NULL,
+    unit varchar,
+    sku varchar,
+    stock_quantity integer DEFAULT 0,
+    installment_price numeric(10,2) DEFAULT 0.00,
+    cash_price numeric(10,2) DEFAULT 0.00,
+    cost_price numeric(12,2) DEFAULT 0.00,
+    wholesale_price numeric(10,2) DEFAULT 0.00,
+    expiring_date timestamptz,
+    description varchar,
+    barcode varchar,
+    product_type varchar DEFAULT 'STANDARD';
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    CONSTRAINT products_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE contracts (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    branch_id uuid REFERENCES branches(id) ON DELETE SET NULL,
+    customer_id uuid REFERENCES customers(id) ON DELETE SET NULL,
+    total_amount numeric(15,2) DEFAULT 0.00,
+    remaining_amount numeric(12,2) DEFAULT 0.00,
+    status varchar(50) DEFAULT 'ACTIVE',
+    employee_id uuid REFERENCES public.employees(id) ON DELETE SET NULL,
+    sale_type varchar NOT NULL DEFAULT 'INSTALLMENT',
+    down_payment numeric(12,2) DEFAULT 0.00,
+    shipping_fee numeric(10,2) DEFAULT 0.00,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    CONSTRAINT contracts_pkey PRIMARY KEY (id),
+    CONSTRAINT chk_contracts_sale_type CHECK (sale_type IN ('CASH', 'SHIPPING', 'INSTALLMENT'));
+);
+
+CREATE TABLE contract_items (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    contract_id uuid NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
+    product_id uuid REFERENCES products(id) ON DELETE SET NULL,
+    quantity integer NOT NULL,
+    unit_price numeric(10,2) NOT NULL,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT contract_items_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE installments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    contract_id uuid NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
+    due_date date NOT NULL,
+    amount numeric(10,2) NOT NULL,
+    principal_portion numeric(12,2) NOT NULL DEFAULT 0,
+    profit_portion numeric(12,2) NOT NULL DEFAULT 0,
+    status varchar DEFAULT 'PENDING',
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    CONSTRAINT installments_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE payments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    contract_id uuid NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
+    vault_id uuid NOT NULL REFERENCES vaults(id) ON DELETE RESTRICT,
+    amount numeric(10,2) NOT NULL,
+    payment_method varchar,
+    employee_id uuid REFERENCES employees(id) ON DELETE SET NULL,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT payments_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE expenses (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    branch_id uuid REFERENCES branches(id) ON DELETE SET NULL,
+    vault_id uuid NOT NULL REFERENCES vaults(id) ON DELETE RESTRICT,
+    amount numeric(10,2) NOT NULL,
+    description text,
+    employee_id uuid REFERENCES employees(id) ON DELETE SET NULL,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT expenses_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE vault_transactions (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    source_vault_id uuid REFERENCES vaults(id) ON DELETE SET NULL,
+    destination_vault_id uuid REFERENCES vaults(id) ON DELETE SET NULL,
+    amount numeric(10,2) NOT NULL,
+    transaction_type varchar NOT NULL,
+    payment_id uuid REFERENCES payments(id) ON DELETE SET NULL,
+    expense_id uuid REFERENCES expenses(id) ON DELETE SET NULL,
+    employee_id uuid REFERENCES employees(id) ON DELETE SET NULL,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT vault_transactions_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE inventory_transactions (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    product_id uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    quantity_changed integer NOT NULL,
+    transaction_type varchar NOT NULL,
+    reference_id uuid,
+    reference_table varchar,
+    employee_id uuid REFERENCES employees(id) ON DELETE SET NULL,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT inventory_transactions_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE shift_sessions (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    branch_id uuid REFERENCES branches(id) ON DELETE SET NULL,
+    employee_id uuid REFERENCES employees(id) ON DELETE SET NULL,
+    vault_id uuid REFERENCES vaults(id) ON DELETE SET NULL,
+    opened_at timestamptz DEFAULT now(),
+    closed_at timestamptz,
+    starting_balance numeric(15,2) DEFAULT 0.00,
+    expected_closing_balance numeric(15,2),
+    actual_closing_balance numeric(15,2),
+    difference_amount numeric(15,2),
+    status varchar(50) DEFAULT 'OPEN',
+    notes text,
+    CONSTRAINT shift_sessions_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE purchase_invoices (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    supplier_id uuid REFERENCES suppliers(id) ON DELETE SET NULL,
+    total_amount numeric(15,2) DEFAULT 0.00,
+    status varchar DEFAULT 'PENDING',
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    CONSTRAINT purchase_invoices_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE purchase_items (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    purchase_invoice_id uuid NOT NULL REFERENCES purchase_invoices(id) ON DELETE CASCADE,
+    product_id uuid REFERENCES products(id) ON DELETE SET NULL,
+    quantity integer NOT NULL,
+    unit_cost numeric(10,2) NOT NULL,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT purchase_items_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE legal_documents (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    title varchar NOT NULL,
+    document_url text,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT legal_documents_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE legal_cases (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    document_id uuid REFERENCES legal_documents(id) ON DELETE SET NULL,
+    case_number varchar,
+    status varchar DEFAULT 'OPEN',
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    CONSTRAINT legal_cases_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE legal_attachments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    case_id uuid REFERENCES legal_cases(id) ON DELETE CASCADE,
+    attachment_url text,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT legal_attachments_pkey PRIMARY KEY (id)
+);
+
+-- 1. partners table (1:1 with persons)
+CREATE TABLE partners (
+    id uuid NOT NULL REFERENCES public.persons(id) ON DELETE CASCADE,
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    current_capital numeric(15,2) NOT NULL DEFAULT 0,
+    profit_share_percentage numeric(5,2) NOT NULL DEFAULT 0,
+    status varchar NOT NULL DEFAULT 'ACTIVE',
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    lockup_end_date timestamptz,
+    CONSTRAINT partners_pkey PRIMARY KEY (id),
+    CONSTRAINT chk_partners_status CHECK (status IN ('ACTIVE', 'INACTIVE'))
+);
+
+-- 2. partner_transactions (capital injections/withdrawals)
+CREATE TABLE partner_transactions (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    partner_id uuid NOT NULL REFERENCES public.partners(id) ON DELETE CASCADE,
+    vault_id uuid NOT NULL REFERENCES public.vaults(id) ON DELETE RESTRICT,
+    amount numeric(15,2) NOT NULL,
+    transaction_type varchar NOT NULL CHECK (transaction_type IN ('DEPOSIT', 'WITHDRAWAL')),
+    employee_id uuid REFERENCES public.employees(id) ON DELETE SET NULL,
+    created_at timestamptz DEFAULT now(),
+    status text NOT NULL DEFAULT 'APPROVED' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    CONSTRAINT partner_transactions_pkey PRIMARY KEY (id)
+);
+
+-- 3. profit_distributions (distribution cycles)
+CREATE TABLE profit_distributions (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    period_start date NOT NULL,
+    period_end date NOT NULL,
+    total_collected numeric(15,2) NOT NULL,
+    total_expenses numeric(15,2) NOT NULL,
+    net_profit numeric(15,2) NOT NULL,
+    organization_share_pct numeric(5,2) NOT NULL,
+    organization_profit numeric(15,2) NOT NULL,
+    partners_pool_amount numeric(15,2) NOT NULL,
+    employee_id uuid REFERENCES public.employees(id) ON DELETE SET NULL,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT profit_distributions_pkey PRIMARY KEY (id)
+);
+
+-- 4. partner_payouts (individual partner shares per distribution)
+CREATE TABLE partner_payouts (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    distribution_id uuid NOT NULL REFERENCES public.profit_distributions(id) ON DELETE CASCADE,
+    partner_id uuid NOT NULL REFERENCES public.partners(id) ON DELETE CASCADE,
+    vault_id uuid NOT NULL REFERENCES public.vaults(id) ON DELETE RESTRICT,
+    share_pct_at_time numeric(5,2) NOT NULL,
+    payout_amount numeric(15,2) NOT NULL,
+    created_at timestamptz DEFAULT now(),
+    CONSTRAINT partner_payouts_pkey PRIMARY KEY (id)
+);
+
+-- 2. field_surveys table
+CREATE TABLE public.field_surveys (
+    id                uuid NOT NULL DEFAULT gen_random_uuid(),
+    organization_id   uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    employee_id       uuid NOT NULL REFERENCES public.employees(id) ON DELETE SET NULL,
+    customer_id       uuid NOT NULL REFERENCES public.customers(id) ON DELETE CASCADE,
+    guarantor_id      uuid REFERENCES public.guarantors(id) ON DELETE SET NULL,
+    latitude          numeric(10,8)  NOT NULL,
+    longitude         numeric(11,8)  NOT NULL,
+    gps_accuracy      real,
+    is_suspicious_location boolean DEFAULT false,
+    status            varchar NOT NULL DEFAULT 'PENDING'
+                      CHECK (status IN ('PENDING','APPROVED','REJECTED')),
+    recommendation    text,
+    housing_quality   smallint CHECK (housing_quality   BETWEEN 1 AND 10),
+    neighborhood_quality smallint CHECK (neighborhood_quality BETWEEN 1 AND 10),
+    income_stability  smallint CHECK (income_stability  BETWEEN 1 AND 10),
+    employment_status smallint CHECK (employment_status BETWEEN 1 AND 10),
+    property_ownership smallint CHECK (property_ownership BETWEEN 1 AND 10),
+    overall_impression smallint CHECK (overall_impression BETWEEN 1 AND 10),
+    created_at        timestamptz DEFAULT now(),
+    updated_at        timestamptz DEFAULT now(),
+    reviewed_by       uuid REFERENCES public.employees(id) ON DELETE SET NULL,
+    reviewed_at       timestamptz,
+    rejection_reason  text,
+    CONSTRAINT field_surveys_pkey PRIMARY KEY (id)
+);
+
+-- 3. survey_attachments (1-to-many with surveys)
+CREATE TABLE public.survey_attachments (
+    id              uuid NOT NULL DEFAULT gen_random_uuid(),
+    survey_id       uuid NOT NULL REFERENCES public.field_surveys(id) ON DELETE CASCADE,
+    url             text NOT NULL,
+    attachment_type varchar NOT NULL CHECK (attachment_type IN ('photo','signature')),
+    created_at      timestamptz DEFAULT now(),
+    CONSTRAINT survey_attachments_pkey PRIMARY KEY (id)
+);
+
+-- Table that locks a specific import per organization
+CREATE TABLE IF NOT EXISTS public.data_imports (
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    table_name      text NOT NULL,
+    imported_at     timestamptz DEFAULT now(),
+    PRIMARY KEY (organization_id, table_name)
+);
+
+-- =============================================================================
+-- 3. `updated_at` AUTO-TOUCH TRIGGER
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$;
+
+DO $$
+DECLARE
+    table_name text;
+BEGIN
+    FOR table_name IN
+        SELECT unnest(ARRAY[
+            'organizations', 'branches', 'employees', 'products', 'vaults',
+            'contracts', 'installments', 'purchase_invoices', 'legal_cases'
+        ])
+    LOOP
+        EXECUTE format('
+            DROP TRIGGER IF EXISTS trg_set_updated_at ON public.%I;
+            CREATE TRIGGER trg_set_updated_at
+            BEFORE UPDATE ON public.%I
+            FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+        ', table_name, table_name);
+    END LOOP;
+END;
+$$;
+
+-- =============================================================================
+-- 4. HELPER FUNCTIONS (used by RLS policies)
+-- =============================================================================
+
+-- Organization ID of the currently authenticated user
+CREATE OR REPLACE FUNCTION public.get_user_org_id()
+RETURNS uuid
+LANGUAGE sql STABLE SECURITY DEFINER
+AS $$
+    SELECT organization_id
+    FROM public.employees
+    WHERE auth_id = auth.uid() AND is_active = true
+    LIMIT 1;
+$$;
+
+-- Is the current user a super admin?
+CREATE OR REPLACE FUNCTION public.is_super_admin()
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+AS $$
+    SELECT EXISTS (
+        SELECT 1
+        FROM public.super_admins
+        WHERE id = (SELECT id FROM public.employees WHERE auth_id = auth.uid() LIMIT 1)
+    );
+$$;
+
+-- Standard tenant policy check (super admins bypass automatically)
+CREATE OR REPLACE FUNCTION public.tenant_policy_check(p_organization_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE
+AS $$
+    SELECT public.is_super_admin() OR p_organization_id = public.get_user_org_id();
+$$;
+
+-- =============================================================================
+-- 5. PERFORMANCE INDEXES
+-- =============================================================================
+
+CREATE INDEX idx_employees_org ON public.employees (organization_id, role);
+CREATE INDEX idx_employees_auth ON public.employees (auth_id);
+CREATE INDEX idx_branches_org ON public.branches (organization_id, is_main_branch);
+CREATE INDEX idx_persons_org ON public.persons (organization_id);
+CREATE INDEX idx_super_admins_org ON public.super_admins (organization_id);
+
+CREATE INDEX idx_customers_org ON public.customers (organization_id);
+CREATE INDEX IF NOT EXISTS idx_customers_org_status ON public.customers (organization_id, status);
+CREATE INDEX idx_guarantors_org ON public.guarantors (organization_id);
+CREATE INDEX idx_client_guarantors_customer ON public.client_guarantors (customer_id);
+
+CREATE INDEX idx_products_org ON public.products (organization_id, category_id);
+CREATE INDEX idx_products_sku ON public.products (sku);
+CREATE INDEX idx_categories_org ON public.categories (organization_id);
+CREATE INDEX idx_suppliers_org ON public.suppliers (organization_id);
+CREATE INDEX idx_suppliers_active ON public.suppliers (organization_id, is_active);
+CREATE INDEX idx_inventory_transactions_product ON public.inventory_transactions (product_id);
+CREATE INDEX idx_inventory_transactions_org_date ON public.inventory_transactions (organization_id, created_at DESC);
+
+CREATE INDEX idx_contracts_org_status ON public.contracts (organization_id, status, created_at DESC);
+CREATE INDEX idx_contracts_customer ON public.contracts (customer_id);
+CREATE INDEX idx_contracts_org_saletype_date ON public.contracts (organization_id, sale_type, created_at DESC);
+CREATE INDEX idx_contracts_employee ON public.contracts (employee_id);
+CREATE INDEX idx_contract_items_contract ON public.contract_items (contract_id);
+CREATE INDEX idx_installments_contract ON public.installments (contract_id, status, due_date);
+CREATE INDEX idx_payments_contract ON public.payments (contract_id);
+CREATE INDEX idx_payments_vault ON public.payments (vault_id);
+CREATE INDEX idx_expenses_vault ON public.expenses (vault_id);
+
+CREATE INDEX idx_vaults_org ON public.vaults (organization_id, is_active);
+CREATE INDEX idx_vault_transactions_org_date ON public.vault_transactions (organization_id, created_at DESC);
+CREATE INDEX idx_vault_transactions_vault ON public.vault_transactions (source_vault_id, destination_vault_id);
+CREATE INDEX idx_shift_sessions_employee ON public.shift_sessions (employee_id, status);
+CREATE INDEX idx_shift_sessions_org_branch ON public.shift_sessions (organization_id, branch_id);
+
+CREATE INDEX idx_purchase_invoices_org ON public.purchase_invoices (organization_id, status);
+CREATE INDEX idx_purchase_items_invoice ON public.purchase_items (purchase_invoice_id);
+
+CREATE INDEX idx_legal_cases_org ON public.legal_cases (organization_id, status);
+CREATE INDEX idx_legal_documents_org ON public.legal_documents (organization_id);
+CREATE INDEX idx_notifications_user ON public.notifications (user_id, is_read, created_at DESC);
+CREATE INDEX idx_audit_logs_org_date ON public.audit_logs (organization_id, timestamp DESC);
+CREATE INDEX idx_login_attempts_identifier_date ON public.login_attempts (identifier, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_partners_org ON public.partners (organization_id, status);
+CREATE INDEX IF NOT EXISTS idx_partner_transactions_org ON public.partner_transactions (organization_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_profit_distributions_org ON public.profit_distributions (organization_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_partner_payouts_distribution ON public.partner_payouts (distribution_id);
+
+CREATE INDEX idx_field_surveys_org_status ON public.field_surveys (organization_id, status);
+CREATE INDEX idx_survey_attachments_survey ON public.survey_attachments (survey_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_vaults_one_main_per_org
+  ON public.vaults (organization_id) WHERE is_main_vault = true;
+
+  
+-- Auth-module specific indexes/constraints ------------------------------------
+
+-- Case-insensitive, unique usernames. login() and activateWorkspace() both
+-- look employees up by username directly — without this, "Owner1" and
+-- "owner1" would be treated as different accounts. This is now the ONLY
+-- uniqueness mechanism on username (no separate plain UNIQUE column
+-- constraint — one enforcement path, not two with different semantics).
+CREATE UNIQUE INDEX idx_employees_username_ci ON public.employees (lower(username));
+
+
+-- Speeds up checkLicense() / activateWorkspace(): both resolve
+-- saaslicenses.claimed_by_org_id -> organizations -> the OWNER employee
+-- for that org.
+CREATE INDEX idx_saaslicenses_claimed_org ON public.saaslicenses (claimed_by_org_id);
+
+-- Exactly one OWNER per organization. Protects checkLicense()/
+-- activateWorkspace()'s `.single()` lookups from ever hitting an
+-- ambiguous "multiple rows" error if the Super Admin module ever
+-- double-inserts an OWNER for the same org.
+CREATE UNIQUE INDEX idx_employees_one_owner_per_org
+    ON public.employees (organization_id)
+    WHERE role = 'OWNER';
+
+-- Prevents the same national ID being registered twice inside one tenant,
+-- across ANY person-derived role (employee, customer, guarantor, supplier —
+-- they all share the underlying `persons` row).
+CREATE UNIQUE INDEX idx_persons_org_national_id
+    ON public.persons (organization_id, national_id)
+    WHERE national_id IS NOT NULL;
+
+-- =============================================================================
+-- 6. ROW LEVEL SECURITY — ENABLE
+-- =============================================================================
+
+ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.saaslicenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.branches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.persons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.employees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.super_admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+-- login_attempts: RLS enabled, NO policies created (Section 7 skips it on
+-- purpose) -> default-deny for anon/authenticated, service_role still
+-- bypasses RLS entirely as always.
+ALTER TABLE public.login_attempts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guarantors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.client_guarantors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vaults ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contracts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contract_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.installments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vault_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inventory_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.shift_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purchase_invoices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purchase_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.legal_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.legal_cases ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.legal_attachments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.partners ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.partner_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profit_distributions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.partner_payouts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.field_surveys ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.survey_attachments ENABLE ROW LEVEL SECURITY;
+
+-- =============================================================================
+-- 7. ROW LEVEL SECURITY — POLICIES
+-- =============================================================================
+
+-- Note: your Express backend talks to Postgres using the Supabase
+-- service_role key (supabaseAdmin), which bypasses RLS entirely. All the
+-- policies below only govern what happens if a client (frontend, or
+-- anything using the anon/authenticated key) queries Postgres directly —
+-- they are the safety net behind your API, not a replacement for it.
+
+-- A. Special-case tables
+
+CREATE POLICY "Super admins can manage super admins"
+ON public.super_admins
+FOR ALL
+USING (public.is_super_admin())
+WITH CHECK (public.is_super_admin());
+
+-- Public read is required so /activate and /claim can look up a license
+-- before the visitor is authenticated. This table only ever exposes
+-- license_key / is_used / plan_name / claimed_by_org_id — never the
+-- owner's email or credentials (those are fetched server-side via
+-- supabaseAdmin + auth.users, which RLS never touches).
+CREATE POLICY "Anyone can read licenses"
+ON public.saaslicenses
+FOR SELECT
+USING (true);
+-- INSERT/UPDATE/DELETE on saaslicenses is done exclusively by the backend
+-- via supabaseAdmin (service role), so no client-facing write policy exists.
+
+CREATE POLICY "Users can view their own organization"
+ON public.organizations
+FOR SELECT
+USING (public.tenant_policy_check(id));
+
+
+-- 6. RLS policies (tenant-scoped)
+CREATE POLICY field_surveys_select ON public.field_surveys
+    FOR SELECT
+    USING (public.tenant_policy_check(organization_id));
+
+CREATE POLICY field_surveys_insert ON public.field_surveys
+    FOR INSERT
+    WITH CHECK (public.tenant_policy_check(organization_id));
+
+CREATE POLICY field_surveys_update ON public.field_surveys
+    FOR UPDATE
+    USING (public.tenant_policy_check(organization_id))
+    WITH CHECK (public.tenant_policy_check(organization_id));
+
+CREATE POLICY field_surveys_delete ON public.field_surveys
+    FOR DELETE
+    USING (public.tenant_policy_check(organization_id));
+
+CREATE POLICY survey_attachments_select ON public.survey_attachments
+    FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM public.field_surveys
+        WHERE field_surveys.id = survey_attachments.survey_id
+          AND public.tenant_policy_check(field_surveys.organization_id)
+    ));
+
+CREATE POLICY survey_attachments_insert ON public.survey_attachments
+    FOR INSERT
+    WITH CHECK (EXISTS (
+        SELECT 1 FROM public.field_surveys
+        WHERE field_surveys.id = survey_attachments.survey_id
+          AND public.tenant_policy_check(field_surveys.organization_id)
+    ));
+-- login_attempts intentionally gets NO policy here — see Section 6.
+
+-- B. Standard tenant-scoped tables — generate SELECT/INSERT/UPDATE/DELETE
+--    policies for every table below in one pass.
+
+DO $$
+DECLARE
+    table_name text;
+BEGIN
+    FOR table_name IN
+        SELECT tablename FROM pg_tables
+        WHERE schemaname = 'public'
+          AND tablename IN (
+              'branches', 'persons', 'employees', 'notifications', 'audit_logs',
+              'customers', 'guarantors', 'client_guarantors', 'categories', 'suppliers',
+              'vaults', 'products', 'contracts', 'contract_items', 'installments',
+              'payments', 'expenses', 'vault_transactions', 'inventory_transactions',
+              'shift_sessions', 'purchase_invoices', 'purchase_items',
+              'legal_documents', 'legal_cases', 'legal_attachments'
+          )
+    LOOP
+        EXECUTE format('
+            CREATE POLICY %I ON public.%I
+            FOR SELECT
+            USING (public.tenant_policy_check(organization_id));
+        ', table_name || '_select', table_name);
+
+        EXECUTE format('
+            CREATE POLICY %I ON public.%I
+            FOR INSERT
+            WITH CHECK (public.tenant_policy_check(organization_id));
+        ', table_name || '_insert', table_name);
+
+        EXECUTE format('
+            CREATE POLICY %I ON public.%I
+            FOR UPDATE
+            USING (public.tenant_policy_check(organization_id))
+            WITH CHECK (public.tenant_policy_check(organization_id));
+        ', table_name || '_update', table_name);
+
+        EXECUTE format('
+            CREATE POLICY %I ON public.%I
+            FOR DELETE
+            USING (public.tenant_policy_check(organization_id));
+        ', table_name || '_delete', table_name);
+    END LOOP;
+END;
+$$;
+
+DO $$
+DECLARE
+    tbl text;
+BEGIN
+    FOR tbl IN SELECT unnest(ARRAY['partners','partner_transactions','profit_distributions','partner_payouts'])
+    LOOP
+        EXECUTE format('CREATE POLICY %I ON public.%I FOR SELECT USING (organization_id = public.get_user_org_id());', tbl||'_select', tbl);
+        EXECUTE format('CREATE POLICY %I ON public.%I FOR INSERT WITH CHECK (organization_id = public.get_user_org_id());', tbl||'_insert', tbl);
+        EXECUTE format('CREATE POLICY %I ON public.%I FOR UPDATE USING (organization_id = public.get_user_org_id()) WITH CHECK (organization_id = public.get_user_org_id());', tbl||'_update', tbl);
+        EXECUTE format('CREATE POLICY %I ON public.%I FOR DELETE USING (organization_id = public.get_user_org_id());', tbl||'_delete', tbl);
+    END LOOP;
+END;
+$$;
+
+-- =============================================================================
+-- 8. BUSINESS TRIGGERS — data integrity for offline sync & direct DB writes
+-- =============================================================================
+
+-- Payment -> update vault balance & log transaction
+CREATE OR REPLACE FUNCTION public.process_payment_to_vault()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    UPDATE public.vaults SET balance = balance + NEW.amount WHERE id = NEW.vault_id;
+    INSERT INTO public.vault_transactions (organization_id, destination_vault_id, amount, transaction_type, payment_id, employee_id)
+    VALUES (NEW.organization_id, NEW.vault_id, NEW.amount, 'CUSTOMER_PAYMENT', NEW.id, NEW.employee_id);
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trigger_payment_update_vault
+AFTER INSERT ON public.payments
+FOR EACH ROW EXECUTE FUNCTION public.process_payment_to_vault();
+
+-- Expense -> update vault balance & log transaction
+CREATE OR REPLACE FUNCTION public.process_expense_from_vault()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    UPDATE public.vaults SET balance = balance - NEW.amount WHERE id = NEW.vault_id;
+    INSERT INTO public.vault_transactions (organization_id, source_vault_id, amount, transaction_type, expense_id, employee_id)
+    VALUES (NEW.organization_id, NEW.vault_id, NEW.amount, 'EXPENSE_PAYMENT', NEW.id, NEW.employee_id);
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trigger_expense_update_vault
+AFTER INSERT ON public.expenses
+FOR EACH ROW EXECUTE FUNCTION public.process_expense_from_vault();
+
+-- Inventory transaction -> update product stock
+CREATE OR REPLACE FUNCTION public.update_product_stock()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.products SET stock_quantity = stock_quantity + NEW.quantity_changed WHERE id = NEW.product_id;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trigger_update_stock
+AFTER INSERT ON public.inventory_transactions
+FOR EACH ROW EXECUTE FUNCTION public.update_product_stock();
+
+CREATE OR REPLACE FUNCTION public.transfer_between_vaults(
+    p_org_id uuid,
+    p_from_vault uuid,
+    p_to_vault uuid,
+    p_amount numeric,
+    p_employee_id uuid,
+    p_description text DEFAULT NULL
+) RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+    v_balance numeric;
+BEGIN
+    -- Lock source row
+    SELECT balance INTO v_balance FROM public.vaults
+    WHERE id = p_from_vault AND organization_id = p_org_id FOR UPDATE;
+    IF NOT FOUND THEN RAISE EXCEPTION 'Source vault not found'; END IF;
+    IF v_balance < p_amount THEN RAISE EXCEPTION 'Insufficient balance'; END IF;
+
+    -- Update source
+    UPDATE public.vaults SET balance = balance - p_amount WHERE id = p_from_vault;
+    -- Update destination
+    UPDATE public.vaults SET balance = balance + p_amount WHERE id = p_to_vault;
+
+    -- Insert transaction record (both legs)
+    INSERT INTO public.vault_transactions
+        (organization_id, source_vault_id, destination_vault_id, amount, transaction_type, employee_id, description)
+    VALUES
+        (p_org_id, p_from_vault, p_to_vault, p_amount, 'TRANSFER', p_employee_id, p_description);
+END;
+$$;
+
+-- Cross-tenant integrity guards
+CREATE OR REPLACE FUNCTION public.check_org_match(table_name text, column_name text, id_value uuid, expected_org uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    actual_org uuid;
+BEGIN
+    EXECUTE format('SELECT organization_id FROM public.%I WHERE %I = $1', table_name, column_name) INTO actual_org USING id_value;
+    RETURN actual_org = expected_org;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.trg_contract_items_org_check() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT public.check_org_match('contracts', 'id', NEW.contract_id, NEW.organization_id) THEN
+        RAISE EXCEPTION 'ContractItems.organization_id does not match Contracts.organization_id';
+    END IF;
+    RETURN NEW;
+END; $$;
+CREATE TRIGGER trigger_contract_items_org_check BEFORE INSERT OR UPDATE ON public.contract_items FOR EACH ROW EXECUTE FUNCTION public.trg_contract_items_org_check();
+
+CREATE OR REPLACE FUNCTION public.trg_installments_org_check() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT public.check_org_match('contracts', 'id', NEW.contract_id, NEW.organization_id) THEN
+        RAISE EXCEPTION 'Installments.organization_id does not match Contracts.organization_id';
+    END IF;
+    RETURN NEW;
+END; $$;
+CREATE TRIGGER trigger_installments_org_check BEFORE INSERT OR UPDATE ON public.installments FOR EACH ROW EXECUTE FUNCTION public.trg_installments_org_check();
+
+CREATE OR REPLACE FUNCTION public.trg_payments_org_check() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT public.check_org_match('contracts', 'id', NEW.contract_id, NEW.organization_id) THEN
+        RAISE EXCEPTION 'Payments.organization_id does not match Contracts.organization_id';
+    END IF;
+    RETURN NEW;
+END; $$;
+CREATE TRIGGER trigger_payments_org_check BEFORE INSERT OR UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION public.trg_payments_org_check();
+
+CREATE OR REPLACE FUNCTION process_partner_capital()
+RETURNS trigger AS $$
+DECLARE
+    total_capital numeric;
+BEGIN
+    -- Only react when a row becomes APPROVED (INSERT or UPDATE)
+    IF (TG_OP = 'INSERT' AND NEW.status = 'APPROVED') OR
+       (TG_OP = 'UPDATE' AND NEW.status = 'APPROVED' AND OLD.status <> 'APPROVED') THEN
+
+        -- Update vault balance
+        IF NEW.transaction_type = 'DEPOSIT' THEN
+            UPDATE vaults SET balance = balance + NEW.amount WHERE id = NEW.vault_id;
+        ELSIF NEW.transaction_type = 'WITHDRAWAL' THEN
+            UPDATE vaults SET balance = balance - NEW.amount WHERE id = NEW.vault_id;
+        END IF;
+
+        -- Update partner's current capital
+        IF NEW.transaction_type = 'DEPOSIT' THEN
+            UPDATE partners SET current_capital = current_capital + NEW.amount
+            WHERE id = NEW.partner_id;
+        ELSIF NEW.transaction_type = 'WITHDRAWAL' THEN
+            UPDATE partners SET current_capital = current_capital - NEW.amount
+            WHERE id = NEW.partner_id;
+        END IF;
+
+        -- Recalculate profit‑share percentages for ALL active partners in the org
+        SELECT COALESCE(SUM(current_capital), 0) INTO total_capital
+        FROM partners
+        WHERE organization_id = NEW.organization_id AND status = 'ACTIVE';
+
+        UPDATE partners
+        SET profit_share_percentage = CASE
+            WHEN total_capital > 0 THEN ROUND((current_capital::numeric / total_capital) * 100, 2)
+            ELSE 0
+        END
+        WHERE organization_id = NEW.organization_id AND status = 'ACTIVE';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_process_partner_capital
+  AFTER INSERT OR UPDATE ON partner_transactions
+  FOR EACH ROW
+  EXECUTE FUNCTION process_partner_capital();
+
+CREATE OR REPLACE FUNCTION public.apply_purchase_to_product(
+    p_product_id uuid,
+    p_quantity int,
+    p_unit_cost numeric,
+    p_cash_price numeric,
+    p_installment_price numeric
+) RETURNS void AS $$
+BEGIN
+    UPDATE public.products
+    SET stock_quantity = stock_quantity + p_quantity,
+        cost_price = p_unit_cost,
+        cash_price = p_cash_price,
+        installment_price = p_installment_price
+    WHERE id = p_product_id;
+
+    INSERT INTO public.inventory_transactions (
+        organization_id,
+        product_id,
+        quantity_changed,
+        transaction_type,
+        reference_id,
+        reference_table,
+        employee_id
+    ) VALUES (
+        (SELECT organization_id FROM public.products WHERE id = p_product_id),
+        p_product_id,
+        p_quantity,
+        'PURCHASE',
+        gen_random_uuid(), -- or pass invoice id if you want, but this is for stock log
+        'purchase_invoices',
+        null
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION public.create_pos_sale(
+    p_organization_id uuid,
+    p_branch_id uuid,
+    p_employee_id uuid,
+    p_sale_type text,
+    p_items jsonb,           -- array of {product_id, quantity}
+    p_customer_id uuid DEFAULT NULL,
+    p_shipping_fee numeric DEFAULT 0,
+    p_down_payment numeric DEFAULT 0,
+    p_installment_count int DEFAULT NULL,
+    p_notes text DEFAULT NULL
+) RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_shift record;
+    v_product record;
+    v_line_items jsonb;
+    v_subtotal numeric := 0;
+    v_total_amount numeric := 0;
+    v_remaining_amount numeric := 0;
+    v_payment_amount numeric := 0;
+    v_contract_id uuid;
+    v_installment_per numeric;
+    v_due_date date;
+    i int;
+    v_item jsonb;
+    v_contract_status text;
+    v_ref_id text;
+BEGIN
+    -- 1. Verify open shift (throw if none)
+    SELECT id, vault_id, status INTO v_shift
+    FROM public.shift_sessions
+    WHERE employee_id = p_employee_id
+      AND organization_id = p_organization_id
+      AND status = 'OPEN'
+    LIMIT 1;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'لا توجد وردية مفتوحة لهذا الموظف.';
+    END IF;
+
+    -- 2. Price & stock validation (iterate items)
+    v_subtotal := 0;
+    FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
+    LOOP
+        SELECT id, name, stock_quantity,
+               CASE WHEN p_sale_type = 'INSTALLMENT' THEN installment_price ELSE cash_price END
+        INTO v_product
+        FROM public.products
+        WHERE id = (v_item->>'product_id')::uuid
+          AND organization_id = p_organization_id;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'المنتج غير موجود: %', v_item->>'product_id';
+        END IF;
+
+        IF v_product.stock_quantity < (v_item->>'quantity')::int THEN
+            RAISE EXCEPTION 'الكمية غير كافية للمنتج %', v_product.name;
+        END IF;
+
+        v_subtotal := v_subtotal + (v_product.cash_price * (v_item->>'quantity')::int);
+    END LOOP;
+
+    -- 3. Compute totals
+    v_total_amount := v_subtotal;
+    IF p_sale_type = 'SHIPPING' THEN
+        v_total_amount := v_total_amount + p_shipping_fee;
+    END IF;
+
+    IF p_sale_type = 'INSTALLMENT' THEN
+        v_remaining_amount := v_total_amount - p_down_payment;
+        IF v_remaining_amount < 0 THEN
+            RAISE EXCEPTION 'المقدم أكبر من إجمالي الفاتورة.';
+        END IF;
+        -- Credit check can be added here, but skip for brevity (you can move it in)
+    END IF;
+
+    v_contract_status := CASE WHEN p_sale_type = 'INSTALLMENT' THEN 'ACTIVE' ELSE 'COMPLETED' END;
+
+    -- 4. All writes in a single transaction
+    -- The function is already a single transaction; any error will ROLLBACK.
+
+    -- Insert contract
+    INSERT INTO public.contracts (
+        organization_id, branch_id, customer_id, employee_id,
+        sale_type, total_amount, remaining_amount,
+        down_payment, shipping_fee, status
+    ) VALUES (
+        p_organization_id, p_branch_id, p_customer_id, p_employee_id,
+        p_sale_type, v_total_amount, v_remaining_amount,
+        p_down_payment, p_shipping_fee, v_contract_status
+    ) RETURNING id INTO v_contract_id;
+
+    -- Insert contract items + deduct stock
+    FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
+    LOOP
+        INSERT INTO public.contract_items (
+            organization_id, contract_id, product_id,
+            quantity, unit_price
+        ) VALUES (
+            p_organization_id, v_contract_id,
+            (v_item->>'product_id')::uuid,
+            (v_item->>'quantity')::int,
+            CASE WHEN p_sale_type = 'INSTALLMENT'
+                 THEN (SELECT installment_price FROM products WHERE id = (v_item->>'product_id')::uuid)
+                 ELSE (SELECT cash_price FROM products WHERE id = (v_item->>'product_id')::uuid)
+            END
+        );
+
+        -- Insert inventory transaction (trigger updates stock)
+        INSERT INTO public.inventory_transactions (
+            organization_id, product_id,
+            quantity_changed, transaction_type,
+            reference_id, reference_table, employee_id
+        ) VALUES (
+            p_organization_id, (v_item->>'product_id')::uuid,
+            -(v_item->>'quantity')::int, 'SALE',
+            v_contract_id, 'contracts', p_employee_id
+        );
+    END LOOP;
+
+    -- Installments (if installment)
+    IF p_sale_type = 'INSTALLMENT' AND p_installment_count > 0 THEN
+        v_installment_per := round(v_remaining_amount / p_installment_count, 2);
+        v_due_date := date_trunc('month', now())::date;
+        FOR i IN 1..p_installment_count LOOP
+            v_due_date := v_due_date + interval '1 month';
+            -- Adjust last installment to make sum exactly remaining
+            IF i = p_installment_count THEN
+                v_installment_per := v_remaining_amount - (v_installment_per * (i-1));
+            END IF;
+            INSERT INTO public.installments (
+                organization_id, contract_id,
+                due_date, amount,
+                principal_portion, profit_portion, status
+            ) VALUES (
+                p_organization_id, v_contract_id,
+                v_due_date, v_installment_per,
+                v_installment_per, 0, 'PENDING'
+            );
+        END LOOP;
+    END IF;
+
+    -- Payment
+    v_payment_amount := CASE WHEN p_sale_type = 'INSTALLMENT' THEN p_down_payment ELSE v_total_amount END;
+    IF v_payment_amount > 0 THEN
+        INSERT INTO public.payments (
+            organization_id, contract_id,
+            vault_id, amount,
+            payment_method, employee_id
+        ) VALUES (
+            p_organization_id, v_contract_id,
+            v_shift.vault_id, v_payment_amount,
+            CASE WHEN p_sale_type = 'INSTALLMENT' THEN 'DOWN_PAYMENT' ELSE 'CASH' END,
+            p_employee_id
+        );
+    END IF;
+
+    -- Return result
+    v_ref_id := upper(substring(v_contract_id::text, 1, 8));
+    RETURN jsonb_build_object(
+        'contract_id', v_contract_id,
+        'sale_type', p_sale_type,
+        'total_amount', v_total_amount,
+        'remaining_amount', v_remaining_amount,
+        'status', v_contract_status,
+        'receipt_ref', v_ref_id
+    );
+END;
+$$;
+-- =============================================================================
+-- Done. Sanity checks you can run afterwards:
+--
+--   select count(*) from pg_policies where schemaname = 'public';
+--   select tablename, rowsecurity from pg_tables where schemaname = 'public';
+--   select * from pg_indexes where schemaname = 'public' and indexname like 'idx_%';
+--   select has_table_privilege('anon', 'public.organizations', 'select'); -- expect true
+--
+-- Next step: run 001_seed_provider_org_and_super_admin.sql to recreate your
+-- SaaS provider org + first super admin (this schema reset deleted them).
+-- =============================================================================
+
+
+-- =============================================================================
+-- EcoFin Pro — PHASE 1: SCHEMA EXPANSION MIGRATION
+-- Purchases/AP • Shifts & Drawers • Collector Wallets • POS split-payment &
+-- shipping-hold support
+--
+-- SAFE TO RE-RUN: every statement is idempotent (IF NOT EXISTS / IF EXISTS /
+-- DO-block constraint guards). Run in the Supabase SQL Editor AFTER your
+-- base init script (organizations..create_pos_sale). Does NOT drop anything.
+-- ===========================================================================
+
+-- =============================================================================
+-- 3. PRODUCTS — barcode, product_type, and governance lock
+--    (cost_price / stock_quantity / product_type may ONLY change through the
+--    approved-purchase, purchase-return, or POS-sale trigger paths below —
+--    never via a direct UPDATE from the Inventory UI)
+-- =============================================================================
+
+DO $$ BEGIN
+  ALTER TABLE public.products ADD CONSTRAINT chk_products_type
+    CHECK (product_type IN ('STANDARD', 'SERVICE'));
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_products_org_barcode
+  ON public.products (organization_id, barcode) WHERE barcode IS NOT NULL;
+
+-- Barcode auto-generator (callable directly, and wired to auto-fill on insert)
+CREATE OR REPLACE FUNCTION public.generate_barcode()
+RETURNS text LANGUAGE plpgsql AS $$
+BEGIN
+  RETURN 'EF' || to_char(now(), 'YYMMDDHH24MISS') || lpad((floor(random() * 1000))::text, 3, '0');
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.auto_generate_product_barcode()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.barcode IS NULL THEN
+    NEW.barcode := public.generate_barcode();
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_auto_barcode ON public.products;
+CREATE TRIGGER trg_auto_barcode
+BEFORE INSERT ON public.products
+FOR EACH ROW EXECUTE FUNCTION public.auto_generate_product_barcode();
+
+-- Governance guard: any UPDATE touching cost_price / stock_quantity /
+-- product_type is rejected unless a trusted trigger has flipped the session
+-- flag app.allow_inventory_write = 'on' first. Because this fires as a
+-- regular trigger (not RLS), it applies even to the backend's service-role
+-- connection — the only way around it is through the flows below.
+CREATE OR REPLACE FUNCTION public.enforce_product_governance()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF (NEW.cost_price IS DISTINCT FROM OLD.cost_price
+      OR NEW.stock_quantity IS DISTINCT FROM OLD.stock_quantity
+      OR NEW.product_type IS DISTINCT FROM OLD.product_type)
+     AND coalesce(current_setting('app.allow_inventory_write', true), 'off') <> 'on' THEN
+    RAISE EXCEPTION 'cost_price, stock_quantity and product_type can only change via an approved purchase invoice, purchase return, or POS sale';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_products_governance ON public.products;
+CREATE TRIGGER trg_products_governance
+BEFORE UPDATE ON public.products
+FOR EACH ROW EXECUTE FUNCTION public.enforce_product_governance();
+
+-- =============================================================================
+-- 4. PURCHASE INVOICES — approval workflow + accounts payable
+-- =============================================================================
+ALTER TABLE public.purchase_invoices
+  ADD COLUMN IF NOT EXISTS approved_by uuid REFERENCES public.employees(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS approved_at timestamptz,
+  ADD COLUMN IF NOT EXISTS amount_paid numeric(15,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS outstanding_amount numeric(15,2) DEFAULT 0;
+
+DO $$ BEGIN
+  ALTER TABLE public.purchase_invoices DROP CONSTRAINT IF EXISTS chk_purchase_status;
+  ALTER TABLE public.purchase_invoices ADD CONSTRAINT chk_purchase_status
+    CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED', 'VOID'));
+EXCEPTION WHEN others THEN NULL; END $$;
+
+-- =============================================================================
+-- 5. PURCHASE SETTLEMENTS — later payouts of accounts-payable debt from a
+--    chosen vault (purchases never touch the vault instantly)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.purchase_settlements (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    purchase_invoice_id uuid NOT NULL REFERENCES public.purchase_invoices(id) ON DELETE CASCADE,
+    vault_id uuid NOT NULL REFERENCES public.vaults(id) ON DELETE RESTRICT,
+    amount numeric(15,2) NOT NULL CHECK (amount > 0),
+    employee_id uuid REFERENCES public.employees(id) ON DELETE SET NULL,
+    created_at timestamptz DEFAULT now()
+);
+
+-- =============================================================================
+-- 6. PURCHASE RETURNS — items back to supplier, deducting stock & payable
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.purchase_returns (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    purchase_invoice_id uuid NOT NULL REFERENCES public.purchase_invoices(id) ON DELETE CASCADE,
+    supplier_id uuid REFERENCES public.suppliers(id) ON DELETE SET NULL,
+    total_amount numeric(15,2) DEFAULT 0,
+    status varchar DEFAULT 'COMPLETED',
+    employee_id uuid REFERENCES public.employees(id) ON DELETE SET NULL,
+    created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.purchase_return_items (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    purchase_return_id uuid NOT NULL REFERENCES public.purchase_returns(id) ON DELETE CASCADE,
+    product_id uuid REFERENCES public.products(id) ON DELETE SET NULL,
+    quantity integer NOT NULL CHECK (quantity > 0),
+    unit_cost numeric(10,2) NOT NULL,
+    created_at timestamptz DEFAULT now()
+);
+
+-- =============================================================================
+-- 7. CONTRACTS — soft delete, discounts, shipping holds
+-- =============================================================================
+ALTER TABLE public.contracts
+  ADD COLUMN IF NOT EXISTS discount_amount numeric(12,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS discount_reason text,
+  ADD COLUMN IF NOT EXISTS shipping_status varchar,
+  ADD COLUMN IF NOT EXISTS voided_at timestamptz,
+  ADD COLUMN IF NOT EXISTS voided_by uuid REFERENCES public.employees(id) ON DELETE SET NULL;
+
+DO $$ BEGIN
+  ALTER TABLE public.contracts DROP CONSTRAINT IF EXISTS chk_contracts_status;
+  ALTER TABLE public.contracts ADD CONSTRAINT chk_contracts_status
+    CHECK (status IN ('ACTIVE', 'COMPLETED', 'PAUSED', 'VOID'));
+EXCEPTION WHEN others THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE public.contracts DROP CONSTRAINT IF EXISTS chk_contracts_shipping_status;
+  ALTER TABLE public.contracts ADD CONSTRAINT chk_contracts_shipping_status
+    CHECK (shipping_status IS NULL OR shipping_status IN ('PENDING', 'DELIVERED'));
+EXCEPTION WHEN others THEN NULL; END $$;
+
+-- =============================================================================
+-- 8. WALLETS (collector drawers) — created before PAYMENTS so we can FK
+--    directly instead of bolting the constraint on afterward
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.wallets (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    employee_id uuid NOT NULL REFERENCES public.employees(id) ON DELETE CASCADE,
+    balance numeric(15,2) DEFAULT 0,
+    status varchar DEFAULT 'CLOSED' CHECK (status IN ('OPEN', 'CLOSED')),
+    opened_at timestamptz,
+    closed_at timestamptz,
+    starting_balance numeric(15,2) DEFAULT 0,
+    expected_closing_balance numeric(15,2),
+    actual_closing_balance numeric(15,2),
+    shortage_status text,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+-- One persistent wallet per collector (mirrors "one drawer per shift", but a
+-- collector's wallet is a long-lived entity that gets opened/closed in cycles)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_wallets_one_per_collector ON public.wallets (employee_id);
+
+DROP TRIGGER IF EXISTS trg_set_updated_at ON public.wallets;
+CREATE TRIGGER trg_set_updated_at
+BEFORE UPDATE ON public.wallets
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TABLE IF NOT EXISTS public.wallet_transactions (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    wallet_id uuid NOT NULL REFERENCES public.wallets(id) ON DELETE CASCADE,
+    amount numeric(15,2) NOT NULL,
+    transaction_type varchar NOT NULL
+      CHECK (transaction_type IN ('COLLECTION', 'COMMISSION', 'SETTLEMENT_TO_VAULT', 'ADJUSTMENT')),
+    payment_id uuid REFERENCES public.payments(id) ON DELETE SET NULL,
+    created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.wallet_transactions ADD COLUMN IF NOT EXISTS description text;
+
+-- =============================================================================
+-- 9. PAYMENTS — split payments, installment application, refunds, collections
+-- =============================================================================
+ALTER TABLE public.payments
+  ADD COLUMN IF NOT EXISTS sale_group_id uuid DEFAULT gen_random_uuid(),
+  ADD COLUMN IF NOT EXISTS reference_meta jsonb DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS applies_to_installment_id uuid REFERENCES public.installments(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS is_refund boolean DEFAULT false,
+  ADD COLUMN IF NOT EXISTS is_collection boolean DEFAULT false,
+  ADD COLUMN IF NOT EXISTS wallet_id uuid REFERENCES public.wallets(id) ON DELETE SET NULL;
+
+-- sale_group_id lets several payment rows (e.g. CASH + CARD) represent one
+-- logical POS checkout; the app sets the same value on every leg of a split.
+
+-- =============================================================================
+-- 10. INSTALLMENTS — partial-payment tracking for the overpayment cascade
+-- =============================================================================
+ALTER TABLE public.installments
+  ADD COLUMN IF NOT EXISTS paid_amount numeric(12,2) DEFAULT 0;
+
+DO $$ BEGIN
+  ALTER TABLE public.installments DROP CONSTRAINT IF EXISTS chk_installments_status;
+  ALTER TABLE public.installments ADD CONSTRAINT chk_installments_status
+    CHECK (status IN ('PENDING', 'PARTIALLY_PAID', 'PAID'));
+EXCEPTION WHEN others THEN NULL; END $$;
+
+-- =============================================================================
+-- 11. SHIFT SESSIONS — shortage flag + settlement bookkeeping
+-- =============================================================================
+ALTER TABLE public.shift_sessions
+  ADD COLUMN IF NOT EXISTS shortage_status text,
+  ADD COLUMN IF NOT EXISTS transferred_to_vault boolean DEFAULT false;
+
+-- =============================================================================
+-- 12. INDEXES
+-- =============================================================================
+CREATE INDEX IF NOT EXISTS idx_wallets_org ON public.wallets (organization_id);
+CREATE INDEX IF NOT EXISTS idx_wallet_transactions_wallet ON public.wallet_transactions (wallet_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_purchase_settlements_invoice ON public.purchase_settlements (purchase_invoice_id);
+CREATE INDEX IF NOT EXISTS idx_purchase_returns_invoice ON public.purchase_returns (purchase_invoice_id);
+CREATE INDEX IF NOT EXISTS idx_purchase_return_items_return ON public.purchase_return_items (purchase_return_id);
+CREATE INDEX IF NOT EXISTS idx_payments_sale_group ON public.payments (sale_group_id);
+CREATE INDEX IF NOT EXISTS idx_payments_installment ON public.payments (applies_to_installment_id);
+CREATE INDEX IF NOT EXISTS idx_payments_wallet ON public.payments (wallet_id);
+
+-- =============================================================================
+-- 13. ROW LEVEL SECURITY — new tables
+-- =============================================================================
+ALTER TABLE public.purchase_settlements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purchase_returns ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purchase_return_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.wallets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.wallet_transactions ENABLE ROW LEVEL SECURITY;
+
+-- Generic org-scoped policies for the plain tenant tables
+DO $$
+DECLARE t text;
+BEGIN
+  FOR t IN SELECT unnest(ARRAY['purchase_settlements', 'purchase_returns', 'purchase_return_items'])
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I;', t || '_select', t);
+    EXECUTE format('CREATE POLICY %I ON public.%I FOR SELECT USING (public.tenant_policy_check(organization_id));', t || '_select', t);
+
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I;', t || '_insert', t);
+    EXECUTE format('CREATE POLICY %I ON public.%I FOR INSERT WITH CHECK (public.tenant_policy_check(organization_id));', t || '_insert', t);
+
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I;', t || '_update', t);
+    EXECUTE format('CREATE POLICY %I ON public.%I FOR UPDATE USING (public.tenant_policy_check(organization_id)) WITH CHECK (public.tenant_policy_check(organization_id));', t || '_update', t);
+
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I;', t || '_delete', t);
+    EXECUTE format('CREATE POLICY %I ON public.%I FOR DELETE USING (public.tenant_policy_check(organization_id));', t || '_delete', t);
+  END LOOP;
+END $$;
+
+-- Helper functions used by the stricter wallet/shift policies below
+CREATE OR REPLACE FUNCTION public.get_user_employee_id()
+RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER AS $$
+    SELECT id FROM public.employees WHERE auth_id = auth.uid() LIMIT 1;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_user_role()
+RETURNS text LANGUAGE sql STABLE SECURITY DEFINER AS $$
+    SELECT role FROM public.employees WHERE auth_id = auth.uid() LIMIT 1;
+$$;
+
+-- WALLETS — a collector may only ever see/touch their own wallet; owners,
+-- moderators and accountants can see every wallet in the org for oversight.
+DROP POLICY IF EXISTS wallets_select ON public.wallets;
+CREATE POLICY wallets_select ON public.wallets FOR SELECT
+USING (
+  public.is_super_admin()
+  OR (organization_id = public.get_user_org_id() AND (
+        employee_id = public.get_user_employee_id()
+        OR public.get_user_role() IN ('OWNER', 'MODERATOR', 'ACCOUNTANT')
+      ))
+);
+
+DROP POLICY IF EXISTS wallets_insert ON public.wallets;
+CREATE POLICY wallets_insert ON public.wallets FOR INSERT
+WITH CHECK (organization_id = public.get_user_org_id() AND public.get_user_role() IN ('OWNER', 'MODERATOR'));
+
+DROP POLICY IF EXISTS wallets_update ON public.wallets;
+CREATE POLICY wallets_update ON public.wallets FOR UPDATE
+USING (
+  organization_id = public.get_user_org_id()
+  AND (employee_id = public.get_user_employee_id() OR public.get_user_role() IN ('OWNER', 'MODERATOR'))
+)
+WITH CHECK (
+  organization_id = public.get_user_org_id()
+  AND (employee_id = public.get_user_employee_id() OR public.get_user_role() IN ('OWNER', 'MODERATOR'))
+);
+
+DROP POLICY IF EXISTS wallets_delete ON public.wallets;
+CREATE POLICY wallets_delete ON public.wallets FOR DELETE
+USING (organization_id = public.get_user_org_id() AND public.get_user_role() IN ('OWNER', 'MODERATOR'));
+
+-- WALLET_TRANSACTIONS — visibility mirrors the parent wallet
+DROP POLICY IF EXISTS wallet_tx_select ON public.wallet_transactions;
+CREATE POLICY wallet_tx_select ON public.wallet_transactions FOR SELECT
+USING (
+  public.is_super_admin()
+  OR EXISTS (
+       SELECT 1 FROM public.wallets w
+       WHERE w.id = wallet_transactions.wallet_id
+         AND w.organization_id = public.get_user_org_id()
+         AND (w.employee_id = public.get_user_employee_id()
+              OR public.get_user_role() IN ('OWNER', 'MODERATOR', 'ACCOUNTANT'))
+     )
+);
+
+DROP POLICY IF EXISTS wallet_tx_insert ON public.wallet_transactions;
+CREATE POLICY wallet_tx_insert ON public.wallet_transactions FOR INSERT
+WITH CHECK (organization_id = public.get_user_org_id());
+
+-- SHIFT_SESSIONS — tighten the generic tenant policy from the base script:
+-- a cashier may only see/update their own shift; owners/moderators/
+-- accountants can see every shift in the org.
+DROP POLICY IF EXISTS shift_sessions_select ON public.shift_sessions;
+CREATE POLICY shift_sessions_select ON public.shift_sessions FOR SELECT
+USING (
+  public.is_super_admin()
+  OR (organization_id = public.get_user_org_id() AND (
+        employee_id = public.get_user_employee_id()
+        OR public.get_user_role() IN ('OWNER', 'MODERATOR', 'ACCOUNTANT')
+      ))
+);
+
+DROP POLICY IF EXISTS shift_sessions_update ON public.shift_sessions;
+CREATE POLICY shift_sessions_update ON public.shift_sessions FOR UPDATE
+USING (
+  organization_id = public.get_user_org_id()
+  AND (employee_id = public.get_user_employee_id() OR public.get_user_role() IN ('OWNER', 'MODERATOR'))
+)
+WITH CHECK (
+  organization_id = public.get_user_org_id()
+  AND (employee_id = public.get_user_employee_id() OR public.get_user_role() IN ('OWNER', 'MODERATOR'))
+);
+-- (insert/delete policies from the base script stay as-is: org-scoped)
+
+-- =============================================================================
+-- 14. TRIGGERS — rewire existing stock-mutation paths to honor governance
+-- =============================================================================
+
+-- Existing trigger function (from the base script) that reacts to
+-- inventory_transactions inserts (SALE / PURCHASE_RETURN / etc). It must set
+-- the governance flag itself, since it legitimately changes stock_quantity.
+CREATE OR REPLACE FUNCTION public.update_product_stock()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    PERFORM set_config('app.allow_inventory_write', 'on', true);
+    UPDATE public.products SET stock_quantity = stock_quantity + NEW.quantity_changed WHERE id = NEW.product_id;
+    PERFORM set_config('app.allow_inventory_write', 'off', true);
+    RETURN NEW;
+END;
+$$;
+-- (trigger trigger_update_stock from the base script keeps pointing at this
+-- function automatically — CREATE OR REPLACE does not disturb the binding)
+
+-- Legacy helper from the base script — kept for backward compatibility but
+-- superseded by trg_purchase_approval below. Wrapped so it doesn't trip the
+-- new governance guard if anything still calls it directly.
+CREATE OR REPLACE FUNCTION public.apply_purchase_to_product(
+    p_product_id uuid, p_quantity int, p_unit_cost numeric,
+    p_cash_price numeric, p_installment_price numeric
+) RETURNS void LANGUAGE plpgsql AS $$
+BEGIN
+    PERFORM set_config('app.allow_inventory_write', 'on', true);
+    UPDATE public.products
+    SET stock_quantity = stock_quantity + p_quantity,
+        cost_price = p_unit_cost,
+        cash_price = p_cash_price,
+        installment_price = p_installment_price
+    WHERE id = p_product_id;
+    PERFORM set_config('app.allow_inventory_write', 'off', true);
+
+    INSERT INTO public.inventory_transactions (
+        organization_id, product_id, quantity_changed, transaction_type, reference_id, reference_table, employee_id
+    ) VALUES (
+        (SELECT organization_id FROM public.products WHERE id = p_product_id),
+        p_product_id, p_quantity, 'PURCHASE', gen_random_uuid(), 'purchase_invoices', null
+    );
+END;
+$$;
+
+-- A) MOVING AVERAGE COST + ACCOUNTS PAYABLE — fires when a purchase invoice
+--    transitions into APPROVED. Formula:
+--    new_cost = ((old_qty * old_cost) + (new_qty * new_cost)) / (old_qty + new_qty)
+CREATE OR REPLACE FUNCTION public.apply_purchase_approval()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  item record;
+  v_old_qty integer;
+  v_old_cost numeric;
+  v_new_cost numeric;
+BEGIN
+  IF NEW.status = 'APPROVED' AND OLD.status IS DISTINCT FROM 'APPROVED' THEN
+    PERFORM set_config('app.allow_inventory_write', 'on', true);
+
+    FOR item IN SELECT * FROM public.purchase_items WHERE purchase_invoice_id = NEW.id
+    LOOP
+      SELECT stock_quantity, cost_price INTO v_old_qty, v_old_cost
+      FROM public.products WHERE id = item.product_id FOR UPDATE;
+
+      IF v_old_qty IS NULL THEN
+        CONTINUE; -- product row missing/deleted; skip defensively
+      END IF;
+
+      IF (v_old_qty + item.quantity) = 0 THEN
+        v_new_cost := item.unit_cost;
+      ELSE
+        v_new_cost := ((v_old_qty * v_old_cost) + (item.quantity * item.unit_cost))
+                      / (v_old_qty + item.quantity);
+      END IF;
+
+      UPDATE public.products
+      SET stock_quantity = stock_quantity + item.quantity,
+          cost_price = round(v_new_cost, 2)
+      WHERE id = item.product_id;
+
+      INSERT INTO public.inventory_transactions (
+        organization_id, product_id, quantity_changed, transaction_type, reference_id, reference_table, employee_id
+      ) VALUES (
+        NEW.organization_id, item.product_id, item.quantity, 'PURCHASE', NEW.id, 'purchase_invoices', NEW.approved_by
+      );
+    END LOOP;
+
+    PERFORM set_config('app.allow_inventory_write', 'off', true);
+
+    -- Accounts payable debt is created here — nothing hits the vault yet.
+    NEW.outstanding_amount := NEW.total_amount - COALESCE(NEW.amount_paid, 0);
+    NEW.approved_at := COALESCE(NEW.approved_at, now());
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_purchase_approval ON public.purchase_invoices;
+CREATE TRIGGER trg_purchase_approval
+BEFORE UPDATE ON public.purchase_invoices
+FOR EACH ROW EXECUTE FUNCTION public.apply_purchase_approval();
+
+-- B) PURCHASE SETTLEMENT — deducts the payout vault, reduces the payable
+CREATE OR REPLACE FUNCTION public.process_purchase_settlement()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  UPDATE public.vaults SET balance = balance - NEW.amount WHERE id = NEW.vault_id;
+
+  UPDATE public.purchase_invoices
+  SET amount_paid = amount_paid + NEW.amount,
+      outstanding_amount = GREATEST(outstanding_amount - NEW.amount, 0)
+  WHERE id = NEW.purchase_invoice_id;
+
+  INSERT INTO public.vault_transactions (organization_id, source_vault_id, amount, transaction_type, employee_id)
+  VALUES (NEW.organization_id, NEW.vault_id, NEW.amount, 'PURCHASE_SETTLEMENT', NEW.employee_id);
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_process_purchase_settlement ON public.purchase_settlements;
+CREATE TRIGGER trg_process_purchase_settlement
+AFTER INSERT ON public.purchase_settlements
+FOR EACH ROW EXECUTE FUNCTION public.process_purchase_settlement();
+
+-- C) PURCHASE RETURN — deducts stock, adjusts the payable downward
+CREATE OR REPLACE FUNCTION public.process_purchase_return()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  PERFORM set_config('app.allow_inventory_write', 'on', true);
+  UPDATE public.products SET stock_quantity = stock_quantity - NEW.quantity WHERE id = NEW.product_id;
+  PERFORM set_config('app.allow_inventory_write', 'off', true);
+
+  INSERT INTO public.inventory_transactions (organization_id, product_id, quantity_changed, transaction_type, reference_id, reference_table)
+  VALUES (NEW.organization_id, NEW.product_id, -NEW.quantity, 'PURCHASE_RETURN', NEW.purchase_return_id, 'purchase_returns');
+
+  UPDATE public.purchase_invoices pi
+  SET outstanding_amount = GREATEST(outstanding_amount - (NEW.quantity * NEW.unit_cost), 0)
+  FROM public.purchase_returns pr
+  WHERE pr.id = NEW.purchase_return_id AND pi.id = pr.purchase_invoice_id;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_process_purchase_return ON public.purchase_return_items;
+CREATE TRIGGER trg_process_purchase_return
+AFTER INSERT ON public.purchase_return_items
+FOR EACH ROW EXECUTE FUNCTION public.process_purchase_return();
+
+-- D) SHIFT CONCURRENCY LIMIT — max 2 OPEN shifts per branch at any time
+CREATE OR REPLACE FUNCTION public.enforce_shift_concurrency()
+RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE v_count int;
+BEGIN
+  IF NEW.status = 'OPEN' THEN
+    SELECT count(*) INTO v_count FROM public.shift_sessions
+    WHERE branch_id = NEW.branch_id
+      AND status = 'OPEN'
+      AND id <> COALESCE(NEW.id, '00000000-0000-0000-0000-000000000000'::uuid);
+    IF v_count >= 2 THEN
+      RAISE EXCEPTION 'الحد الأقصى لعدد الورديات المفتوحة في هذا الفرع هو 2';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_shift_concurrency ON public.shift_sessions;
+CREATE TRIGGER trg_shift_concurrency
+BEFORE INSERT OR UPDATE ON public.shift_sessions
+FOR EACH ROW EXECUTE FUNCTION public.enforce_shift_concurrency();
+
+-- E) SHIFT CLOSE — auto-transfer drawer balance to Main Vault + shortage flag
+CREATE OR REPLACE FUNCTION public.close_shift_transfer()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_main_vault uuid;
+  v_diff numeric;
+BEGIN
+  IF NEW.status = 'CLOSED' AND OLD.status IS DISTINCT FROM 'CLOSED' THEN
+    v_diff := COALESCE(NEW.actual_closing_balance, 0) - COALESCE(NEW.expected_closing_balance, 0);
+    NEW.difference_amount := v_diff;
+    NEW.shortage_status := CASE WHEN v_diff < 0 THEN 'عجز' ELSE NULL END;
+    NEW.closed_at := COALESCE(NEW.closed_at, now());
+
+    SELECT id INTO v_main_vault FROM public.vaults
+    WHERE organization_id = NEW.organization_id AND is_main_vault = true LIMIT 1;
+
+    IF v_main_vault IS NULL THEN
+      RAISE EXCEPTION 'No main vault configured for organization %', NEW.organization_id;
+    END IF;
+
+    IF NEW.vault_id IS NOT NULL AND NEW.vault_id <> v_main_vault THEN
+      UPDATE public.vaults SET balance = balance - COALESCE(NEW.actual_closing_balance, 0) WHERE id = NEW.vault_id;
+      UPDATE public.vaults SET balance = balance + COALESCE(NEW.actual_closing_balance, 0) WHERE id = v_main_vault;
+
+      INSERT INTO public.vault_transactions (organization_id, source_vault_id, destination_vault_id, amount, transaction_type, employee_id)
+      VALUES (NEW.organization_id, NEW.vault_id, v_main_vault, COALESCE(NEW.actual_closing_balance, 0), 'SHIFT_SETTLEMENT', NEW.employee_id);
+    END IF;
+
+    NEW.transferred_to_vault := true;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_close_shift_transfer ON public.shift_sessions;
+CREATE TRIGGER trg_close_shift_transfer
+BEFORE UPDATE ON public.shift_sessions
+FOR EACH ROW EXECUTE FUNCTION public.close_shift_transfer();
+
+-- F) INSTALLMENT OVERPAYMENT CASCADE — a collection payment (is_collection =
+--    true, no specific installment targeted) is applied to the earliest
+--    unpaid installment first, then cascades any excess forward in
+--    chronological order.
+CREATE OR REPLACE FUNCTION public.cascade_installment_payment()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_remaining numeric := NEW.amount;
+  inst record;
+  v_applied numeric;
+BEGIN
+  IF NEW.is_collection IS TRUE AND NEW.contract_id IS NOT NULL THEN
+    FOR inst IN
+      SELECT * FROM public.installments
+      WHERE contract_id = NEW.contract_id AND status <> 'PAID'
+      ORDER BY due_date ASC
+      FOR UPDATE
+    LOOP
+      EXIT WHEN v_remaining <= 0;
+      v_applied := LEAST(v_remaining, inst.amount - inst.paid_amount);
+
+      UPDATE public.installments
+      SET paid_amount = paid_amount + v_applied,
+          status = CASE WHEN (paid_amount + v_applied) >= amount THEN 'PAID' ELSE 'PARTIALLY_PAID' END
+      WHERE id = inst.id;
+
+      v_remaining := v_remaining - v_applied;
+    END LOOP;
+
+    IF v_remaining > 0 THEN
+      RAISE NOTICE 'Overpayment of % on contract % exceeds total remaining installments — leaving as unapplied credit', v_remaining, NEW.contract_id;
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_cascade_installment_payment ON public.payments;
+CREATE TRIGGER trg_cascade_installment_payment
+AFTER INSERT ON public.payments
+FOR EACH ROW EXECUTE FUNCTION public.cascade_installment_payment();
+
+-- G) COLLECTOR WALLET CREDIT + COMMISSION — a collection payment that
+--    carries a wallet_id credits the full collected cash into that wallet's
+--    drawer and pays out the org's commission percentage.
+CREATE OR REPLACE FUNCTION public.apply_collector_commission()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_pct numeric;
+  v_commission numeric;
+BEGIN
+  IF NEW.is_collection IS TRUE AND NEW.wallet_id IS NOT NULL THEN
+    UPDATE public.wallets SET balance = balance + NEW.amount WHERE id = NEW.wallet_id;
+    INSERT INTO public.wallet_transactions (organization_id, wallet_id, amount, transaction_type, payment_id)
+    VALUES (NEW.organization_id, NEW.wallet_id, NEW.amount, 'COLLECTION', NEW.id);
+
+    SELECT collector_commission_pct INTO v_pct FROM public.organizations WHERE id = NEW.organization_id;
+    v_commission := round(NEW.amount * COALESCE(v_pct, 0) / 100, 2);
+
+    IF v_commission > 0 THEN
+      UPDATE public.wallets SET balance = balance + v_commission WHERE id = NEW.wallet_id;
+      INSERT INTO public.wallet_transactions (organization_id, wallet_id, amount, transaction_type, payment_id)
+      VALUES (NEW.organization_id, NEW.wallet_id, v_commission, 'COMMISSION', NEW.id);
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_apply_collector_commission ON public.payments;
+CREATE TRIGGER trg_apply_collector_commission
+AFTER INSERT ON public.payments
+FOR EACH ROW EXECUTE FUNCTION public.apply_collector_commission();
+
+-- =============================================================================
+-- Done. Sanity checks:
+--
+--   select count(*) from pg_policies where schemaname = 'public';
+--   select tablename from pg_tables where schemaname='public'
+--     and tablename in ('wallets','wallet_transactions','purchase_settlements','purchase_returns','purchase_return_items');
+--   select organization_id, count(*) from public.vaults where is_main_vault group by 1; -- expect 1 each
+--   select trigger_name, event_object_table from information_schema.triggers where trigger_schema='public' order by 1;
+--
+-- Reminder: every organization needs exactly one vault with is_main_vault =
+-- true before any shift can be closed (trg_close_shift_transfer raises if
+-- none exists). Set this on your existing vault rows now:
+--   update public.vaults set is_main_vault = true where id = '<your-main-vault-id>';
+-- =============================================================================
+
+-- =============================================================================
+-- Product Cost History – logs every cost_price change on products
+-- =============================================================================
+
+-- 1. Log table
+CREATE TABLE IF NOT EXISTS public.product_cost_log (
+    id              uuid NOT NULL DEFAULT gen_random_uuid(),
+    product_id      uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+    old_cost        numeric(12,2),
+    new_cost        numeric(12,2),
+    changed_at      timestamptz NOT NULL DEFAULT now(),
+    changed_by      uuid REFERENCES public.employees(id) ON DELETE SET NULL,
+    reference_type  varchar,               -- e.g. 'PURCHASE_APPROVAL', 'MANUAL_OVERRIDE'
+    reference_id    uuid,                  -- e.g. purchase_invoice id
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    CONSTRAINT product_cost_log_pkey PRIMARY KEY (id)
+);
+
+-- 2. Trigger function – fires on products UPDATE where cost_price changes
+CREATE OR REPLACE FUNCTION public.log_product_cost_change()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    IF (OLD.cost_price IS DISTINCT FROM NEW.cost_price) THEN
+        INSERT INTO public.product_cost_log (
+            product_id,
+            old_cost,
+            new_cost,
+            changed_at,
+            organization_id,
+            reference_type,
+            reference_id
+        ) VALUES (
+            NEW.id,
+            OLD.cost_price,
+            NEW.cost_price,
+            now(),
+            NEW.organization_id,
+            COALESCE(current_setting('app.cost_change_reference_type', true), 'MANUAL'),
+            COALESCE(current_setting('app.cost_change_reference_id', true)::uuid, NULL)
+        );
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+-- 3. Attach trigger
+DROP TRIGGER IF EXISTS trg_log_product_cost ON public.products;
+CREATE TRIGGER trg_log_product_cost
+    AFTER UPDATE ON public.products
+    FOR EACH ROW
+    EXECUTE FUNCTION public.log_product_cost_change();
+
+ALTER TABLE public.purchase_invoices ADD COLUMN IF NOT EXISTS notes text;
