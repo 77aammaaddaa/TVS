@@ -1,0 +1,46 @@
+<header class="site-header">
+  <a class="brand-lockup" href="#top" aria-label="Kleiv 8 home">
+    <span class="brand-mark" aria-hidden="true">8</span>
+    <span><strong>Kleiv 8</strong><small>Suez · Coffee & good company</small></span>
+  </a>
+
+  <nav class="header-actions" aria-label="Menu controls">
+    <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" title="Toggle ambient sound">
+      <span aria-hidden="true">♫</span><span class="sound-label">Sound off</span>
+    </button>
+    <button class="mode-toggle" id="mode-toggle" type="button" aria-pressed="false">
+      <span class="mode-toggle__dot" aria-hidden="true"></span>
+      <span id="mode-label">Vibe mode</span>
+    </button>
+    <button class="cart-trigger" id="open-cart-btn" type="button" aria-label="Open your order">
+      <span aria-hidden="true">Bag</span>
+      <span class="cart-trigger__count hidden" id="cart-badge">0</span>
+    </button>
+  </nav>
+</header>
+
+<script>
+  import { audioController } from '../scripts/audio-controller.js';
+
+  const toggle = document.querySelector('#mode-toggle');
+  const modeLabel = document.querySelector('#mode-label');
+  const soundButton = document.querySelector('#sound-toggle');
+  const soundLabel = soundButton?.querySelector('.sound-label');
+
+  toggle?.addEventListener('click', async () => {
+    const speedMode = document.body.dataset.mode !== 'speed';
+    document.body.dataset.mode = speedMode ? 'speed' : 'vibe';
+    toggle.setAttribute('aria-pressed', String(speedMode));
+    if (modeLabel) modeLabel.textContent = speedMode ? 'Speed mode' : 'Vibe mode';
+    if (speedMode) await audioController.pauseAmbient();
+    else await audioController.enableAmbient();
+    await audioController.playClick();
+  });
+
+  soundButton?.addEventListener('click', async () => {
+    const isOn = await audioController.toggleAmbient();
+    soundButton.setAttribute('aria-pressed', String(isOn));
+    if (soundLabel) soundLabel.textContent = isOn ? 'Sound on' : 'Sound off';
+    await audioController.playClick();
+  });
+</script>

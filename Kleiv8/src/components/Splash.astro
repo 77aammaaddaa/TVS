@@ -1,0 +1,31 @@
+<div class="splash" id="splash-screen" aria-label="Kleiv 8 welcome">
+  <button class="splash__enter" id="enter-experience" type="button" aria-label="Enter the Kleiv 8 menu">
+    <svg class="splash__mark" viewBox="0 0 120 120" role="img" aria-label="An eight becoming an infinity symbol">
+      <path
+        class="splash__stroke"
+        d="M60 60 C83 46 96 37 96 25 C96 12 83 7 70 12 C57 17 53 34 60 60 C67 86 63 103 50 108 C37 113 24 108 24 95 C24 83 37 74 60 60 C83 46 96 37 96 25 C96 12 83 7 70 12"
+      />
+    </svg>
+    <span class="splash__wordmark">Kleiv 8</span>
+    <span class="splash__hint">Tap to enter · صوت اختياري</span>
+  </button>
+</div>
+
+<script>
+  import { audioController } from '../scripts/audio-controller.js';
+
+  const splash = document.querySelector('#splash-screen');
+  const enterButton = document.querySelector('#enter-experience');
+  let dismissed = false;
+
+  async function dismissSplash() {
+    if (dismissed || !splash) return;
+    dismissed = true;
+    await audioController.playClick();
+    splash.classList.add('splash--dismissed');
+    window.setTimeout(() => splash.remove(), 550);
+  }
+
+  enterButton?.addEventListener('click', dismissSplash, { once: true });
+  window.setTimeout(dismissSplash, 1200);
+</script>

@@ -1,0 +1,140 @@
+<div class="drawer-backdrop" id="cart-backdrop" hidden></div>
+<aside class="cart-drawer" id="cart-drawer" aria-labelledby="cart-title" aria-hidden="true">
+  <div class="cart-drawer__header">
+    <div>
+      <p class="eyebrow">Order & pay at cashier</p>
+      <h2 id="cart-title">Your little list<span id="cart-item-count"></span></h2>
+    </div>
+    <button class="icon-button" id="close-cart-btn" type="button" aria-label="Close order">×</button>
+  </div>
+  <div class="cart-items" id="cart-items" aria-live="polite"></div>
+  <label class="notes-field" for="order-notes">
+    <span>A note for the barista <small>(optional)</small></span>
+    <textarea id="order-notes" rows="2" maxlength="180" placeholder="Milk preference, less ice…"></textarea>
+  </label>
+  <div class="cart-summary">
+    <p><span>Total</span><strong id="cart-total">0 EGP</strong></p>
+    <p class="cashier-note">Send your order, then pay at our counter.</p>
+    <button class="checkout-button" id="checkout-btn" type="button">
+      <span>Send to cashier on WhatsApp</span><span aria-hidden="true">↗</span>
+    </button>
+  </div>
+</aside>
+
+<script>
+  import { audioController } from '../scripts/audio-controller.js';
+  import { menuStore, CART_UPDATED_EVENT } from '../scripts/menu-store.js';
+  import { checkoutViaWhatsApp } from '../scripts/order-handler.js';
+
+  type CartItem = {
+    id: string;
+    name_en: string;
+    price: number;
+    emoji: string;
+    quantity: number;
+  };
+
+  const drawer = document.querySelector<HTMLElement>('#cart-drawer');
+  const backdrop = document.querySelector<HTMLDivElement>('#cart-backdrop');
+  const badge = document.querySelector<HTMLElement>('#cart-badge');
+  const cartItems = document.querySelector<HTMLElement>('#cart-items');
+  const cartTotal = document.querySelector<HTMLElement>('#cart-total');
+  const countLabel = document.querySelector<HTMLElement>('#cart-item-count');
+  const notes = document.querySelector<HTMLTextAreaElement>('#order-notes');
+  const formatter = new Intl.NumberFormat('en-EG', { maximumFractionDigits: 2 });
+
+  function setDrawerOpen(open: boolean) {
+    drawer?.classList.toggle('is-open', open);
+    drawer?.setAttribute('aria-hidden', String(!open));
+    if (backdrop) backdrop.hidden = !open;
+    document.body.classList.toggle('drawer-open', open);
+    if (open) document.querySelector<HTMLButtonElement>('#close-cart-btn')?.focus();
+    else document.querySelector<HTMLButtonElement>('#open-cart-btn')?.focus();
+  }
+
+  function renderCart(cart: CartItem[]) {
+    const quantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+    if (badge) {
+      badge.textContent = String(quantity);
+      badge.classList.toggle('hidden', quantity === 0);
+    }
+    if (countLabel) countLabel.textContent = quantity ? ` · ${quantity}` : '';
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    if (cartTotal) cartTotal.textContent = `${formatter.format(total)} EGP`;
+    if (!cartItems) return;
+
+    if (cart.length === 0) {
+      cartItems.innerHTML = '<div class="cart-empty"><span aria-hidden="true">☕</span><p>Your order is waiting for its first sip.</p><small>أضف شيئًا تحبه من القائمة</small></div>';
+      return;
+    }
+    cartItems.replaceChildren(...cart.map((item) => {
+      const row = document.createElement('article');
+      row.className = 'cart-line';
+      const emoji = document.createElement('span');
+      emoji.className = 'cart-line__emoji';
+      emoji.textContent = item.emoji || '☕';
+      emoji.setAttribute('aria-hidden', 'true');
+      const copy = document.createElement('div');
+      copy.className = 'cart-line__copy';
+      const name = document.createElement('strong');
+      name.textContent = item.name_en;
+      const amount = document.createElement('small');
+      amount.textContent = `${formatter.format(item.price)} EGP each`;
+      copy.append(name, amount);
+      const controls = document.createElement('div');
+      controls.className = 'quantity-control';
+      const decrement = document.createElement('button');
+      decrement.type = 'button';
+      decrement.dataset.change = '-1';
+      decrement.dataset.itemId = item.id;
+      decrement.setAttribute('aria-label', `Remove one ${item.name_en}`);
+      decrement.textContent = '−';
+      const value = document.createElement('span');
+      value.textContent = String(item.quantity);
+      const increment = document.createElement('button');
+      increment.type = 'button';
+      increment.dataset.change = '1';
+      increment.dataset.itemId = item.id;
+      increment.setAttribute('aria-label', `Add one ${item.name_en}`);
+      increment.textContent = '+';
+      controls.append(decrement, value, increment);
+      row.append(emoji, copy, controls);
+      return row;
+    }));
+  }
+
+  document.querySelector<HTMLButtonElement>('#open-cart-btn')?.addEventListener('click', async () => {
+    await audioController.playClick();
+    setDrawerOpen(true);
+  });
+  document.querySelector<HTMLButtonElement>('#close-cart-btn')?.addEventListener('click', () => setDrawerOpen(false));
+  backdrop?.addEventListener('click', () => setDrawerOpen(false));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && drawer?.classList.contains('is-open')) setDrawerOpen(false);
+  });
+
+  cartItems?.addEventListener('click', async (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest<HTMLButtonElement>('[data-change]');
+    if (!button) return;
+    menuStore.updateQuantity(button.dataset.itemId, Number(button.dataset.change));
+    await audioController.playClick(button.dataset.change === '1' ? 'add' : 'click');
+  });
+
+  document.querySelector('#checkout-btn')?.addEventListener('click', () => {
+    const result = checkoutViaWhatsApp(menuStore.getCart(), notes?.value ?? '');
+    if (!result.ok) {
+      if (result.reason === 'empty-cart') {
+        cartItems?.setAttribute('data-message', 'Add at least one item before sending your order.');
+        window.setTimeout(() => cartItems?.removeAttribute('data-message'), 2400);
+      }
+      return;
+    }
+    menuStore.clearCart();
+    if (notes) notes.value = '';
+  });
+
+  menuStore.subscribe(CART_UPDATED_EVENT, (event: CustomEvent<CartItem[]>) => renderCart(event.detail));
+  menuStore.init();
+</script>

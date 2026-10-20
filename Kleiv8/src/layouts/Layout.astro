@@ -1,0 +1,30 @@
+---
+import '../styles/global.css';
+import Splash from '../components/Splash.astro';
+import Header from '../components/Header.astro';
+import CartDrawer from '../components/CartDrawer.astro';
+import { SITE_CONFIG } from '../config/site.js';
+
+const { title = SITE_CONFIG.name, description = 'A little coffee ritual in Suez, Egypt.' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#213a23" />
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <title>{title} · Coffee, comfort & good company</title>
+  </head>
+  <body data-mode="vibe">
+    <a class="skip-link" href="#main-content">Skip to menu</a>
+    <Splash />
+    <Header />
+    <slot />
+    <CartDrawer />
+  </body>
+</html>

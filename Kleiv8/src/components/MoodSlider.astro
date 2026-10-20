@@ -1,0 +1,48 @@
+<section class="mood-panel" aria-labelledby="mood-title">
+  <div class="mood-panel__heading">
+    <div>
+      <p class="eyebrow">Choose your feeling</p>
+      <h2 id="mood-title">What’s the mood?</h2>
+    </div>
+    <span id="mood-current" class="mood-current">Chill</span>
+  </div>
+  <div class="mood-control">
+    <div class="mood-labels" aria-hidden="true">
+      <span data-mood-label="chill">Chill</span>
+      <span data-mood-label="focus">Focus</span>
+      <span data-mood-label="refresh">Refresh</span>
+    </div>
+    <input
+      id="mood-range"
+      type="range"
+      min="0"
+      max="2"
+      step="1"
+      value="0"
+      aria-label="Filter menu by mood"
+      aria-valuetext="Chill"
+    />
+  </div>
+</section>
+
+<script>
+  import { audioController } from '../scripts/audio-controller.js';
+
+  const slider = document.querySelector<HTMLInputElement>('#mood-range');
+  const moodNames = ['chill', 'focus', 'refresh'];
+  const moodLabels = ['Chill', 'Focus', 'Refresh'];
+  const currentMood = document.querySelector<HTMLElement>('#mood-current');
+
+  slider?.addEventListener('input', async () => {
+    const index = Number(slider.value);
+    const mood = moodNames[index] ?? 'chill';
+    const label = moodLabels[index] ?? 'Chill';
+    slider.setAttribute('aria-valuetext', label);
+    if (currentMood) currentMood.textContent = label;
+    document.querySelectorAll<HTMLElement>('[data-mood-label]').forEach((element) => {
+      element.classList.toggle('is-active', element.dataset.moodLabel === mood);
+    });
+    window.dispatchEvent(new CustomEvent('kleiv8:mood-change', { detail: { mood } }));
+    await audioController.playClick();
+  });
+</script>

@@ -1,0 +1,151 @@
+---
+import Menu from '../../public/data/default-menu.json';
+const initialMenu = Menu.filter((item) => item.status !== 'Hidden');
+---
+
+<section class="vibe-section" id="vibe-engine" aria-label="Featured menu, swipe horizontally">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">A little something for the moment</p>
+      <h2>Find your <em>ritual.</em></h2>
+    </div>
+    <span class="swipe-note">Swipe to explore <span aria-hidden="true">↔</span></span>
+  </div>
+  <div class="reel-window">
+    <div class="menu-reel" id="menu-reel" aria-live="polite">
+      {initialMenu.map((item) => (
+        <article class="vibe-card" data-id={item.id} data-mood={item.mood}>
+          <div class="vibe-card__top">
+            <span class="vibe-card__emoji" aria-hidden="true">{item.emoji}</span>
+            <span class="product-badge">{item.badge || item.category}</span>
+          </div>
+          <div class="vibe-card__copy">
+            <p class="arabic-name" lang="ar" dir="rtl">{item.name_ar}</p>
+            <h3>{item.name_en}</h3>
+            <p>{item.description}</p>
+          </div>
+          <div class="vibe-card__bottom">
+            <strong>{item.price} <small>EGP</small></strong>
+            <button class="add-button" type="button" data-add-item={item.id} aria-label={`Add ${item.name_en} to order`}>+</button>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  import Menu from '../../public/data/default-menu.json';
+  import { audioController } from '../scripts/audio-controller.js';
+  import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
+
+  type MenuItem = {
+    id: string;
+    name_en: string;
+    name_ar: string;
+    description: string;
+    price: number;
+    category: string;
+    mood: string;
+    mood_scores?: Record<string, number>;
+    emoji?: string;
+    badge?: string;
+    status: string;
+  };
+
+  const menu: MenuItem[] = Menu;
+  const reel = document.querySelector<HTMLElement>('#menu-reel');
+  let activeMood = 'chill';
+
+  function renderReel(items: MenuItem[]) {
+    if (!reel) return;
+    const visible = items.filter((item) => item.status !== 'Sold Out');
+    const displayItems = [...visible, ...visible];
+    reel.replaceChildren(...displayItems.map((item, index) => {
+      const card = document.createElement('article');
+      card.className = 'vibe-card';
+      card.dataset.id = item.id;
+      card.dataset.mood = item.mood;
+      card.dataset.moodScores = JSON.stringify(item.mood_scores ?? {});
+      card.setAttribute('aria-label', `${item.name_en}, ${item.name_ar}`);
+      const top = document.createElement('div');
+      top.className = 'vibe-card__top';
+      const emoji = document.createElement('span');
+      emoji.className = 'vibe-card__emoji';
+      emoji.textContent = item.emoji || '☕';
+      emoji.setAttribute('aria-hidden', 'true');
+      const badge = document.createElement('span');
+      badge.className = 'product-badge';
+      badge.textContent = item.badge || item.category;
+      top.append(emoji, badge);
+      const copy = document.createElement('div');
+      copy.className = 'vibe-card__copy';
+      const arabic = document.createElement('p');
+      arabic.className = 'arabic-name';
+      arabic.lang = 'ar';
+      arabic.dir = 'rtl';
+      arabic.textContent = item.name_ar;
+      const title = document.createElement('h3');
+      title.textContent = item.name_en;
+      const description = document.createElement('p');
+      description.textContent = item.description;
+      copy.append(arabic, title, description);
+      const bottom = document.createElement('div');
+      bottom.className = 'vibe-card__bottom';
+      const price = document.createElement('strong');
+      price.innerHTML = `${item.price} <small>EGP</small>`;
+      const add = document.createElement('button');
+      add.className = 'add-button';
+      add.type = 'button';
+      add.dataset.addItem = item.id;
+      add.setAttribute('aria-label', `Add ${item.name_en} to order`);
+      add.textContent = '+';
+      bottom.append(price, add);
+      card.append(top, copy, bottom);
+      if (index >= visible.length) {
+        card.setAttribute('aria-hidden', 'true');
+        add.tabIndex = -1;
+        add.disabled = true;
+      }
+      return card;
+    }));
+    applyMood(activeMood);
+  }
+
+  function applyMood(mood: string) {
+    activeMood = mood;
+    reel?.querySelectorAll<HTMLElement>('.vibe-card').forEach((card) => {
+      let scores: Record<string, number> = {};
+      try {
+        scores = JSON.parse(card.dataset.moodScores || '{}');
+      } catch {
+        scores = {};
+      }
+      const matches = card.dataset.mood === mood || Number(scores[mood] ?? 0) >= 60;
+      card.classList.toggle('is-mood-match', matches);
+      card.classList.toggle('is-mood-muted', !matches);
+      card.hidden = !matches;
+    });
+  }
+
+  reel?.addEventListener('click', async (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest<HTMLButtonElement>('[data-add-item]');
+    if (!button) return;
+    const item = menuStore.getMenu().find((entry) => entry.id === button.dataset.addItem)
+      ?? menu.find((entry) => entry.id === button.dataset.addItem);
+    if (!item) return;
+    menuStore.addToCart(item);
+    await audioController.playClick('add');
+    button.classList.add('is-added');
+    window.setTimeout(() => button.classList.remove('is-added'), 350);
+  });
+
+  window.addEventListener('kleiv8:mood-change', (event: Event) => {
+    const moodEvent = event as CustomEvent<{ mood?: string }>;
+    applyMood(moodEvent.detail?.mood ?? 'chill');
+  });
+  menuStore.subscribe(MENU_UPDATED_EVENT, (event: CustomEvent<MenuItem[]>) => renderReel(event.detail));
+  menuStore.init(menu);
+</script>

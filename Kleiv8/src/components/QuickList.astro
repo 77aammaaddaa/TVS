@@ -1,0 +1,153 @@
+---
+import Menu from '../../public/data/default-menu.json';
+const categories = [...new Set(Menu.map((item) => item.category))];
+---
+
+<section class="speed-section" id="speed-engine" aria-label="Quick order menu">
+  <div class="section-heading speed-heading">
+    <div>
+      <p class="eyebrow">Quick list · counter ready</p>
+      <h2>Pick. Pay. <em>Enjoy.</em></h2>
+    </div>
+    <label class="search-field">
+      <span class="sr-only">Search the menu</span>
+      <span aria-hidden="true">⌕</span>
+      <input id="menu-search" type="search" placeholder="Search / ابحث" autocomplete="off" />
+    </label>
+  </div>
+  <div class="category-tabs" id="category-tabs" aria-label="Filter by category">
+    <button class="category-tab is-selected" type="button" data-category="all" aria-pressed="true">Everything</button>
+    {categories.map((category) => (
+      <button class="category-tab" type="button" data-category={category} aria-pressed="false">{category}</button>
+    ))}
+  </div>
+  <div class="quick-list" id="quick-list">
+    {Menu.filter((item) => item.status !== 'Hidden').map((item) => (
+      <article class="quick-item" data-id={item.id} data-category={item.category} data-name={`${item.name_en} ${item.name_ar}`.toLowerCase()}>
+        <span class="quick-item__emoji" aria-hidden="true">{item.emoji}</span>
+        <div class="quick-item__copy">
+          <strong>{item.name_en}</strong>
+          <span lang="ar" dir="rtl">{item.name_ar}</span>
+          <small>{item.category}</small>
+        </div>
+        <strong class="quick-item__price">{item.price} <small>EGP</small></strong>
+        <button class="quick-add" type="button" data-add-item={item.id} aria-label={`Add ${item.name_en} to order`}>Add</button>
+      </article>
+    ))}
+  </div>
+  <p class="empty-search hidden" id="empty-search">No menu items match your search.</p>
+</section>
+
+<script>
+  import Menu from '../../public/data/default-menu.json';
+  import { audioController } from '../scripts/audio-controller.js';
+  import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
+
+  type MenuItem = {
+    id: string;
+    category: string;
+    name_en: string;
+    name_ar: string;
+    description: string;
+    price: number;
+    status: string;
+    emoji?: string;
+  };
+
+  const fallback: MenuItem[] = Menu;
+  const list = document.querySelector<HTMLElement>('#quick-list');
+  const search = document.querySelector<HTMLInputElement>('#menu-search');
+  const emptyMessage = document.querySelector<HTMLElement>('#empty-search');
+  let selectedCategory = 'all';
+  let searchTerm = '';
+
+  function renderItems(items: MenuItem[]) {
+    if (!list) return;
+    list.replaceChildren(...items.filter((item) => item.status !== 'Hidden').map((item) => {
+      const row = document.createElement('article');
+      row.className = `quick-item${item.status === 'Sold Out' ? ' is-sold-out' : ''}`;
+      row.dataset.id = item.id;
+      row.dataset.category = item.category;
+      row.dataset.name = `${item.name_en} ${item.name_ar}`.toLowerCase();
+      const emoji = document.createElement('span');
+      emoji.className = 'quick-item__emoji';
+      emoji.textContent = item.emoji || '☕';
+      emoji.setAttribute('aria-hidden', 'true');
+      const copy = document.createElement('div');
+      copy.className = 'quick-item__copy';
+      const title = document.createElement('strong');
+      title.textContent = item.name_en;
+      const arabic = document.createElement('span');
+      arabic.lang = 'ar';
+      arabic.dir = 'rtl';
+      arabic.textContent = item.name_ar;
+      const category = document.createElement('small');
+      category.textContent = item.category;
+      copy.append(title, arabic, category);
+      const price = document.createElement('strong');
+      price.className = 'quick-item__price';
+      price.textContent = `${item.price} EGP`;
+      const add = document.createElement('button');
+      add.className = 'quick-add';
+      add.type = 'button';
+      add.dataset.addItem = item.id;
+      add.disabled = item.status === 'Sold Out';
+      add.textContent = item.status === 'Sold Out' ? 'Sold out' : 'Add';
+      add.setAttribute('aria-label', `Add ${item.name_en} to order`);
+      row.append(emoji, copy, price, add);
+      return row;
+    }));
+    filterItems();
+  }
+
+  function filterItems() {
+    let visibleCount = 0;
+    list?.querySelectorAll<HTMLElement>('.quick-item').forEach((row) => {
+      const matchesCategory = selectedCategory === 'all' || row.dataset.category === selectedCategory;
+      const matchesSearch = row.dataset.name?.includes(searchTerm) ?? false;
+      const visible = matchesCategory && matchesSearch;
+      row.hidden = !visible;
+      if (visible) visibleCount += 1;
+    });
+    emptyMessage?.classList.toggle('hidden', visibleCount > 0);
+  }
+
+  search?.addEventListener('input', () => {
+    searchTerm = search.value.trim().toLocaleLowerCase();
+    filterItems();
+  });
+
+  document.querySelector('#category-tabs')?.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest<HTMLButtonElement>('[data-category]');
+    if (!button) return;
+    const category = button.dataset.category;
+    if (!category) return;
+    selectedCategory = category;
+    document.querySelectorAll<HTMLButtonElement>('.category-tab').forEach((tab) => {
+      const selected = tab === button;
+      tab.classList.toggle('is-selected', selected);
+      tab.setAttribute('aria-pressed', String(selected));
+    });
+    filterItems();
+  });
+
+  list?.addEventListener('click', async (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest<HTMLButtonElement>('[data-add-item]');
+    if (!button || button.disabled) return;
+    const item = menuStore.getMenu().find((entry) => entry.id === button.dataset.addItem);
+    if (!item) return;
+    menuStore.addToCart(item);
+    await audioController.playClick('add');
+    button.textContent = 'Added';
+    window.setTimeout(() => {
+      if (button.isConnected) button.textContent = 'Add';
+    }, 700);
+  });
+
+  menuStore.subscribe(MENU_UPDATED_EVENT, (event: CustomEvent<MenuItem[]>) => renderItems(event.detail));
+  menuStore.init(fallback);
+</script>

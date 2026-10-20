@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+import MoodSlider from '../components/MoodSlider.astro';
+import VibeCanvas from '../components/VibeCanvas.astro';
+import QuickList from '../components/QuickList.astro';
+---
+
+<Layout
+  title="Kleiv 8"
+  description="Explore the Kleiv 8 coffee and comfort menu in Suez. Order at the counter and pay in Egyptian Pounds."
+>
+  <main id="main-content">
+    <section class="hero" id="top">
+      <div class="hero__copy">
+        <p class="eyebrow"><span class="status-dot"></span> Specialty coffee · Suez, Egypt</p>
+        <h1>Enjoy coffee.<br /><em>Enjoy the moment.</em></h1>
+        <p class="hero__description">Find your familiar favourite or discover a new little ritual. Pick your order here, then pay at the counter.</p>
+        <div class="hero__actions">
+          <a class="button-primary" href="#vibe-engine">Explore the menu <span aria-hidden="true">↓</span></a>
+          <span class="payment-note"><span aria-hidden="true">◉</span> Counter service · Pay in EGP</span>
+        </div>
+        <div class="hero__arabic" lang="ar" dir="rtl">قهوة على مزاجك، ولحظات تشبهك</div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="hero-art__sun"></div>
+        <div class="hero-art__ring"></div>
+        <div class="hero-art__cup"><span>8</span></div>
+        <div class="hero-art__bean hero-art__bean--one"></div>
+        <div class="hero-art__bean hero-art__bean--two"></div>
+        <span class="hero-art__caption">BREWED FOR YOUR MOMENT</span>
+      </div>
+    </section>
+
+    <div class="content-wrap">
+      <MoodSlider />
+      <VibeCanvas />
+      <QuickList />
+    </div>
+
+    <section class="counter-callout">
+      <span class="counter-callout__icon" aria-hidden="true">✳</span>
+      <div>
+        <p class="eyebrow">Easy does it</p>
+        <h2>Order here. Pay at the counter.</h2>
+        <p>Your WhatsApp message helps our baristas prepare your order. Payment and pickup happen in store.</p>
+      </div>
+      <a href={`https://wa.me/${'201023328432'}`} target="_blank" rel="noreferrer">Say hello <span aria-hidden="true">↗</span></a>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <a class="footer-brand" href="#top">Kleiv <span>8</span></a>
+    <p>Made for coffee, comfort & good company.</p>
+    <span>Suez, Egypt · All prices in EGP</span>
+  </footer>
+</Layout>
