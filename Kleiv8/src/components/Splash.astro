@@ -1,31 +1,43 @@
 <div class="splash" id="splash-screen" aria-label="Kleiv 8 welcome">
-  <button class="splash__enter" id="enter-experience" type="button" aria-label="Enter the Kleiv 8 menu">
+  <div class="splash__atmosphere" aria-hidden="true"></div>
+  <div class="splash__content">
+    <p class="splash__eyebrow">KLEIV 8 · SUEZ</p>
     <svg class="splash__mark" viewBox="0 0 120 120" role="img" aria-label="An eight becoming an infinity symbol">
-      <path
-        class="splash__stroke"
-        d="M60 60 C83 46 96 37 96 25 C96 12 83 7 70 12 C57 17 53 34 60 60 C67 86 63 103 50 108 C37 113 24 108 24 95 C24 83 37 74 60 60 C83 46 96 37 96 25 C96 12 83 7 70 12"
-      />
+      <defs>
+        <filter id="eight-glow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="3.5" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+      <path class="splash__halo" d="M60 60 C42 40 42 16 60 16 C78 16 78 40 60 60 C42 80 42 104 60 104 C78 104 78 80 60 60" />
+      <path class="splash__stroke" filter="url(#eight-glow)" d="M60 60 C42 40 42 16 60 16 C78 16 78 40 60 60 C42 80 42 104 60 104 C78 104 78 80 60 60">
+        <animate attributeName="d" dur="5.8s" repeatCount="indefinite" calcMode="spline" keySplines=".5 0 .3 1;.5 0 .3 1" values="M60 60 C42 40 42 16 60 16 C78 16 78 40 60 60 C42 80 42 104 60 104 C78 104 78 80 60 60;M60 60 C44 42 16 42 16 60 C16 78 44 78 60 60 C76 42 104 42 104 60 C104 78 76 78 60 60;M60 60 C42 40 42 16 60 16 C78 16 78 40 60 60 C42 80 42 104 60 104 C78 104 78 80 60 60" />
+      </path>
     </svg>
-    <span class="splash__wordmark">Kleiv 8</span>
-    <span class="splash__hint">Tap to enter · صوت اختياري</span>
-  </button>
+    <h1 class="splash__wordmark">Kleiv <em>8</em></h1>
+    <p class="splash__copy">Coffee, comfort, and the right kind of pause.</p>
+    <button class="splash__enter" id="enter-experience" type="button">
+      <span aria-hidden="true">✨</span> اضغط للدخول واضبط المزاج <i>·</i> Enter with Vibes
+    </button>
+  </div>
 </div>
 
 <script>
   import { audioController } from '../scripts/audio-controller.js';
 
-  const splash = document.querySelector('#splash-screen');
-  const enterButton = document.querySelector('#enter-experience');
-  let dismissed = false;
+  const splash = document.querySelector<HTMLElement>('#splash-screen');
+  const enterButton = document.querySelector<HTMLButtonElement>('#enter-experience');
+  let leaving = false;
 
-  async function dismissSplash() {
-    if (dismissed || !splash) return;
-    dismissed = true;
-    await audioController.playClick();
-    splash.classList.add('splash--dismissed');
-    window.setTimeout(() => splash.remove(), 550);
+  async function enterExperience() {
+    if (leaving || !splash || !enterButton) return;
+    leaving = true;
+    enterButton.disabled = true;
+    await audioController.enterExperience();
+    splash.classList.add('splash--leaving');
+    splash.setAttribute('aria-hidden', 'true');
+    window.setTimeout(() => splash.remove(), 700);
   }
 
-  enterButton?.addEventListener('click', dismissSplash, { once: true });
-  window.setTimeout(dismissSplash, 1200);
+  enterButton?.addEventListener('click', enterExperience, { once: true });
 </script>

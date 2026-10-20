@@ -1,5 +1,6 @@
 ---
 import Menu from '../../public/data/default-menu.json';
+import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
 const categories = [...new Set(Menu.map((item) => item.category))];
 ---
 
@@ -24,7 +25,7 @@ const categories = [...new Set(Menu.map((item) => item.category))];
   <div class="quick-list" id="quick-list">
     {Menu.filter((item) => item.status !== 'Hidden').map((item) => (
       <article class="quick-item" data-id={item.id} data-category={item.category} data-name={`${item.name_en} ${item.name_ar}`.toLowerCase()}>
-        <span class="quick-item__emoji" aria-hidden="true">{item.emoji}</span>
+        <div class="quick-item__doodle" set:html={getDoodleMarkup(doodleForMenuItem(item))}></div>
         <div class="quick-item__copy">
           <strong>{item.name_en}</strong>
           <span lang="ar" dir="rtl">{item.name_ar}</span>
@@ -40,7 +41,7 @@ const categories = [...new Set(Menu.map((item) => item.category))];
 
 <script>
   import Menu from '../../public/data/default-menu.json';
-  import { audioController } from '../scripts/audio-controller.js';
+  import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
   import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
 
   type MenuItem = {
@@ -69,10 +70,9 @@ const categories = [...new Set(Menu.map((item) => item.category))];
       row.dataset.id = item.id;
       row.dataset.category = item.category;
       row.dataset.name = `${item.name_en} ${item.name_ar}`.toLowerCase();
-      const emoji = document.createElement('span');
-      emoji.className = 'quick-item__emoji';
-      emoji.textContent = item.emoji || '☕';
-      emoji.setAttribute('aria-hidden', 'true');
+      const doodle = document.createElement('div');
+      doodle.className = 'quick-item__doodle';
+      doodle.innerHTML = getDoodleMarkup(doodleForMenuItem(item));
       const copy = document.createElement('div');
       copy.className = 'quick-item__copy';
       const title = document.createElement('strong');
@@ -94,7 +94,7 @@ const categories = [...new Set(Menu.map((item) => item.category))];
       add.disabled = item.status === 'Sold Out';
       add.textContent = item.status === 'Sold Out' ? 'Sold out' : 'Add';
       add.setAttribute('aria-label', `Add ${item.name_en} to order`);
-      row.append(emoji, copy, price, add);
+      row.append(doodle, copy, price, add);
       return row;
     }));
     filterItems();
@@ -141,7 +141,6 @@ const categories = [...new Set(Menu.map((item) => item.category))];
     const item = menuStore.getMenu().find((entry) => entry.id === button.dataset.addItem);
     if (!item) return;
     menuStore.addToCart(item);
-    await audioController.playClick('add');
     button.textContent = 'Added';
     window.setTimeout(() => {
       if (button.isConnected) button.textContent = 'Add';

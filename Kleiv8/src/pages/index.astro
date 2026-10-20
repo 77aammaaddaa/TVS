@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import MoodSlider from '../components/MoodSlider.astro';
 import VibeCanvas from '../components/VibeCanvas.astro';
 import QuickList from '../components/QuickList.astro';
+import { getDoodleMarkup } from '../scripts/doodles.js';
 ---
 
 <Layout
@@ -24,9 +25,10 @@ import QuickList from '../components/QuickList.astro';
       <div class="hero-art" aria-hidden="true">
         <div class="hero-art__sun"></div>
         <div class="hero-art__ring"></div>
-        <div class="hero-art__cup"><span>8</span></div>
-        <div class="hero-art__bean hero-art__bean--one"></div>
-        <div class="hero-art__bean hero-art__bean--two"></div>
+        <div class="hero-art__doodle hero-art__latte" set:html={getDoodleMarkup('iced-latte')}></div>
+        <div class="hero-art__doodle hero-art__croissant" set:html={getDoodleMarkup('croissant')}></div>
+        <div class="hero-art__doodle hero-art__portafilter" set:html={getDoodleMarkup('portafilter')}></div>
+        <div class="hero-art__doodle hero-art__ice" set:html={getDoodleMarkup('ice')}></div>
         <span class="hero-art__caption">BREWED FOR YOUR MOMENT</span>
       </div>
     </section>

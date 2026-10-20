@@ -1,5 +1,6 @@
 ---
 import Menu from '../../public/data/default-menu.json';
+import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
 const initialMenu = Menu.filter((item) => item.status !== 'Hidden');
 ---
 
@@ -16,7 +17,7 @@ const initialMenu = Menu.filter((item) => item.status !== 'Hidden');
       {initialMenu.map((item) => (
         <article class="vibe-card" data-id={item.id} data-mood={item.mood}>
           <div class="vibe-card__top">
-            <span class="vibe-card__emoji" aria-hidden="true">{item.emoji}</span>
+            <div class="vibe-card__doodle" set:html={getDoodleMarkup(doodleForMenuItem(item))}></div>
             <span class="product-badge">{item.badge || item.category}</span>
           </div>
           <div class="vibe-card__copy">
@@ -36,7 +37,7 @@ const initialMenu = Menu.filter((item) => item.status !== 'Hidden');
 
 <script>
   import Menu from '../../public/data/default-menu.json';
-  import { audioController } from '../scripts/audio-controller.js';
+  import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
   import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
 
   type MenuItem = {
@@ -70,14 +71,13 @@ const initialMenu = Menu.filter((item) => item.status !== 'Hidden');
       card.setAttribute('aria-label', `${item.name_en}, ${item.name_ar}`);
       const top = document.createElement('div');
       top.className = 'vibe-card__top';
-      const emoji = document.createElement('span');
-      emoji.className = 'vibe-card__emoji';
-      emoji.textContent = item.emoji || '☕';
-      emoji.setAttribute('aria-hidden', 'true');
+      const doodle = document.createElement('div');
+      doodle.className = 'vibe-card__doodle';
+      doodle.innerHTML = getDoodleMarkup(doodleForMenuItem(item));
       const badge = document.createElement('span');
       badge.className = 'product-badge';
       badge.textContent = item.badge || item.category;
-      top.append(emoji, badge);
+      top.append(doodle, badge);
       const copy = document.createElement('div');
       copy.className = 'vibe-card__copy';
       const arabic = document.createElement('p');
@@ -137,9 +137,30 @@ const initialMenu = Menu.filter((item) => item.status !== 'Hidden');
       ?? menu.find((entry) => entry.id === button.dataset.addItem);
     if (!item) return;
     menuStore.addToCart(item);
-    await audioController.playClick('add');
     button.classList.add('is-added');
+    popAddParticles(button);
     window.setTimeout(() => button.classList.remove('is-added'), 350);
+  });
+
+  function popAddParticles(button: HTMLButtonElement) {
+    const burst = document.createElement('span');
+    burst.className = 'add-particles';
+    for (let index = 0; index < 6; index += 1) {
+      const particle = document.createElement('i');
+      particle.style.setProperty('--particle-angle', `${index * 60}deg`);
+      burst.append(particle);
+    }
+    button.append(burst);
+    window.setTimeout(() => burst.remove(), 520);
+  }
+
+  reel?.addEventListener('pointerdown', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const card = target.closest<HTMLElement>('.vibe-card');
+    if (!card) return;
+    card.classList.add('is-tapped');
+    window.setTimeout(() => card.classList.remove('is-tapped'), 260);
   });
 
   window.addEventListener('kleiv8:mood-change', (event: Event) => {

@@ -22,7 +22,7 @@
 </aside>
 
 <script>
-  import { audioController } from '../scripts/audio-controller.js';
+  import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
   import { menuStore, CART_UPDATED_EVENT } from '../scripts/menu-store.js';
   import { checkoutViaWhatsApp } from '../scripts/order-handler.js';
 
@@ -70,10 +70,9 @@
     cartItems.replaceChildren(...cart.map((item) => {
       const row = document.createElement('article');
       row.className = 'cart-line';
-      const emoji = document.createElement('span');
-      emoji.className = 'cart-line__emoji';
-      emoji.textContent = item.emoji || '☕';
-      emoji.setAttribute('aria-hidden', 'true');
+      const doodle = document.createElement('div');
+      doodle.className = 'cart-line__doodle';
+      doodle.innerHTML = getDoodleMarkup(doodleForMenuItem(item));
       const copy = document.createElement('div');
       copy.className = 'cart-line__copy';
       const name = document.createElement('strong');
@@ -98,13 +97,12 @@
       increment.setAttribute('aria-label', `Add one ${item.name_en}`);
       increment.textContent = '+';
       controls.append(decrement, value, increment);
-      row.append(emoji, copy, controls);
+      row.append(doodle, copy, controls);
       return row;
     }));
   }
 
-  document.querySelector<HTMLButtonElement>('#open-cart-btn')?.addEventListener('click', async () => {
-    await audioController.playClick();
+  document.querySelector<HTMLButtonElement>('#open-cart-btn')?.addEventListener('click', () => {
     setDrawerOpen(true);
   });
   document.querySelector<HTMLButtonElement>('#close-cart-btn')?.addEventListener('click', () => setDrawerOpen(false));
@@ -119,7 +117,6 @@
     const button = target.closest<HTMLButtonElement>('[data-change]');
     if (!button) return;
     menuStore.updateQuantity(button.dataset.itemId, Number(button.dataset.change));
-    await audioController.playClick(button.dataset.change === '1' ? 'add' : 'click');
   });
 
   document.querySelector('#checkout-btn')?.addEventListener('click', () => {

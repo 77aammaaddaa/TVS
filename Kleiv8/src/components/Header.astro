@@ -5,8 +5,9 @@
   </a>
 
   <nav class="header-actions" aria-label="Menu controls">
-    <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" title="Toggle ambient sound">
-      <span aria-hidden="true">♫</span><span class="sound-label">Sound off</span>
+    <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" aria-label="Toggle ambient sound" title="Toggle ambient sound">
+      <span class="sound-visualizer" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="sr-only" id="sound-status">Ambient sound muted</span>
     </button>
     <button class="mode-toggle" id="mode-toggle" type="button" aria-pressed="false">
       <span class="mode-toggle__dot" aria-hidden="true"></span>
@@ -22,10 +23,15 @@
 <script>
   import { audioController } from '../scripts/audio-controller.js';
 
-  const toggle = document.querySelector('#mode-toggle');
-  const modeLabel = document.querySelector('#mode-label');
-  const soundButton = document.querySelector('#sound-toggle');
-  const soundLabel = soundButton?.querySelector('.sound-label');
+  const toggle = document.querySelector<HTMLButtonElement>('#mode-toggle');
+  const modeLabel = document.querySelector<HTMLElement>('#mode-label');
+  const soundButton = document.querySelector<HTMLButtonElement>('#sound-toggle');
+  const soundStatus = document.querySelector<HTMLElement>('#sound-status');
+
+  function updateSoundState(playing: boolean) {
+    soundButton?.setAttribute('aria-pressed', String(playing));
+    if (soundStatus) soundStatus.textContent = playing ? 'Ambient sound playing' : 'Ambient sound muted';
+  }
 
   toggle?.addEventListener('click', async () => {
     const speedMode = document.body.dataset.mode !== 'speed';
@@ -34,13 +40,14 @@
     if (modeLabel) modeLabel.textContent = speedMode ? 'Speed mode' : 'Vibe mode';
     if (speedMode) await audioController.pauseAmbient();
     else await audioController.enableAmbient();
-    await audioController.playClick();
   });
 
   soundButton?.addEventListener('click', async () => {
-    const isOn = await audioController.toggleAmbient();
-    soundButton.setAttribute('aria-pressed', String(isOn));
-    if (soundLabel) soundLabel.textContent = isOn ? 'Sound on' : 'Sound off';
-    await audioController.playClick();
+    updateSoundState(await audioController.toggleAmbient());
   });
+
+  window.addEventListener('kleiv8:audio-change', (event: Event) => {
+    updateSoundState(Boolean((event as CustomEvent<{ playing?: boolean }>).detail?.playing));
+  });
+  updateSoundState(audioController.isPlaying);
 </script>

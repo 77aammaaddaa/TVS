@@ -26,14 +26,12 @@
 </section>
 
 <script>
-  import { audioController } from '../scripts/audio-controller.js';
-
   const slider = document.querySelector<HTMLInputElement>('#mood-range');
   const moodNames = ['chill', 'focus', 'refresh'];
   const moodLabels = ['Chill', 'Focus', 'Refresh'];
   const currentMood = document.querySelector<HTMLElement>('#mood-current');
 
-  slider?.addEventListener('input', async () => {
+  slider?.addEventListener('input', () => {
     const index = Number(slider.value);
     const mood = moodNames[index] ?? 'chill';
     const label = moodLabels[index] ?? 'Chill';
@@ -43,6 +41,5 @@
       element.classList.toggle('is-active', element.dataset.moodLabel === mood);
     });
     window.dispatchEvent(new CustomEvent('kleiv8:mood-change', { detail: { mood } }));
-    await audioController.playClick();
   });
 </script>
