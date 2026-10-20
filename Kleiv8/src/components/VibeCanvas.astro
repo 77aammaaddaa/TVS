@@ -1,37 +1,61 @@
 ---
 import Menu from '../../public/data/default-menu.json';
 import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
-const initialMenu = Menu.filter((item) => item.status !== 'Hidden');
+
+const activeMenu = Menu.filter((item) => item.status !== 'Hidden');
+const filmStripItems = [...activeMenu, ...activeMenu];
 ---
 
-<section class="vibe-section" id="vibe-engine" aria-label="Featured menu, swipe horizontally">
-  <div class="section-heading">
+<section class="film-strip-section vibe-section" id="vibe-engine" aria-label="Featured endless menu reel">
+  <div class="film-header">
     <div>
-      <p class="eyebrow">A little something for the moment</p>
-      <h2>Find your <em>ritual.</em></h2>
+      <span class="film-badge">THE ENDLESS REEL ∞</span>
+      <h2>Curated Sips & <em>Bites.</em></h2>
     </div>
-    <span class="swipe-note">Swipe to explore <span aria-hidden="true">↔</span></span>
+    <span class="swipe-note">Hover or touch to pause <span aria-hidden="true">↔</span></span>
   </div>
-  <div class="reel-window">
-    <div class="menu-reel" id="menu-reel" aria-live="polite">
-      {initialMenu.map((item) => (
-        <article class="vibe-card" data-id={item.id} data-mood={item.mood}>
-          <div class="vibe-card__top">
-            <div class="vibe-card__doodle" set:html={getDoodleMarkup(doodleForMenuItem(item))}></div>
-            <span class="product-badge">{item.badge || item.category}</span>
+
+  <div class="film-track-container">
+    <div class="film-sprockets" aria-hidden="true"></div>
+
+    <div class="film-marquee" id="film-marquee" aria-live="polite">
+      {filmStripItems.map((item, index) => (
+        <article
+          class="film-card"
+          data-id={item.id}
+          data-mood={item.mood}
+          data-mood-scores={JSON.stringify(item.mood_scores ?? {})}
+          aria-hidden={index >= activeMenu.length ? 'true' : undefined}
+        >
+          <div class="film-card__top">
+            <span class="film-card__badge">{item.badge || item.category}</span>
+            <span class="film-card__frame">0{(index % activeMenu.length) + 1} ∞</span>
           </div>
-          <div class="vibe-card__copy">
-            <p class="arabic-name" lang="ar" dir="rtl">{item.name_ar}</p>
+
+          <div class="film-card__visual">
+            <div class="vibe-card__doodle" set:html={getDoodleMarkup(doodleForMenuItem(item))}></div>
+          </div>
+
+          <div class="film-card__details">
             <h3>{item.name_en}</h3>
             <p>{item.description}</p>
           </div>
-          <div class="vibe-card__bottom">
-            <strong>{item.price} <small>EGP</small></strong>
-            <button class="add-button" type="button" data-add-item={item.id} aria-label={`Add ${item.name_en} to order`}>+</button>
+
+          <div class="film-card__footer">
+            <strong class="price-val">{item.price} <small>EGP</small></strong>
+            <button
+              class="add-button"
+              type="button"
+              data-add-item={item.id}
+              tabindex={index >= activeMenu.length ? -1 : 0}
+              aria-label={`Add ${item.name_en} to bag`}
+            >+</button>
           </div>
         </article>
       ))}
     </div>
+
+    <div class="film-sprockets" aria-hidden="true"></div>
   </div>
 </section>
 
@@ -39,134 +63,129 @@ const initialMenu = Menu.filter((item) => item.status !== 'Hidden');
   import Menu from '../../public/data/default-menu.json';
   import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
   import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
+  import { audioController } from '../scripts/audio-controller.js';
 
   type MenuItem = {
     id: string;
     name_en: string;
-    name_ar: string;
     description: string;
     price: number;
     category: string;
     mood: string;
     mood_scores?: Record<string, number>;
-    emoji?: string;
     badge?: string;
     status: string;
   };
 
-  const menu: MenuItem[] = Menu;
-  const reel = document.querySelector<HTMLElement>('#menu-reel');
+  const initialMenu: MenuItem[] = Menu;
+  const marquee = document.querySelector<HTMLElement>('#film-marquee');
   let activeMood = 'chill';
 
-  function renderReel(items: MenuItem[]) {
-    if (!reel) return;
-    const visible = items.filter((item) => item.status !== 'Sold Out');
-    const displayItems = [...visible, ...visible];
-    reel.replaceChildren(...displayItems.map((item, index) => {
+  function renderFilmStrip(items: MenuItem[]) {
+    if (!marquee) return;
+    const visible = items.filter((item) => item.status !== 'Sold Out' && item.status !== 'Hidden');
+    const loopItems = [...visible, ...visible];
+
+    marquee.replaceChildren(...loopItems.map((item, index) => {
       const card = document.createElement('article');
-      card.className = 'vibe-card';
+      card.className = 'film-card';
       card.dataset.id = item.id;
       card.dataset.mood = item.mood;
       card.dataset.moodScores = JSON.stringify(item.mood_scores ?? {});
-      card.setAttribute('aria-label', `${item.name_en}, ${item.name_ar}`);
+      if (index >= visible.length) card.setAttribute('aria-hidden', 'true');
+
       const top = document.createElement('div');
-      top.className = 'vibe-card__top';
+      top.className = 'film-card__top';
+      const badge = document.createElement('span');
+      badge.className = 'film-card__badge';
+      badge.textContent = item.badge || item.category;
+      const frame = document.createElement('span');
+      frame.className = 'film-card__frame';
+      frame.textContent = `0${(index % visible.length) + 1} ∞`;
+      top.append(badge, frame);
+
+      const visual = document.createElement('div');
+      visual.className = 'film-card__visual';
       const doodle = document.createElement('div');
       doodle.className = 'vibe-card__doodle';
       doodle.innerHTML = getDoodleMarkup(doodleForMenuItem(item));
-      const badge = document.createElement('span');
-      badge.className = 'product-badge';
-      badge.textContent = item.badge || item.category;
-      top.append(doodle, badge);
-      const copy = document.createElement('div');
-      copy.className = 'vibe-card__copy';
-      const arabic = document.createElement('p');
-      arabic.className = 'arabic-name';
-      arabic.lang = 'ar';
-      arabic.dir = 'rtl';
-      arabic.textContent = item.name_ar;
+      visual.append(doodle);
+
+      const details = document.createElement('div');
+      details.className = 'film-card__details';
       const title = document.createElement('h3');
       title.textContent = item.name_en;
-      const description = document.createElement('p');
-      description.textContent = item.description;
-      copy.append(arabic, title, description);
-      const bottom = document.createElement('div');
-      bottom.className = 'vibe-card__bottom';
+      const desc = document.createElement('p');
+      desc.textContent = item.description;
+      details.append(title, desc);
+
+      const footer = document.createElement('div');
+      footer.className = 'film-card__footer';
       const price = document.createElement('strong');
+      price.className = 'price-val';
       price.innerHTML = `${item.price} <small>EGP</small>`;
-      const add = document.createElement('button');
-      add.className = 'add-button';
-      add.type = 'button';
-      add.dataset.addItem = item.id;
-      add.setAttribute('aria-label', `Add ${item.name_en} to order`);
-      add.textContent = '+';
-      bottom.append(price, add);
-      card.append(top, copy, bottom);
-      if (index >= visible.length) {
-        card.setAttribute('aria-hidden', 'true');
-        add.tabIndex = -1;
-        add.disabled = true;
-      }
+      const btn = document.createElement('button');
+      btn.className = 'add-button';
+      btn.type = 'button';
+      btn.dataset.addItem = item.id;
+      btn.textContent = '+';
+      btn.setAttribute('aria-label', `Add ${item.name_en} to bag`);
+      if (index >= visible.length) btn.tabIndex = -1;
+      footer.append(price, btn);
+
+      card.append(top, visual, details, footer);
       return card;
     }));
-    applyMood(activeMood);
+
+    applyMoodHighlight(activeMood);
   }
 
-  function applyMood(mood: string) {
+  function applyMoodHighlight(mood: string) {
     activeMood = mood;
-    reel?.querySelectorAll<HTMLElement>('.vibe-card').forEach((card) => {
+    marquee?.querySelectorAll<HTMLElement>('.film-card').forEach((card) => {
       let scores: Record<string, number> = {};
       try {
         scores = JSON.parse(card.dataset.moodScores || '{}');
-      } catch {
-        scores = {};
-      }
+      } catch {}
       const matches = card.dataset.mood === mood || Number(scores[mood] ?? 0) >= 60;
       card.classList.toggle('is-mood-match', matches);
       card.classList.toggle('is-mood-muted', !matches);
-      card.hidden = !matches;
     });
   }
 
-  reel?.addEventListener('click', async (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const button = target.closest<HTMLButtonElement>('[data-add-item]');
-    if (!button) return;
-    const item = menuStore.getMenu().find((entry) => entry.id === button.dataset.addItem)
-      ?? menu.find((entry) => entry.id === button.dataset.addItem);
-    if (!item) return;
-    menuStore.addToCart(item);
-    button.classList.add('is-added');
-    popAddParticles(button);
-    window.setTimeout(() => button.classList.remove('is-added'), 350);
-  });
-
-  function popAddParticles(button: HTMLButtonElement) {
+  function popParticles(button: HTMLButtonElement) {
     const burst = document.createElement('span');
     burst.className = 'add-particles';
-    for (let index = 0; index < 6; index += 1) {
-      const particle = document.createElement('i');
-      particle.style.setProperty('--particle-angle', `${index * 60}deg`);
-      burst.append(particle);
+    for (let i = 0; i < 6; i += 1) {
+      const p = document.createElement('i');
+      p.style.setProperty('--particle-angle', `${i * 60}deg`);
+      burst.append(p);
     }
     button.append(burst);
     window.setTimeout(() => burst.remove(), 520);
   }
 
-  reel?.addEventListener('pointerdown', (event) => {
+  marquee?.addEventListener('click', async (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const card = target.closest<HTMLElement>('.vibe-card');
-    if (!card) return;
-    card.classList.add('is-tapped');
-    window.setTimeout(() => card.classList.remove('is-tapped'), 260);
+    const button = target.closest<HTMLButtonElement>('[data-add-item]');
+    if (!button) return;
+    const item = menuStore.getMenu().find((entry) => entry.id === button.dataset.addItem)
+      ?? initialMenu.find((entry) => entry.id === button.dataset.addItem);
+    if (!item) return;
+
+    menuStore.addToCart(item);
+    await audioController.playClick('add');
+    button.classList.add('is-added');
+    popParticles(button);
+    window.setTimeout(() => button.classList.remove('is-added'), 360);
   });
 
   window.addEventListener('kleiv8:mood-change', (event: Event) => {
     const moodEvent = event as CustomEvent<{ mood?: string }>;
-    applyMood(moodEvent.detail?.mood ?? 'chill');
+    applyMoodHighlight(moodEvent.detail?.mood ?? 'chill');
   });
-  menuStore.subscribe(MENU_UPDATED_EVENT, (event: CustomEvent<MenuItem[]>) => renderReel(event.detail));
-  menuStore.init(menu);
+
+  menuStore.subscribe(MENU_UPDATED_EVENT, (event: CustomEvent<MenuItem[]>) => renderFilmStrip(event.detail));
+  menuStore.init(initialMenu);
 </script>

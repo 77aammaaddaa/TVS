@@ -4,23 +4,23 @@ import MoodSlider from '../components/MoodSlider.astro';
 import VibeCanvas from '../components/VibeCanvas.astro';
 import QuickList from '../components/QuickList.astro';
 import { getDoodleMarkup } from '../scripts/doodles.js';
+import { SITE_CONFIG } from '../config/site.js';
 ---
 
 <Layout
-  title="Kleiv 8"
-  description="Explore the Kleiv 8 coffee and comfort menu in Suez. Order at the counter and pay in Egyptian Pounds."
+  title="KLEIV ∞ | Enjoy Coffee, Enjoy Vibes"
+  description="Specialty coffee and comfort space in Suez, Egypt. Counter service, pay in EGP."
 >
   <main id="main-content">
     <section class="hero" id="top">
       <div class="hero__copy">
-        <p class="eyebrow"><span class="status-dot"></span> Specialty coffee · Suez, Egypt</p>
-        <h1>Enjoy coffee.<br /><em>Enjoy the moment.</em></h1>
-        <p class="hero__description">Find your familiar favourite or discover a new little ritual. Pick your order here, then pay at the counter.</p>
+        <p class="eyebrow"><span class="status-dot"></span> Specialty Coffee · Suez, Egypt</p>
+        <h1>Enjoy Coffee.<br /><em>Enjoy Vibes.</em></h1>
+        <p class="hero__description">Find your signature brew or discover a daily comfort ritual. Explore the endless film reel below, then order at the counter.</p>
         <div class="hero__actions">
-          <a class="button-primary" href="#vibe-engine">Explore the menu <span aria-hidden="true">↓</span></a>
-          <span class="payment-note"><span aria-hidden="true">◉</span> Counter service · Pay in EGP</span>
+          <a class="button-primary" href="#vibe-engine">Explore Reel <span aria-hidden="true">↓</span></a>
+          <span class="payment-note"><span aria-hidden="true">◉</span> Counter Service · EGP</span>
         </div>
-        <div class="hero__arabic" lang="ar" dir="rtl">قهوة على مزاجك، ولحظات تشبهك</div>
       </div>
       <div class="hero-art" aria-hidden="true">
         <div class="hero-art__sun"></div>
@@ -28,8 +28,8 @@ import { getDoodleMarkup } from '../scripts/doodles.js';
         <div class="hero-art__doodle hero-art__latte" set:html={getDoodleMarkup('iced-latte')}></div>
         <div class="hero-art__doodle hero-art__croissant" set:html={getDoodleMarkup('croissant')}></div>
         <div class="hero-art__doodle hero-art__portafilter" set:html={getDoodleMarkup('portafilter')}></div>
-        <div class="hero-art__doodle hero-art__ice" set:html={getDoodleMarkup('ice')}></div>
-        <span class="hero-art__caption">BREWED FOR YOUR MOMENT</span>
+        <div class="hero-art__doodle hero-art__ice" set:html={getDoodleMarkup('ice-cubes')}></div>
+        <span class="hero-art__caption">ENDLESS VIBES ∞</span>
       </div>
     </section>
 
@@ -39,19 +39,22 @@ import { getDoodleMarkup } from '../scripts/doodles.js';
       <QuickList />
     </div>
 
-    <section class="counter-callout">
-      <span class="counter-callout__icon" aria-hidden="true">✳</span>
+    <section class="counter-callout" aria-label="How ordering works">
+      <div class="counter-callout__icon" aria-hidden="true">∞</div>
       <div>
-        <p class="eyebrow">Easy does it</p>
-        <h2>Order here. Pay at the counter.</h2>
-        <p>Your WhatsApp message helps our baristas prepare your order. Payment and pickup happen in store.</p>
+        <p class="eyebrow">Simple Counter Flow</p>
+        <h2>Order here. Pay at the cashier.</h2>
+        <p>Pick your drinks and pastries into your bag, send the list to our cashier on WhatsApp, and grab your vibe fresh from the bar.</p>
       </div>
-      <a href={`https://wa.me/${'201023328432'}`} target="_blank" rel="noreferrer">Say hello <span aria-hidden="true">↗</span></a>
+      <a href={`https://wa.me/${SITE_CONFIG.whatsappNumber}`} target="_blank" rel="noopener noreferrer">
+        Chat with Barista <span aria-hidden="true">↗</span>
+      </a>
     </section>
   </main>
+
   <footer class="site-footer">
-    <a class="footer-brand" href="#top">Kleiv <span>8</span></a>
-    <p>Made for coffee, comfort & good company.</p>
-    <span>Suez, Egypt · All prices in EGP</span>
+    <a class="footer-brand" href="#top">KLEIV <span>∞</span></a>
+    <p>Behind Engineers Syndicate · Suez, Egypt</p>
+    <p>© {new Date().getFullYear()} KLEIV. Enjoy Coffee, Enjoy Vibes.</p>
   </footer>
 </Layout>

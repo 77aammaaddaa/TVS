@@ -64,7 +64,9 @@
     if (!cartItems) return;
 
     if (cart.length === 0) {
-      cartItems.innerHTML = '<div class="cart-empty"><span aria-hidden="true">☕</span><p>Your order is waiting for its first sip.</p><small>أضف شيئًا تحبه من القائمة</small></div>';
+
+     cartItems.innerHTML = '<div class="cart-empty"><span aria-hidden="true">☕</span><p>Your bag is waiting for its first sip.</p><small>Add your favorite drinks from the reel</small></div>';
+
       return;
     }
     cartItems.replaceChildren(...cart.map((item) => {

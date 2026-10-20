@@ -1,43 +1,43 @@
-<div class="splash" id="splash-screen" aria-label="Kleiv 8 welcome">
+<div class="splash" id="splash-screen" role="presentation">
   <div class="splash__atmosphere" aria-hidden="true"></div>
-  <div class="splash__content">
-    <p class="splash__eyebrow">KLEIV 8 · SUEZ</p>
-    <svg class="splash__mark" viewBox="0 0 120 120" role="img" aria-label="An eight becoming an infinity symbol">
-      <defs>
-        <filter id="eight-glow" x="-60%" y="-60%" width="220%" height="220%">
-          <feGaussianBlur stdDeviation="3.5" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-      </defs>
-      <path class="splash__halo" d="M60 60 C42 40 42 16 60 16 C78 16 78 40 60 60 C42 80 42 104 60 104 C78 104 78 80 60 60" />
-      <path class="splash__stroke" filter="url(#eight-glow)" d="M60 60 C42 40 42 16 60 16 C78 16 78 40 60 60 C42 80 42 104 60 104 C78 104 78 80 60 60">
-        <animate attributeName="d" dur="5.8s" repeatCount="indefinite" calcMode="spline" keySplines=".5 0 .3 1;.5 0 .3 1" values="M60 60 C42 40 42 16 60 16 C78 16 78 40 60 60 C42 80 42 104 60 104 C78 104 78 80 60 60;M60 60 C44 42 16 42 16 60 C16 78 44 78 60 60 C76 42 104 42 104 60 C104 78 76 78 60 60;M60 60 C42 40 42 16 60 16 C78 16 78 40 60 60 C42 80 42 104 60 104 C78 104 78 80 60 60" />
-      </path>
+  <div class="splash__stage">
+    <div class="splash__glow-ring" aria-hidden="true"></div>
+    <svg class="splash__infinity-svg" viewBox="0 0 200 100" fill="none" aria-label="KLEIV Infinity Loop">
+      <path
+        class="infinity-track"
+        d="M 50,50 C 20,20 5,35 5,50 C 5,65 20,80 50,50 C 80,20 100,50 100,50 C 100,50 120,80 150,50 C 180,20 195,35 195,50 C 195,65 180,80 150,50 C 120,20 100,50 100,50 Z"
+      />
+      <path
+        class="infinity-pulse"
+        d="M 50,50 C 20,20 5,35 5,50 C 5,65 20,80 50,50 C 80,20 100,50 100,50 C 100,50 120,80 150,50 C 180,20 195,35 195,50 C 195,65 180,80 150,50 C 120,20 100,50 100,50 Z"
+      />
     </svg>
-    <h1 class="splash__wordmark">Kleiv <em>8</em></h1>
-    <p class="splash__copy">Coffee, comfort, and the right kind of pause.</p>
-    <button class="splash__enter" id="enter-experience" type="button">
-      <span aria-hidden="true">✨</span> اضغط للدخول واضبط المزاج <i>·</i> Enter with Vibes
-    </button>
+    <h1 class="splash__logo">KLEIV</h1>
+    <p class="splash__slogan">ENJOY COFFEE · ENJOY VIBES</p>
   </div>
 </div>
 
 <script>
   import { audioController } from '../scripts/audio-controller.js';
 
-  const splash = document.querySelector<HTMLElement>('#splash-screen');
-  const enterButton = document.querySelector<HTMLButtonElement>('#enter-experience');
-  let leaving = false;
+  const splash = document.querySelector('#splash-screen');
+  let dismissed = false;
 
-  async function enterExperience() {
-    if (leaving || !splash || !enterButton) return;
-    leaving = true;
-    enterButton.disabled = true;
-    await audioController.enterExperience();
-    splash.classList.add('splash--leaving');
-    splash.setAttribute('aria-hidden', 'true');
-    window.setTimeout(() => splash.remove(), 700);
+  async function exitSplash() {
+    if (dismissed || !splash) return;
+    dismissed = true;
+    splash.classList.add('splash--exit');
+    await audioController.playClick();
+    await audioController.startMusic();
+    window.setTimeout(() => splash.remove(), 800);
   }
 
-  enterButton?.addEventListener('click', enterExperience, { once: true });
+  // Starts music immediately on first user touch anywhere
+  window.addEventListener('pointerdown', () => {
+    audioController.startMusic();
+    exitSplash();
+  }, { once: true });
+
+  // Automatic cinematic exit after the infinity loop finishes drawing
+  window.setTimeout(exitSplash, 2400);
 </script>

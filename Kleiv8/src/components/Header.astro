@@ -1,19 +1,21 @@
 <header class="site-header">
-  <a class="brand-lockup" href="#top" aria-label="Kleiv 8 home">
-    <span class="brand-mark" aria-hidden="true">8</span>
-    <span><strong>Kleiv 8</strong><small>Suez · Coffee & good company</small></span>
+  <a class="brand-lockup" href="#top" aria-label="KLEIV home">
+    <span class="brand-mark" aria-hidden="true">∞</span>
+    <span><strong>KLEIV</strong><small>Suez · Coffee & Vibes</small></span>
   </a>
 
   <nav class="header-actions" aria-label="Menu controls">
-    <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" aria-label="Toggle ambient sound" title="Toggle ambient sound">
-      <span class="sound-visualizer" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span class="sr-only" id="sound-status">Ambient sound muted</span>
+    <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" title="Toggle Lo-Fi Music">
+      <div class="sound-bars" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <span class="sound-label">Lo-Fi</span>
     </button>
     <button class="mode-toggle" id="mode-toggle" type="button" aria-pressed="false">
       <span class="mode-toggle__dot" aria-hidden="true"></span>
-      <span id="mode-label">Vibe mode</span>
+      <span id="mode-label">Vibe Reel</span>
     </button>
-    <button class="cart-trigger" id="open-cart-btn" type="button" aria-label="Open your order">
+    <button class="cart-trigger" id="open-cart-btn" type="button" aria-label="Open Cart">
       <span aria-hidden="true">Bag</span>
       <span class="cart-trigger__count hidden" id="cart-badge">0</span>
     </button>
@@ -23,31 +25,21 @@
 <script>
   import { audioController } from '../scripts/audio-controller.js';
 
-  const toggle = document.querySelector<HTMLButtonElement>('#mode-toggle');
+  const modeToggle = document.querySelector<HTMLButtonElement>('#mode-toggle');
   const modeLabel = document.querySelector<HTMLElement>('#mode-label');
   const soundButton = document.querySelector<HTMLButtonElement>('#sound-toggle');
-  const soundStatus = document.querySelector<HTMLElement>('#sound-status');
 
-  function updateSoundState(playing: boolean) {
-    soundButton?.setAttribute('aria-pressed', String(playing));
-    if (soundStatus) soundStatus.textContent = playing ? 'Ambient sound playing' : 'Ambient sound muted';
-  }
-
-  toggle?.addEventListener('click', async () => {
-    const speedMode = document.body.dataset.mode !== 'speed';
-    document.body.dataset.mode = speedMode ? 'speed' : 'vibe';
-    toggle.setAttribute('aria-pressed', String(speedMode));
-    if (modeLabel) modeLabel.textContent = speedMode ? 'Speed mode' : 'Vibe mode';
-    if (speedMode) await audioController.pauseAmbient();
-    else await audioController.enableAmbient();
+  modeToggle?.addEventListener('click', async () => {
+    const isSpeed = document.body.dataset.mode !== 'speed';
+    document.body.dataset.mode = isSpeed ? 'speed' : 'vibe';
+    modeToggle.setAttribute('aria-pressed', String(isSpeed));
+    if (modeLabel) {
+      modeLabel.textContent = isSpeed ? 'Speed List' : 'Vibe Reel';
+    }
+    await audioController.playClick();
   });
 
   soundButton?.addEventListener('click', async () => {
-    updateSoundState(await audioController.toggleAmbient());
+    await audioController.toggleMusic();
   });
-
-  window.addEventListener('kleiv8:audio-change', (event: Event) => {
-    updateSoundState(Boolean((event as CustomEvent<{ playing?: boolean }>).detail?.playing));
-  });
-  updateSoundState(audioController.isPlaying);
 </script>

@@ -1,212 +1,128 @@
 class AudioController {
-  #context = null;
-  #master = null;
+  #music = null;
+  #ctx = null;
   #ambientGain = null;
-  #effectsGain = null;
-  #ambientVoices = [];
-  #muted = true;
-  #paused = false;
-  #progressionTimer = null;
-  #interactionSoundsInstalled = false;
-  #chordIndex = 0;
+  #isMuted = true;
+  #usingFallback = false;
 
-  get isPlaying() {
-    return !this.#muted && !this.#paused;
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.#music = new Audio('/audio/kleiv-lofi.mp3');
+      this.#music.loop = true;
+      this.#music.volume = 0.28;
+      this.#music.addEventListener('error', () => {
+        this.#usingFallback = true;
+      });
+    }
   }
 
   async #ensureContext() {
     if (typeof window === 'undefined') return null;
-    const AudioContextConstructor = window.AudioContext ?? window.webkitAudioContext;
-    if (!AudioContextConstructor) return null;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
 
-    if (!this.#context) {
-      this.#context = new AudioContextConstructor();
-      this.#master = this.#context.createGain();
-      this.#master.gain.value = 0.34;
-      this.#master.connect(this.#context.destination);
-      this.#ambientGain = this.#context.createGain();
+    if (!this.#ctx) {
+      this.#ctx = new AudioCtx();
+      this.#ambientGain = this.#ctx.createGain();
       this.#ambientGain.gain.value = 0;
-      this.#ambientGain.connect(this.#master);
-      this.#effectsGain = this.#context.createGain();
-      this.#effectsGain.gain.value = 0.72;
-      this.#effectsGain.connect(this.#master);
-      this.#createWarmProgression();
+      this.#ambientGain.connect(this.#ctx.destination);
+      this.#setupWarmLofiSynth();
     }
-    if (this.#context.state === 'suspended') await this.#context.resume();
-    return this.#context;
-  }
-
-  #createWarmProgression() {
-    if (!this.#context || !this.#ambientGain) return;
-    const now = this.#context.currentTime;
-    const chord = [146.83, 220, 277.18, 329.63]; // D major 7: warm, low and intentionally not a buzzer.
-    this.#ambientVoices = chord.map((frequency, index) => {
-      const oscillator = this.#context.createOscillator();
-      const tone = this.#context.createBiquadFilter();
-      const voiceGain = this.#context.createGain();
-      const tremolo = this.#context.createOscillator();
-      const tremoloGain = this.#context.createGain();
-      oscillator.type = index % 2 ? 'sine' : 'triangle';
-      oscillator.frequency.value = frequency;
-      oscillator.detune.value = index === 0 ? -5 : index * 2;
-      tone.type = 'lowpass';
-      tone.frequency.value = 880 + index * 170;
-      tone.Q.value = 0.45;
-      voiceGain.gain.value = index === 0 ? 0.09 : 0.052;
-      tremolo.type = 'sine';
-      tremolo.frequency.value = 0.08 + index * 0.015;
-      tremoloGain.gain.value = 0.012;
-      tremolo.connect(tremoloGain);
-      tremoloGain.connect(voiceGain.gain);
-      oscillator.connect(tone);
-      tone.connect(voiceGain);
-      voiceGain.connect(this.#ambientGain);
-      oscillator.start(now);
-      tremolo.start(now);
-      return oscillator;
-    });
-
-    this.#progressionTimer = window.setInterval(() => this.#advanceChord(), 5200);
-  }
-
-  #advanceChord() {
-    if (!this.#context || this.#ambientVoices.length === 0) return;
-    const progression = [
-      [146.83, 220, 277.18, 329.63], // Dmaj7
-      [220, 261.63, 329.63, 415.3], // Am7, lifted into a soft midrange voicing
-      [130.81, 196, 246.94, 329.63], // Cmaj7
-      [98, 146.83, 220, 293.66], // G6
-    ];
-    this.#chordIndex = (this.#chordIndex + 1) % progression.length;
-    const nextChord = progression[this.#chordIndex];
-    const when = this.#context.currentTime;
-    this.#ambientVoices.forEach((voice, index) => {
-      voice.frequency.cancelScheduledValues(when);
-      voice.frequency.setTargetAtTime(nextChord[index], when, 1.45);
-    });
-  }
-
-  #emitState() {
-    window.dispatchEvent(new CustomEvent('kleiv8:audio-change', { detail: { playing: this.isPlaying } }));
-  }
-
-  #setAmbientLevel(fade = 0.45) {
-    if (!this.#context || !this.#ambientGain) return;
-    const target = this.isPlaying ? 0.19 : 0;
-    this.#ambientGain.gain.setTargetAtTime(target, this.#context.currentTime, fade);
-  }
-
-  #playNoiseBurst(duration, gainAmount, filterFrequency) {
-    if (!this.#context || !this.#effectsGain) return;
-    const sampleCount = Math.max(1, Math.floor(this.#context.sampleRate * duration));
-    const buffer = this.#context.createBuffer(1, sampleCount, this.#context.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let index = 0; index < sampleCount; index += 1) {
-      const envelope = 1 - index / sampleCount;
-      data[index] = (Math.random() * 2 - 1) * envelope * envelope;
+    if (this.#ctx.state === 'suspended') {
+      await this.#ctx.resume();
     }
-    const source = this.#context.createBufferSource();
-    const filter = this.#context.createBiquadFilter();
-    const gain = this.#context.createGain();
-    filter.type = 'bandpass';
-    filter.frequency.value = filterFrequency;
-    filter.Q.value = 0.7;
-    gain.gain.setValueAtTime(gainAmount, this.#context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.#context.currentTime + duration);
-    source.buffer = buffer;
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.#effectsGain);
-    source.start();
+    return this.#ctx;
   }
 
-  #playPourAndChime() {
-    if (!this.#context || !this.#effectsGain) return;
-    const now = this.#context.currentTime;
-    this.#playNoiseBurst(0.78, 0.13, 920);
-    [659.25, 783.99, 987.77].forEach((frequency, index) => {
-      const oscillator = this.#context.createOscillator();
-      const gain = this.#context.createGain();
-      oscillator.type = 'sine';
-      oscillator.frequency.value = frequency;
-      gain.gain.setValueAtTime(0.0001, now + index * 0.045);
-      gain.gain.exponentialRampToValueAtTime(0.095 / (index + 1), now + 0.035 + index * 0.045);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.15 + index * 0.08);
-      oscillator.connect(gain);
-      gain.connect(this.#effectsGain);
-      oscillator.start(now + index * 0.045);
-      oscillator.stop(now + 1.35);
+  #setupWarmLofiSynth() {
+    if (!this.#ctx || !this.#ambientGain) return;
+    // Warm Rhodes-like chord frequencies (Fmaj7 - Em7 vibe)
+    const freqs = [174.61, 220.0, 261.63, 329.63];
+    freqs.forEach((f, idx) => {
+      const osc = this.#ctx.createOscillator();
+      const filter = this.#ctx.createBiquadFilter();
+      const gain = this.#ctx.createGain();
+      osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+      osc.frequency.value = f;
+      filter.type = 'lowpass';
+      filter.frequency.value = 480;
+      gain.gain.value = 0.035;
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.#ambientGain);
+      osc.start();
     });
   }
 
-  installInteractionSounds() {
-    if (this.#interactionSoundsInstalled || typeof document === 'undefined') return;
-    this.#interactionSoundsInstalled = true;
-    document.addEventListener('click', (event) => {
-      const target = event.target;
-      if (!(target instanceof Element) || target.closest('#splash-screen')) return;
-      const interactive = target.closest('button, a, [role="button"], .vibe-card, .quick-item');
-      if (!interactive || interactive instanceof HTMLButtonElement && interactive.disabled) return;
-      this.playClick(interactive.matches('.add-button, .quick-add, [data-change="1"]') ? 'add' : 'click');
-    });
+  async startMusic() {
+    this.#isMuted = false;
+    try {
+      if (this.#music && !this.#usingFallback) {
+        await this.#music.play();
+      } else {
+        const ctx = await this.#ensureContext();
+        if (ctx && this.#ambientGain) {
+          this.#ambientGain.gain.setTargetAtTime(0.6, ctx.currentTime, 0.4);
+        }
+      }
+      this.#updateHeaderVisualizer(true);
+    } catch {
+      const ctx = await this.#ensureContext();
+      if (ctx && this.#ambientGain) {
+        this.#ambientGain.gain.setTargetAtTime(0.6, ctx.currentTime, 0.4);
+        this.#updateHeaderVisualizer(true);
+      }
+    }
   }
 
-  async enterExperience() {
-    const context = await this.#ensureContext();
-    if (!context) return false;
-    this.#muted = false;
-    this.#paused = false;
-    this.#setAmbientLevel(0.36);
-    this.#playPourAndChime();
-    this.installInteractionSounds();
-    this.#emitState();
-    return true;
+  async toggleMusic() {
+    if (this.#isMuted) {
+      await this.startMusic();
+    } else {
+      this.#isMuted = true;
+      if (this.#music) this.#music.pause();
+      if (this.#ctx && this.#ambientGain) {
+        this.#ambientGain.gain.setTargetAtTime(0, this.#ctx.currentTime, 0.2);
+      }
+      this.#updateHeaderVisualizer(false);
+    }
+    return !this.#isMuted;
   }
 
   async playClick(kind = 'click') {
-    const context = await this.#ensureContext();
-    if (!context || !this.#effectsGain || !this.isPlaying) return;
-    const now = context.currentTime;
-    const isAdd = kind === 'add';
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(isAdd ? 1760 : 1480, now);
-    oscillator.frequency.exponentialRampToValueAtTime(isAdd ? 2380 : 1220, now + 0.065);
-    gain.gain.setValueAtTime(isAdd ? 0.07 : 0.045, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.085);
-    oscillator.connect(gain);
-    gain.connect(this.#effectsGain);
-    oscillator.start(now);
-    oscillator.stop(now + 0.09);
-    this.#playNoiseBurst(isAdd ? 0.11 : 0.055, isAdd ? 0.055 : 0.03, isAdd ? 3300 : 2600);
-    if (navigator.vibrate) navigator.vibrate(isAdd ? [7, 18, 9] : 5);
+    try {
+      const ctx = await this.#ensureContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      if (kind === 'add') {
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.09);
+      } else {
+        osc.frequency.setValueAtTime(380, now);
+        osc.frequency.exponentialRampToValueAtTime(640, now + 0.06);
+      }
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.095);
+    } catch {}
   }
 
-  async toggleAmbient() {
-    const context = await this.#ensureContext();
-    if (!context) return false;
-    this.#muted = !this.#muted;
-    this.#paused = false;
-    this.#setAmbientLevel(0.18);
-    this.#emitState();
-    return this.isPlaying;
+  async playPop() {
+    return this.playClick('add');
   }
 
-  async enableAmbient() {
-    const context = await this.#ensureContext();
-    if (!context || this.#muted) return false;
-    this.#paused = false;
-    this.#setAmbientLevel(0.24);
-    this.#emitState();
-    return true;
-  }
-
-  async pauseAmbient() {
-    if (!this.#context) return;
-    this.#paused = true;
-    this.#setAmbientLevel(0.14);
-    this.#emitState();
+  #updateHeaderVisualizer(active) {
+    const btn = document.querySelector('#sound-toggle');
+    if (btn) btn.setAttribute('aria-pressed', String(active));
+    document.querySelectorAll('.sound-bars span').forEach((bar) => {
+      bar.classList.toggle('is-dancing', active);
+    });
   }
 }
 
