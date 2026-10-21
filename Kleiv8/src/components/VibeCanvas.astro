@@ -34,6 +34,16 @@ const filmStripItems = [...activeMenu, ...activeMenu];
 
           <div class="film-card__visual">
             <div class="vibe-card__doodle" set:html={getDoodleMarkup(doodleForMenuItem(item))}></div>
+            {item.latte_art && (
+              <button
+                class="latte-art-trigger latte-art-trigger--film"
+                type="button"
+                data-latte-art={item.id}
+                tabindex={index >= activeMenu.length ? -1 : 0}
+                aria-label={`See latte art for ${item.name_en}`}
+                title={`See latte art for ${item.name_en}`}
+              >∞</button>
+            )}
           </div>
 
           <div class="film-card__details">
@@ -63,7 +73,7 @@ const filmStripItems = [...activeMenu, ...activeMenu];
   import Menu from '../../public/data/default-menu.json';
   import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
   import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
-  import { audioController } from '../scripts/audio-controller.js';
+  import { asmr } from '../scripts/asmr-engine.js';
 
   type MenuItem = {
     id: string;
@@ -75,6 +85,7 @@ const filmStripItems = [...activeMenu, ...activeMenu];
     mood_scores?: Record<string, number>;
     badge?: string;
     status: string;
+    latte_art?: boolean;
   };
 
   const initialMenu: MenuItem[] = Menu;
@@ -110,6 +121,17 @@ const filmStripItems = [...activeMenu, ...activeMenu];
       doodle.className = 'vibe-card__doodle';
       doodle.innerHTML = getDoodleMarkup(doodleForMenuItem(item));
       visual.append(doodle);
+      if (item.latte_art) {
+        const latteArt = document.createElement('button');
+        latteArt.className = 'latte-art-trigger latte-art-trigger--film';
+        latteArt.type = 'button';
+        latteArt.dataset.latteArt = item.id;
+        latteArt.textContent = '∞';
+        latteArt.setAttribute('aria-label', `See latte art for ${item.name_en}`);
+        latteArt.title = `See latte art for ${item.name_en}`;
+        if (index >= visible.length) latteArt.tabIndex = -1;
+        visual.append(latteArt);
+      }
 
       const details = document.createElement('div');
       details.className = 'film-card__details';
@@ -168,6 +190,15 @@ const filmStripItems = [...activeMenu, ...activeMenu];
   marquee?.addEventListener('click', async (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
+    const latteArtButton = target.closest<HTMLButtonElement>('[data-latte-art]');
+    if (latteArtButton) {
+      const item = menuStore.getMenu().find((entry) => entry.id === latteArtButton.dataset.latteArt)
+        ?? initialMenu.find((entry) => entry.id === latteArtButton.dataset.latteArt);
+      if (item) {
+        window.dispatchEvent(new CustomEvent('kleiv8:latte-art-open', { detail: { name: item.name_en } }));
+      }
+      return;
+    }
     const button = target.closest<HTMLButtonElement>('[data-add-item]');
     if (!button) return;
     const item = menuStore.getMenu().find((entry) => entry.id === button.dataset.addItem)
@@ -175,7 +206,7 @@ const filmStripItems = [...activeMenu, ...activeMenu];
     if (!item) return;
 
     menuStore.addToCart(item);
-    await audioController.playClick('add');
+    await asmr.playClick('add');
     button.classList.add('is-added');
     popParticles(button);
     window.setTimeout(() => button.classList.remove('is-added'), 360);

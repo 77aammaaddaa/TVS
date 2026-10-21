@@ -1,0 +1,84 @@
+<dialog class="latte-modal" id="latte-modal" aria-labelledby="latte-modal-title">
+  <div class="latte-modal__panel">
+    <button class="latte-modal__close" type="button" data-close-latte aria-label="Close latte art">×</button>
+    <p class="eyebrow">Hand-crafted · served warm</p>
+    <h2 id="latte-modal-title">A little latte art</h2>
+    <div class="latte-cup" role="img" aria-label="Interactive cup of espresso with latte art">
+      <div class="espresso-surface" id="espresso-surface">
+        <div class="crema-ring" aria-hidden="true"></div>
+        <svg class="milk-pour-svg" viewBox="0 0 160 160" aria-hidden="true">
+          <path
+            class="latte-art-path"
+            d="M 40,80 C 15,50 5,65 5,80 C 5,95 15,110 40,80 C 65,50 80,80 80,80 C 80,80 95,110 120,80 C 145,50 155,65 155,80 C 155,95 145,110 120,80 C 95,50 80,80 80,80 Z"
+          />
+          <circle class="milk-droplet" cx="80" cy="80" r="14" />
+        </svg>
+      </div>
+    </div>
+    <p class="latte-caption"><span id="latte-drink-name">Your hot coffee</span> · Crafted at 9 Bars · Velvety Microfoam</p>
+    <p class="latte-modal__hint">Tap or move your finger across the cup to ripple the crema.</p>
+    <button class="latte-modal__done" type="button" data-close-latte>Back to menu</button>
+  </div>
+</dialog>
+
+<script>
+  import { asmr } from '../scripts/asmr-engine.js';
+
+  const modal = document.querySelector<HTMLDialogElement>('#latte-modal');
+  const surface = document.querySelector<HTMLElement>('#espresso-surface');
+  const drinkName = document.querySelector<HTMLElement>('#latte-drink-name');
+  let previousFocus: HTMLElement | null = null;
+  let lastRippleAt = 0;
+
+  function closeModal() {
+    if (modal?.open) modal.close();
+  }
+
+  function makeRipple(event: PointerEvent) {
+    if (!surface) return;
+    const now = performance.now();
+    if (event.type === 'pointermove' && now - lastRippleAt < 110) return;
+    lastRippleAt = now;
+
+    const bounds = surface.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    ripple.className = 'latte-ripple';
+    ripple.style.left = `${event.clientX - bounds.left}px`;
+    ripple.style.top = `${event.clientY - bounds.top}px`;
+    surface.append(ripple);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      ripple.remove();
+    } else {
+      ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
+    }
+
+    if (event.type === 'pointerdown') void asmr.playLatteRipple();
+  }
+
+  window.addEventListener('kleiv8:latte-art-open', (event: Event) => {
+    const detail = (event as CustomEvent<{ name?: string }>).detail;
+    if (!modal) return;
+    previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    if (drinkName) drinkName.textContent = detail?.name || 'Your hot coffee';
+    if (!modal.open) modal.showModal();
+    modal.classList.remove('is-pouring');
+    requestAnimationFrame(() => modal.classList.add('is-pouring'));
+    modal.querySelector<HTMLButtonElement>('[data-close-latte]')?.focus();
+  });
+
+  modal?.querySelectorAll<HTMLButtonElement>('[data-close-latte]').forEach((button) => {
+    button.addEventListener('click', closeModal);
+  });
+  modal?.addEventListener('click', (event) => {
+    if (event.target === modal) closeModal();
+  });
+  modal?.addEventListener('close', () => {
+    modal.classList.remove('is-pouring');
+    previousFocus?.focus();
+    previousFocus = null;
+  });
+  surface?.addEventListener('pointerdown', makeRipple);
+  surface?.addEventListener('pointermove', (event) => {
+    if (event.pointerType !== 'mouse' || event.buttons > 0) makeRipple(event);
+  });
+</script>

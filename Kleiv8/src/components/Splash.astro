@@ -2,7 +2,7 @@
   <div class="splash__atmosphere" aria-hidden="true"></div>
   <div class="splash__stage">
     <div class="splash__glow-ring" aria-hidden="true"></div>
-    <svg class="splash__infinity-svg" viewBox="0 0 200 100" fill="none" aria-label="KLEIV Infinity Loop">
+    <svg class="splash__infinity-svg" viewBox="0 0 200 100" fill="none" aria-hidden="true">
       <path
         class="infinity-track"
         d="M 50,50 C 20,20 5,35 5,50 C 5,65 20,80 50,50 C 80,20 100,50 100,50 C 100,50 120,80 150,50 C 180,20 195,35 195,50 C 195,65 180,80 150,50 C 120,20 100,50 100,50 Z"
@@ -14,30 +14,30 @@
     </svg>
     <h1 class="splash__logo">KLEIV</h1>
     <p class="splash__slogan">ENJOY COFFEE · ENJOY VIBES</p>
+    <button class="splash__skip" id="splash-enter" type="button">Enter menu <span aria-hidden="true">↓</span></button>
   </div>
 </div>
 
 <script>
-  import { audioController } from '../scripts/audio-controller.js';
-
   const splash = document.querySelector('#splash-screen');
+  const enterButton = document.querySelector<HTMLButtonElement>('#splash-enter');
   let dismissed = false;
 
-  async function exitSplash() {
+  function exitSplash() {
     if (dismissed || !splash) return;
     dismissed = true;
     splash.classList.add('splash--exit');
-    await audioController.playClick();
-    await audioController.startMusic();
-    window.setTimeout(() => splash.remove(), 800);
+    window.setTimeout(() => {
+      splash.remove();
+      window.dispatchEvent(new CustomEvent('kleiv8:menu-ready'));
+    }, 800);
   }
 
-  // Starts music immediately on first user touch anywhere
-  window.addEventListener('pointerdown', () => {
-    audioController.startMusic();
+  enterButton?.addEventListener('click', exitSplash);
+  splash?.addEventListener('pointerdown', (event) => {
+    if (event.target instanceof Element && event.target.closest('button')) return;
     exitSplash();
   }, { once: true });
 
-  // Automatic cinematic exit after the infinity loop finishes drawing
-  window.setTimeout(exitSplash, 2400);
+  window.setTimeout(exitSplash, 1200);
 </script>

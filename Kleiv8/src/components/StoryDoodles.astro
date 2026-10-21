@@ -1,0 +1,551 @@
+---
+import { getDoodleMarkup } from '../scripts/doodles.js';
+
+const stories = [
+  {
+    id: 'croissant',
+    label: 'The Lounger',
+    doodle: 'croissant',
+    badge: 'Slow living',
+    title: 'Sink into comfort.',
+    copy: 'Some moments are meant to be unhurried. Let the city noise fade and make room for a small coffee break.',
+    recommendationIds: ['k8-bakery-01', 'k8-espresso-02'],
+  },
+  {
+    id: 'ice',
+    label: 'The Chill',
+    doodle: 'ice',
+    badge: 'A cooler pause',
+    title: 'Let the afternoon soften.',
+    copy: 'When Suez afternoons feel intense, a cold coffee with a bright citrus finish makes a welcome reset.',
+    recommendationIds: ['k8-cold-01'],
+  },
+  {
+    id: 'barista',
+    label: 'The Craft',
+    doodle: 'portafilter',
+    badge: 'A little focus',
+    title: 'Find your sweet spot.',
+    copy: 'A focused pause, pulled into a balanced little cup: double espresso softened with silky steamed milk.',
+    recommendationIds: ['k8-espresso-01'],
+  },
+  {
+    id: 'balance',
+    label: 'The Balance',
+    doodle: 'iced-latte',
+    badge: 'Reset your mood',
+    title: 'A lighter kind of pause.',
+    copy: 'Japanese matcha, cold milk, and a moment to reset. Just a lighter kind of focus, at your own pace.',
+    recommendationIds: ['k8-matcha-01'],
+  },
+  {
+    id: 'infinity',
+    label: 'The Loop',
+    doodle: 'infinity',
+    badge: 'The KLEIV loop',
+    title: 'Good moments keep going.',
+    copy: 'A good coffee break can stay with you long after the last sip. Keep your own loop going with something bright and sparkling.',
+    recommendationIds: ['k8-cold-02'],
+  },
+];
+
+---
+
+<section class="story-doodles-section" id="story-doodles" aria-labelledby="story-doodles-title">
+  <header class="story-header">
+    <p class="eyebrow">Interactive moments</p>
+    <h2 id="story-doodles-title">Every little detail has a <em>story.</em></h2>
+    <p>Tap a character to find a little moment that feels like you.</p>
+  </header>
+
+  <div class="doodles-canvas" role="group" aria-label="KLEIV story characters">
+    {stories.map((story) => (
+      <button
+        class="story-trigger"
+        type="button"
+        data-story-trigger={story.id}
+        data-story-badge={story.badge}
+        data-story-title={story.title}
+        data-story-copy={story.copy}
+        data-recommendation-ids={story.recommendationIds.join(',')}
+        aria-expanded="false"
+        aria-controls="story-panel"
+        aria-label={`Open story: ${story.label}`}
+      >
+        <span class="story-figure" aria-hidden="true">
+          {story.doodle === 'infinity' ? (
+            <svg class="brand-doodle brand-doodle--infinity" viewBox="0 0 120 120" fill="none" focusable="false" xmlns="http://www.w3.org/2000/svg">
+              <path d="M60 60C44 39 31 35 21 44c-11 10-7 26 2 34 11 10 24 4 37-18 16-22 29-26 39-17 11 10 7 26-2 34-11 10-24 4-37-17Z" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          ) : (
+            <span set:html={getDoodleMarkup(story.doodle)}></span>
+          )}
+        </span>
+        <span class="doodle-tag">{story.label}</span>
+      </button>
+    ))}
+  </div>
+
+  <div class="story-panel" id="story-panel" role="region" aria-labelledby="story-panel-title" hidden>
+    <div class="story-panel__copy">
+      <span class="bubble-badge" id="story-panel-badge"></span>
+      <h3 id="story-panel-title"></h3>
+      <p id="story-panel-copy"></p>
+    </div>
+    <div class="story-panel__actions" aria-live="polite">
+      <div class="story-recommendation">
+        <span class="story-recommendation__label">A little pick for you</span>
+        <strong id="story-recommendation-names"></strong>
+        <small id="story-recommendation-price"></small>
+      </div>
+      <button class="bubble-cta" id="story-add-button" type="button" data-story-add>
+        Add to your bag <span aria-hidden="true">→</span>
+      </button>
+    </div>
+    <button class="story-panel__close" type="button" data-story-close aria-label="Close story">×</button>
+  </div>
+</section>
+
+<script>
+  import Menu from '../../public/data/default-menu.json';
+  import { asmr } from '../scripts/asmr-engine.js';
+  import { CART_UPDATED_EVENT, MENU_UPDATED_EVENT, menuStore } from '../scripts/menu-store.js';
+
+  type StoryMenuItem = {
+    id: string;
+    name_en: string;
+    price: number;
+    status: string;
+  };
+
+  const root = document.querySelector<HTMLElement>('#story-doodles');
+  const panel = document.querySelector<HTMLElement>('#story-panel');
+  const badge = document.querySelector<HTMLElement>('#story-panel-badge');
+  const title = document.querySelector<HTMLElement>('#story-panel-title');
+  const copy = document.querySelector<HTMLElement>('#story-panel-copy');
+  const recommendationNames = document.querySelector<HTMLElement>('#story-recommendation-names');
+  const recommendationPrice = document.querySelector<HTMLElement>('#story-recommendation-price');
+  const addButton = document.querySelector<HTMLButtonElement>('#story-add-button');
+  const formatter = new Intl.NumberFormat('en-EG', { maximumFractionDigits: 2 });
+  let activeTrigger: HTMLButtonElement | null = null;
+
+  function availableRecommendations(menu: StoryMenuItem[]) {
+    const ids = addButton?.dataset.availableItemIds?.split(',').filter(Boolean) ?? [];
+    return ids
+      .map((id) => menu.find((item) => item.id === id))
+      .filter((item): item is StoryMenuItem => Boolean(item && item.status !== 'Sold Out' && item.status !== 'Hidden'));
+  }
+
+  function updateRecommendation(menu: StoryMenuItem[]) {
+    if (!addButton || !recommendationNames || !recommendationPrice || !activeTrigger) return;
+
+    const requestedIds = activeTrigger.dataset.recommendationIds?.split(',').filter(Boolean) ?? [];
+    const items = requestedIds
+      .map((id) => menu.find((item) => item.id === id))
+      .filter((item): item is StoryMenuItem => Boolean(item && item.status !== 'Sold Out' && item.status !== 'Hidden'));
+    const total = items.reduce((sum, item) => sum + item.price, 0);
+
+    addButton.dataset.availableItemIds = items.map((item) => item.id).join(',');
+    addButton.disabled = items.length === 0;
+    recommendationNames.textContent = items.length
+      ? items.map((item) => item.name_en).join(' + ')
+      : 'This pick is currently unavailable.';
+    recommendationPrice.textContent = items.length ? `${formatter.format(total)} EGP` : '';
+    addButton.setAttribute(
+      'aria-label',
+      items.length
+        ? `Add ${items.map((item) => item.name_en).join(' and ')} to your bag for ${formatter.format(total)} EGP`
+        : 'This recommendation is currently unavailable',
+    );
+  }
+
+  function updatePanelAnchor() {
+    if (!activeTrigger || !panel || panel.hidden) return;
+    const triggerBounds = activeTrigger.getBoundingClientRect();
+    const panelBounds = panel.getBoundingClientRect();
+    const anchor = triggerBounds.left + triggerBounds.width / 2 - panelBounds.left;
+    const clampedAnchor = Math.min(panelBounds.width - 18, Math.max(18, anchor));
+    panel.style.setProperty('--story-anchor-x', `${clampedAnchor}px`);
+  }
+
+  function closeStory(returnFocus = false) {
+    if (!root || !panel) return;
+    const triggerToFocus = activeTrigger;
+    panel.hidden = true;
+    panel.classList.remove('is-visible');
+    root.classList.remove('has-open-story');
+    activeTrigger?.setAttribute('aria-expanded', 'false');
+    activeTrigger = null;
+    if (addButton) {
+      addButton.disabled = false;
+      addButton.textContent = 'Add to your bag →';
+    }
+    if (returnFocus) triggerToFocus?.focus();
+  }
+
+  function openStory(trigger: HTMLButtonElement) {
+    if (!panel || !badge || !title || !copy) return;
+    if (activeTrigger === trigger && !panel.hidden) {
+      closeStory();
+      return;
+    }
+
+    root?.querySelectorAll<HTMLButtonElement>('[data-story-trigger]').forEach((button) => {
+      button.setAttribute('aria-expanded', 'false');
+    });
+
+    activeTrigger = trigger;
+    trigger.setAttribute('aria-expanded', 'true');
+    badge.textContent = trigger.dataset.storyBadge ?? '';
+    title.textContent = trigger.dataset.storyTitle ?? '';
+    copy.textContent = trigger.dataset.storyCopy ?? '';
+    panel.hidden = false;
+    panel.classList.remove('is-visible');
+    root?.classList.add('has-open-story');
+    updateRecommendation(menuStore.getMenu());
+    updatePanelAnchor();
+    requestAnimationFrame(() => {
+      if (!panel.hidden) panel.classList.add('is-visible');
+    });
+  }
+
+  root?.addEventListener('click', async (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    if (target.closest('[data-story-close]')) {
+      closeStory(true);
+      return;
+    }
+
+    const trigger = target.closest<HTMLButtonElement>('[data-story-trigger]');
+    if (trigger) {
+      openStory(trigger);
+      await asmr.playClick('click');
+      return;
+    }
+
+    if (!target.closest('[data-story-add]') || !addButton) return;
+    const items = availableRecommendations(menuStore.getMenu());
+    if (!items.length) {
+      updateRecommendation(menuStore.getMenu());
+      return;
+    }
+
+    items.forEach((item) => menuStore.addToCart(item));
+    await asmr.playClick('add');
+    addButton.disabled = true;
+    addButton.textContent = 'Added to your bag';
+    window.setTimeout(() => {
+      if (panel && !panel.hidden && addButton.isConnected) closeStory(true);
+    }, 900);
+  });
+
+  document.addEventListener('click', (event) => {
+    if (event.target instanceof Node && root && !root.contains(event.target)) closeStory();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && panel && !panel.hidden) closeStory(true);
+  });
+
+  window.addEventListener('resize', updatePanelAnchor);
+  menuStore.subscribe(MENU_UPDATED_EVENT, (event: CustomEvent<StoryMenuItem[]>) => {
+    updateRecommendation(event.detail);
+  });
+  menuStore.subscribe(CART_UPDATED_EVENT, () => {
+    if (addButton && addButton.textContent === 'Added to your bag') {
+      addButton.disabled = false;
+      addButton.textContent = 'Add to your bag →';
+    }
+  });
+  menuStore.init(Menu);
+</script>
+
+<style>
+  .story-doodles-section {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 36px max(5vw, 22px) 12px;
+  }
+
+  .story-header {
+    margin-bottom: 28px;
+    text-align: center;
+  }
+
+  .story-header h2 {
+    margin: 6px 0 8px;
+    color: var(--pine);
+    font: 400 clamp(26px, 3.5vw, 36px) Georgia, serif;
+  }
+
+  .story-header > p:last-child {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .doodles-canvas {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .story-trigger {
+    display: flex;
+    min-width: 0;
+    min-height: 120px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 8px;
+    border: 0;
+    border-radius: 18px;
+    color: var(--pine);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .story-trigger:hover,
+  .story-trigger[aria-expanded="true"] {
+    background: #f4f7f2;
+  }
+
+  .story-figure {
+    display: grid;
+    width: 76px;
+    height: 76px;
+    place-items: center;
+    border: 1px solid rgba(33, 58, 35, 0.1);
+    border-radius: 24px;
+    color: var(--pine);
+    background: #f4f7f2;
+    transition: transform 0.3s ease, border-color 0.3s, background 0.3s;
+  }
+
+  .story-figure :global(.brand-doodle) {
+    width: 64px;
+    height: 64px;
+  }
+
+  .story-figure--infinity :global(.brand-doodle) {
+    color: var(--jade);
+  }
+
+  .story-trigger:hover .story-figure,
+  .story-trigger:focus-visible .story-figure,
+  .story-trigger[aria-expanded="true"] .story-figure {
+    transform: translateY(-4px) scale(1.04);
+    border-color: var(--jade);
+    background: #eef5ee;
+  }
+
+  .doodle-tag {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .story-panel {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr);
+    align-items: center;
+    gap: 24px;
+    width: min(760px, 100%);
+    margin: 18px auto 4px;
+    padding: 22px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    color: white;
+    background: var(--pine);
+    box-shadow: 0 16px 36px rgba(18, 34, 20, 0.2);
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+  }
+
+  .story-panel[hidden] {
+    display: none;
+  }
+
+  .story-panel.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .story-panel::before {
+    position: absolute;
+    bottom: 100%;
+    left: var(--story-anchor-x, 50%);
+    width: 0;
+    height: 0;
+    border: 9px solid transparent;
+    border-bottom-color: var(--pine);
+    content: '';
+    transform: translateX(-50%);
+  }
+
+  .story-panel__copy {
+    padding-right: 12px;
+  }
+
+  .bubble-badge {
+    color: var(--gold);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .story-panel h3 {
+    margin: 7px 0 6px;
+    color: white;
+    font: 400 22px Georgia, serif;
+  }
+
+  .story-panel__copy p {
+    margin: 0;
+    color: #c4d4c6;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .story-panel__actions {
+    display: grid;
+    gap: 12px;
+  }
+
+  .story-recommendation {
+    display: grid;
+    gap: 4px;
+  }
+
+  .story-recommendation__label {
+    color: #9ab09c;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .story-recommendation strong {
+    color: white;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .story-recommendation small {
+    color: var(--gold);
+    font-size: 11px;
+  }
+
+  .bubble-cta {
+    min-height: 40px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 99px;
+    color: var(--pine);
+    background: white;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 750;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .bubble-cta:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: var(--gold);
+  }
+
+  .bubble-cta:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .story-panel__close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    color: #c4d4c6;
+    background: transparent;
+    cursor: pointer;
+    font-size: 20px;
+  }
+
+  .story-panel__close:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  @media (max-width: 760px) {
+    .doodles-canvas {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .story-panel {
+      grid-template-columns: minmax(0, 1fr) minmax(200px, 0.8fr);
+      gap: 18px;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .story-doodles-section {
+      padding: 32px max(5vw, 22px) 8px;
+    }
+
+    .doodles-canvas {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .story-trigger {
+      min-height: 108px;
+    }
+
+    .story-figure {
+      width: 68px;
+      height: 68px;
+      border-radius: 21px;
+    }
+
+    .story-figure :global(.brand-doodle) {
+      width: 58px;
+      height: 58px;
+    }
+
+    .story-panel {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
+      padding: 20px 18px;
+    }
+
+    .story-panel__copy {
+      padding-right: 20px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .story-figure,
+    .story-panel,
+    .bubble-cta {
+      transition: none;
+    }
+
+    .story-panel.is-visible {
+      transform: none;
+    }
+  }
+</style>

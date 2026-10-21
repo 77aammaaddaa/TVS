@@ -43,6 +43,9 @@ function normalizeMenu(payload) {
       badge: String(item.badge ?? ''),
       image_url: String(item.image_url ?? ''),
       caffeine_level: String(item.caffeine_level ?? 'None'),
+      latte_art: item.latte_art === false
+        ? false
+        : item.latte_art === true || String(item.category ?? '').trim().toLowerCase() === 'coffee',
       mood: ['chill', 'focus', 'refresh'].includes(item.mood) ? item.mood : 'chill',
       mood_scores: item.mood_scores && typeof item.mood_scores === 'object'
         ? item.mood_scores

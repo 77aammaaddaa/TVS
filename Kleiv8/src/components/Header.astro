@@ -5,11 +5,11 @@
   </a>
 
   <nav class="header-actions" aria-label="Menu controls">
-    <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" title="Toggle Lo-Fi Music">
+    <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" aria-label="ASMR Ambient: off" title="Enable optional ASMR and rain ambience">
       <div class="sound-bars" aria-hidden="true">
         <span></span><span></span><span></span>
       </div>
-      <span class="sound-label">Lo-Fi</span>
+      <span class="sound-label">ASMR Ambient</span>
     </button>
     <button class="mode-toggle" id="mode-toggle" type="button" aria-pressed="false">
       <span class="mode-toggle__dot" aria-hidden="true"></span>
@@ -23,11 +23,29 @@
 </header>
 
 <script>
-  import { audioController } from '../scripts/audio-controller.js';
+  import { asmr, ASMR_STATE_EVENT } from '../scripts/asmr-engine.js';
 
   const modeToggle = document.querySelector<HTMLButtonElement>('#mode-toggle');
   const modeLabel = document.querySelector<HTMLElement>('#mode-label');
   const soundButton = document.querySelector<HTMLButtonElement>('#sound-toggle');
+  const soundLabel = soundButton?.querySelector<HTMLElement>('.sound-label');
+
+  function updateSoundControl(enabled: boolean) {
+    if (!soundButton) return;
+    soundButton.setAttribute('aria-pressed', String(enabled));
+    soundButton.setAttribute('aria-label', `ASMR Ambient: ${enabled ? 'on' : 'off'}`);
+    soundButton.title = enabled ? 'Turn ASMR and rain ambience off' : 'Enable optional ASMR and rain ambience';
+    if (soundLabel) soundLabel.textContent = 'ASMR Ambient';
+    soundButton.querySelectorAll('.sound-bars span').forEach((bar) => {
+      bar.classList.toggle('is-dancing', enabled);
+    });
+  }
+
+  updateSoundControl(asmr.enabled);
+  window.addEventListener(ASMR_STATE_EVENT, (event) => {
+    const stateEvent = event as CustomEvent<{ enabled: boolean }>;
+    updateSoundControl(stateEvent.detail.enabled);
+  });
 
   modeToggle?.addEventListener('click', async () => {
     const isSpeed = document.body.dataset.mode !== 'speed';
@@ -36,10 +54,11 @@
     if (modeLabel) {
       modeLabel.textContent = isSpeed ? 'Speed List' : 'Vibe Reel';
     }
-    await audioController.playClick();
+    await asmr.playClick();
   });
 
   soundButton?.addEventListener('click', async () => {
-    await audioController.toggleMusic();
+    const enabled = await asmr.toggle();
+    if (enabled) await asmr.playClick();
   });
 </script>

@@ -2,6 +2,8 @@
 import '../styles/global.css';
 import Splash from '../components/Splash.astro';
 import Header from '../components/Header.astro';
+import AsmrPrompt from '../components/AsmrPrompt.astro';
+import LatteArtModal from '../components/LatteArtModal.astro';
 import CartDrawer from '../components/CartDrawer.astro';
 import { SITE_CONFIG } from '../config/site.js';
 
@@ -25,6 +27,8 @@ const { title = SITE_CONFIG.name, description = 'A little coffee ritual in Suez,
     <Splash />
     <Header />
     <slot />
+    <LatteArtModal />
+    <AsmrPrompt />
     <CartDrawer />
   </body>
 </html>

@@ -23,7 +23,13 @@ The cart is stored locally on the customer's device. Checkout opens a prefilled 
 
 ## Audio and modes
 
-The welcome animation lasts 1.2 seconds and can also be dismissed by tapping. Sound is opt-in and generated locally through the Web Audio API after a user gesture. Vibe mode shows a horizontal looping menu reel; Speed mode shows a searchable, category-filtered list. The mood slider highlights products tagged for chill, focus, or refresh.
+The welcome animation draws the infinity mark for 1.2 seconds and can be dismissed by tapping or choosing **Enter menu**. The site has no music or audio recordings. Optional, locally synthesized ASMR effects and a very soft rain-like ambience start muted; the first-visit prompt lets customers enable them or keep browsing silently. The **ASMR Ambient** header control can change that choice later, and the preference is saved on the device. The rain loop and effects are generated with the browser's Web Audio API only after a user gesture; they are sound-design approximations, not recordings of real rain or café sounds.
+
+## Interactive brand stories
+
+Five illustrated characters open short, English-language stories with menu recommendations. Recommendations and EGP totals follow the current menu, and available products can be added directly to the cart; unavailable items cannot be ordered from a story.
+
+Hot-coffee items marked `latte_art` open an interactive top-down cup modal with an animated infinity pour and touch/mouse ripples. Vibe mode shows a horizontal looping menu reel; Speed mode shows a searchable, category-filtered list. The mood slider highlights products tagged for chill, focus, or refresh.
 
 ## Cloudflare Pages
 

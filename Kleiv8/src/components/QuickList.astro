@@ -31,8 +31,19 @@ const categories = [...new Set(Menu.map((item) => item.category))];
           <span lang="ar" dir="rtl">{item.name_ar}</span>
           <small>{item.category}</small>
         </div>
-        <strong class="quick-item__price">{item.price} <small>EGP</small></strong>
-        <button class="quick-add" type="button" data-add-item={item.id} aria-label={`Add ${item.name_en} to order`}>Add</button>
+        <div class="quick-item__actions">
+          <strong class="quick-item__price">{item.price} <small>EGP</small></strong>
+          {item.latte_art && (
+            <button
+              class="latte-art-trigger"
+              type="button"
+              data-latte-art={item.id}
+              aria-label={`See latte art for ${item.name_en}`}
+              title={`See latte art for ${item.name_en}`}
+            >∞</button>
+          )}
+          <button class="quick-add" type="button" data-add-item={item.id} aria-label={`Add ${item.name_en} to order`}>Add</button>
+        </div>
       </article>
     ))}
   </div>
@@ -43,6 +54,7 @@ const categories = [...new Set(Menu.map((item) => item.category))];
   import Menu from '../../public/data/default-menu.json';
   import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
   import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
+  import { asmr } from '../scripts/asmr-engine.js';
 
   type MenuItem = {
     id: string;
@@ -53,6 +65,7 @@ const categories = [...new Set(Menu.map((item) => item.category))];
     price: number;
     status: string;
     emoji?: string;
+    latte_art?: boolean;
   };
 
   const fallback: MenuItem[] = Menu;
@@ -87,6 +100,19 @@ const categories = [...new Set(Menu.map((item) => item.category))];
       const price = document.createElement('strong');
       price.className = 'quick-item__price';
       price.textContent = `${item.price} EGP`;
+      const actions = document.createElement('div');
+      actions.className = 'quick-item__actions';
+      actions.append(price);
+      if (item.latte_art) {
+        const latteArt = document.createElement('button');
+        latteArt.className = 'latte-art-trigger';
+        latteArt.type = 'button';
+        latteArt.dataset.latteArt = item.id;
+        latteArt.textContent = '∞';
+        latteArt.setAttribute('aria-label', `See latte art for ${item.name_en}`);
+        latteArt.title = `See latte art for ${item.name_en}`;
+        actions.append(latteArt);
+      }
       const add = document.createElement('button');
       add.className = 'quick-add';
       add.type = 'button';
@@ -94,7 +120,8 @@ const categories = [...new Set(Menu.map((item) => item.category))];
       add.disabled = item.status === 'Sold Out';
       add.textContent = item.status === 'Sold Out' ? 'Sold out' : 'Add';
       add.setAttribute('aria-label', `Add ${item.name_en} to order`);
-      row.append(doodle, copy, price, add);
+      actions.append(add);
+      row.append(doodle, copy, actions);
       return row;
     }));
     filterItems();
@@ -117,7 +144,7 @@ const categories = [...new Set(Menu.map((item) => item.category))];
     filterItems();
   });
 
-  document.querySelector('#category-tabs')?.addEventListener('click', (event) => {
+  document.querySelector('#category-tabs')?.addEventListener('click', async (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
     const button = target.closest<HTMLButtonElement>('[data-category]');
@@ -125,6 +152,7 @@ const categories = [...new Set(Menu.map((item) => item.category))];
     const category = button.dataset.category;
     if (!category) return;
     selectedCategory = category;
+    if (category !== 'all') await asmr.playCategory(category);
     document.querySelectorAll<HTMLButtonElement>('.category-tab').forEach((tab) => {
       const selected = tab === button;
       tab.classList.toggle('is-selected', selected);
@@ -136,6 +164,14 @@ const categories = [...new Set(Menu.map((item) => item.category))];
   list?.addEventListener('click', async (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
+    const latteArtButton = target.closest<HTMLButtonElement>('[data-latte-art]');
+    if (latteArtButton) {
+      const item = menuStore.getMenu().find((entry) => entry.id === latteArtButton.dataset.latteArt);
+      if (item) {
+        window.dispatchEvent(new CustomEvent('kleiv8:latte-art-open', { detail: { name: item.name_en } }));
+      }
+      return;
+    }
     const button = target.closest<HTMLButtonElement>('[data-add-item]');
     if (!button || button.disabled) return;
     const item = menuStore.getMenu().find((entry) => entry.id === button.dataset.addItem);

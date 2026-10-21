@@ -2,6 +2,7 @@
   {
     "id": "k8-espresso-01",
     "category": "Coffee",
+    "latte_art": true,
     "name_en": "Cortado",
     "name_ar": "كورتادو",
     "description": "A balanced double espresso softened with silky steamed milk.",
@@ -18,6 +19,7 @@
   {
     "id": "k8-espresso-02",
     "category": "Coffee",
+    "latte_art": true,
     "name_en": "Spanish Latte",
     "name_ar": "سبانيش لاتيه",
     "description": "Espresso, velvety milk, and a gentle touch of sweetness.",

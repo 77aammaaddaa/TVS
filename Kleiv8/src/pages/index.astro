@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import MoodSlider from '../components/MoodSlider.astro';
 import VibeCanvas from '../components/VibeCanvas.astro';
 import QuickList from '../components/QuickList.astro';
+import StoryDoodles from '../components/StoryDoodles.astro';
 import { getDoodleMarkup } from '../scripts/doodles.js';
 import { SITE_CONFIG } from '../config/site.js';
 ---
@@ -33,6 +34,8 @@ import { SITE_CONFIG } from '../config/site.js';
       </div>
     </section>
 
+    <StoryDoodles />
+
     <div class="content-wrap">
       <MoodSlider />
       <VibeCanvas />
@@ -55,6 +58,13 @@ import { SITE_CONFIG } from '../config/site.js';
   <footer class="site-footer">
     <a class="footer-brand" href="#top">KLEIV <span>∞</span></a>
     <p>Behind Engineers Syndicate · Suez, Egypt</p>
+    <nav class="footer-socials" aria-label="Follow KLEIV on social media">
+      {SITE_CONFIG.socialLinks.map(({ name, url }) => (
+        <a href={url} target="_blank" rel="noopener noreferrer" aria-label={`Follow KLEIV on ${name}`}>
+          {name}
+        </a>
+      ))}
+    </nav>
     <p>© {new Date().getFullYear()} KLEIV. Enjoy Coffee, Enjoy Vibes.</p>
   </footer>
 </Layout>

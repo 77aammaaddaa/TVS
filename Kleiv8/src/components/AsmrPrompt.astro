@@ -1,0 +1,57 @@
+<aside class="asmr-prompt" id="asmr-prompt" role="status" aria-live="polite" aria-label="Optional sound" hidden>
+  <span class="asmr-prompt__icon" aria-hidden="true">🎧</span>
+  <div class="asmr-prompt__copy">
+    <strong>Optional ASMR Ambient · no music</strong>
+    <p>Enable gentle rain ambience and barista-inspired sound design, or keep browsing silently.</p>
+  </div>
+  <div class="asmr-prompt__actions">
+    <button class="asmr-prompt__enable" id="asmr-enable" type="button">Enable</button>
+    <button class="asmr-prompt__dismiss" id="asmr-dismiss" type="button">Keep silent</button>
+  </div>
+</aside>
+
+<script>
+  import { asmr } from '../scripts/asmr-engine.js';
+
+  const PROMPT_SEEN_KEY = 'kleiv8:asmr-prompt-seen:v1';
+  const prompt = document.querySelector<HTMLElement>('#asmr-prompt');
+  const enableButton = document.querySelector<HTMLButtonElement>('#asmr-enable');
+  const dismissButton = document.querySelector<HTMLButtonElement>('#asmr-dismiss');
+
+  function hidePrompt() {
+    if (!prompt) return;
+    prompt.classList.remove('is-visible');
+    window.setTimeout(() => {
+      if (prompt.isConnected) prompt.hidden = true;
+    }, 220);
+  }
+
+  function showPrompt() {
+    if (!prompt || asmr.enabled) return;
+
+    try {
+      if (window.localStorage.getItem(PROMPT_SEEN_KEY) === 'true') return;
+      window.localStorage.setItem(PROMPT_SEEN_KEY, 'true');
+    } catch (error) {
+      console.warn('Unable to save the ASMR prompt preference.', error);
+    }
+
+    prompt.hidden = false;
+    requestAnimationFrame(() => prompt.classList.add('is-visible'));
+  }
+
+  window.addEventListener('kleiv8:menu-ready', showPrompt, { once: true });
+
+  enableButton?.addEventListener('click', async () => {
+    const enabled = await asmr.enable();
+    if (!enabled) {
+      const copy = prompt?.querySelector<HTMLElement>('.asmr-prompt__copy p');
+      if (copy) copy.textContent = 'Sound is unavailable in this browser. You can keep browsing silently.';
+      return;
+    }
+    await asmr.playSteamWand();
+    hidePrompt();
+  });
+
+  dismissButton?.addEventListener('click', hidePrompt);
+</script>
