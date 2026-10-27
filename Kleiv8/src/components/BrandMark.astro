@@ -1,0 +1,40 @@
+---
+import { VISUAL_ASSETS } from '../config/visual-assets.js';
+
+interface Props {
+  class?: string;
+  tone?: 'pine' | 'cream';
+}
+
+const { class: className = '', tone = 'pine' } = Astro.props;
+---
+
+<span
+  class:list={['brand-mark-art', `brand-mark-art--${tone}`, className]}
+  style={`--brand-mark-image: url("${VISUAL_ASSETS.infinity.src}")`}
+  aria-hidden="true"
+></span>
+
+<style>
+  .brand-mark-art {
+    display: inline-block;
+    flex: 0 0 auto;
+    background-color: currentColor;
+    -webkit-mask-image: var(--brand-mark-image);
+    mask-image: var(--brand-mark-image);
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+  }
+
+  .brand-mark-art--pine {
+    color: var(--pine);
+  }
+
+  .brand-mark-art--cream {
+    color: #fffaf0;
+  }
+</style>

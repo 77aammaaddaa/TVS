@@ -6,6 +6,7 @@ import AsmrPrompt from '../components/AsmrPrompt.astro';
 import LatteArtModal from '../components/LatteArtModal.astro';
 import CartDrawer from '../components/CartDrawer.astro';
 import { SITE_CONFIG } from '../config/site.js';
+import { VISUAL_ASSETS } from '../config/visual-assets.js';
 
 const { title = SITE_CONFIG.name, description = 'A little coffee ritual in Suez, Egypt.' } = Astro.props;
 ---
@@ -20,6 +21,7 @@ const { title = SITE_CONFIG.name, description = 'A little coffee ritual in Suez,
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <link rel="preload" as="image" href={VISUAL_ASSETS.infinity.src} />
     <title>{title} · Coffee, comfort & good company</title>
   </head>
   <body data-mode="vibe">

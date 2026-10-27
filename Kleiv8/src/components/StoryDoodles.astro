@@ -1,54 +1,5 @@
 ---
-import { getDoodleMarkup } from '../scripts/doodles.js';
-
-const stories = [
-  {
-    id: 'croissant',
-    label: 'The Lounger',
-    doodle: 'croissant',
-    badge: 'Slow living',
-    title: 'Sink into comfort.',
-    copy: 'Some moments are meant to be unhurried. Let the city noise fade and make room for a small coffee break.',
-    recommendationIds: ['k8-bakery-01', 'k8-espresso-02'],
-  },
-  {
-    id: 'ice',
-    label: 'The Chill',
-    doodle: 'ice',
-    badge: 'A cooler pause',
-    title: 'Let the afternoon soften.',
-    copy: 'When Suez afternoons feel intense, a cold coffee with a bright citrus finish makes a welcome reset.',
-    recommendationIds: ['k8-cold-01'],
-  },
-  {
-    id: 'barista',
-    label: 'The Craft',
-    doodle: 'portafilter',
-    badge: 'A little focus',
-    title: 'Find your sweet spot.',
-    copy: 'A focused pause, pulled into a balanced little cup: double espresso softened with silky steamed milk.',
-    recommendationIds: ['k8-espresso-01'],
-  },
-  {
-    id: 'balance',
-    label: 'The Balance',
-    doodle: 'iced-latte',
-    badge: 'Reset your mood',
-    title: 'A lighter kind of pause.',
-    copy: 'Japanese matcha, cold milk, and a moment to reset. Just a lighter kind of focus, at your own pace.',
-    recommendationIds: ['k8-matcha-01'],
-  },
-  {
-    id: 'infinity',
-    label: 'The Loop',
-    doodle: 'infinity',
-    badge: 'The KLEIV loop',
-    title: 'Good moments keep going.',
-    copy: 'A good coffee break can stay with you long after the last sip. Keep your own loop going with something bright and sparkling.',
-    recommendationIds: ['k8-cold-02'],
-  },
-];
-
+import { STORY_DOODLES } from '../config/story-doodles.js';
 ---
 
 <section class="story-doodles-section" id="story-doodles" aria-labelledby="story-doodles-title">
@@ -59,7 +10,7 @@ const stories = [
   </header>
 
   <div class="doodles-canvas" role="group" aria-label="KLEIV story characters">
-    {stories.map((story) => (
+    {STORY_DOODLES.map((story) => (
       <button
         class="story-trigger"
         type="button"
@@ -73,13 +24,15 @@ const stories = [
         aria-label={`Open story: ${story.label}`}
       >
         <span class="story-figure" aria-hidden="true">
-          {story.doodle === 'infinity' ? (
-            <svg class="brand-doodle brand-doodle--infinity" viewBox="0 0 120 120" fill="none" focusable="false" xmlns="http://www.w3.org/2000/svg">
-              <path d="M60 60C44 39 31 35 21 44c-11 10-7 26 2 34 11 10 24 4 37-18 16-22 29-26 39-17 11 10 7 26-2 34-11 10-24 4-37-17Z" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          ) : (
-            <span set:html={getDoodleMarkup(story.doodle)}></span>
-          )}
+          <img
+            class="story-figure__image"
+            src={story.illustration.src}
+            width={story.illustration.width}
+            height={story.illustration.height}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
         </span>
         <span class="doodle-tag">{story.label}</span>
       </button>
@@ -264,9 +217,9 @@ const stories = [
 
 <style>
   .story-doodles-section {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 36px max(5vw, 22px) 12px;
+    margin: 42px 0 38px;
+    padding: 36px 0 8px;
+    border-top: 1px solid rgba(33, 58, 35, 0.1);
   }
 
   .story-header {
@@ -319,28 +272,28 @@ const stories = [
     width: 76px;
     height: 76px;
     place-items: center;
-    border: 1px solid rgba(33, 58, 35, 0.1);
+    overflow: hidden;
+    border: 1px solid rgba(212, 175, 117, 0.3);
     border-radius: 24px;
-    color: var(--pine);
-    background: #f4f7f2;
-    transition: transform 0.3s ease, border-color 0.3s, background 0.3s;
+    background: linear-gradient(145deg, #29482c, #172d1a);
+    box-shadow: 0 10px 22px rgba(33, 58, 35, 0.14);
+    transition: transform 0.3s ease, border-color 0.3s, box-shadow 0.3s;
   }
 
-  .story-figure :global(.brand-doodle) {
-    width: 64px;
-    height: 64px;
-  }
-
-  .story-figure--infinity :global(.brand-doodle) {
-    color: var(--jade);
+  .story-figure__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 6px;
+    object-fit: contain;
   }
 
   .story-trigger:hover .story-figure,
   .story-trigger:focus-visible .story-figure,
   .story-trigger[aria-expanded="true"] .story-figure {
     transform: translateY(-4px) scale(1.04);
-    border-color: var(--jade);
-    background: #eef5ee;
+    border-color: var(--gold);
+    box-shadow: 0 14px 26px rgba(33, 58, 35, 0.22);
   }
 
   .doodle-tag {
@@ -503,7 +456,8 @@ const stories = [
 
   @media (max-width: 520px) {
     .story-doodles-section {
-      padding: 32px max(5vw, 22px) 8px;
+      margin: 32px 0;
+      padding: 30px 0 4px;
     }
 
     .doodles-canvas {
@@ -519,11 +473,6 @@ const stories = [
       width: 68px;
       height: 68px;
       border-radius: 21px;
-    }
-
-    .story-figure :global(.brand-doodle) {
-      width: 58px;
-      height: 58px;
     }
 
     .story-panel {

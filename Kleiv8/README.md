@@ -31,6 +31,10 @@ Five illustrated characters open short, English-language stories with menu recom
 
 Hot-coffee items marked `latte_art` open an interactive top-down cup modal with an animated infinity pour and touch/mouse ripples. Vibe mode shows a horizontal looping menu reel; Speed mode shows a searchable, category-filtered list. The mood slider highlights products tagged for chill, focus, or refresh.
 
+## Brand visuals
+
+The supplied transparent illustrations are stored in `public/images/kleiv/`. `src/config/visual-assets.js` is the shared manifest for the hero, menu reel, and callout; `src/config/story-doodles.js` maps the story characters to the same artwork. The infinity mark is reused by the splash screen, header, stories, and footer through `BrandMark.astro`. Compact speed-list and cart thumbnails remain small inline SVGs for legibility.
+
 ## Cloudflare Pages
 
 - Framework preset: Astro

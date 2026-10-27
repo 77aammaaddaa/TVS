@@ -1,6 +1,6 @@
 ---
 import Menu from '../../public/data/default-menu.json';
-import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
+import { illustrationForMenuItem } from '../config/visual-assets.js';
 
 const activeMenu = Menu.filter((item) => item.status !== 'Hidden');
 const filmStripItems = [...activeMenu, ...activeMenu];
@@ -33,7 +33,17 @@ const filmStripItems = [...activeMenu, ...activeMenu];
           </div>
 
           <div class="film-card__visual">
-            <div class="vibe-card__doodle" set:html={getDoodleMarkup(doodleForMenuItem(item))}></div>
+            <div class="vibe-card__doodle">
+              <img
+                class="vibe-card__illustration"
+                src={illustrationForMenuItem(item).src}
+                width={illustrationForMenuItem(item).width}
+                height={illustrationForMenuItem(item).height}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
             {item.latte_art && (
               <button
                 class="latte-art-trigger latte-art-trigger--film"
@@ -71,7 +81,7 @@ const filmStripItems = [...activeMenu, ...activeMenu];
 
 <script>
   import Menu from '../../public/data/default-menu.json';
-  import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
+  import { illustrationForMenuItem } from '../config/visual-assets.js';
   import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
   import { asmr } from '../scripts/asmr-engine.js';
 
@@ -119,7 +129,16 @@ const filmStripItems = [...activeMenu, ...activeMenu];
       visual.className = 'film-card__visual';
       const doodle = document.createElement('div');
       doodle.className = 'vibe-card__doodle';
-      doodle.innerHTML = getDoodleMarkup(doodleForMenuItem(item));
+      const illustration = illustrationForMenuItem(item);
+      const image = document.createElement('img');
+      image.className = 'vibe-card__illustration';
+      image.src = illustration.src;
+      image.width = illustration.width;
+      image.height = illustration.height;
+      image.alt = '';
+      image.loading = 'lazy';
+      image.decoding = 'async';
+      doodle.append(image);
       visual.append(doodle);
       if (item.latte_art) {
         const latteArt = document.createElement('button');

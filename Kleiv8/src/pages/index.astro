@@ -4,7 +4,8 @@ import MoodSlider from '../components/MoodSlider.astro';
 import VibeCanvas from '../components/VibeCanvas.astro';
 import QuickList from '../components/QuickList.astro';
 import StoryDoodles from '../components/StoryDoodles.astro';
-import { getDoodleMarkup } from '../scripts/doodles.js';
+import BrandMark from '../components/BrandMark.astro';
+import { VISUAL_ASSETS } from '../config/visual-assets.js';
 import { SITE_CONFIG } from '../config/site.js';
 ---
 
@@ -24,27 +25,55 @@ import { SITE_CONFIG } from '../config/site.js';
         </div>
       </div>
       <div class="hero-art" aria-hidden="true">
-        <div class="hero-art__sun"></div>
-        <div class="hero-art__ring"></div>
-        <div class="hero-art__doodle hero-art__latte" set:html={getDoodleMarkup('iced-latte')}></div>
-        <div class="hero-art__doodle hero-art__croissant" set:html={getDoodleMarkup('croissant')}></div>
-        <div class="hero-art__doodle hero-art__portafilter" set:html={getDoodleMarkup('portafilter')}></div>
-        <div class="hero-art__doodle hero-art__ice" set:html={getDoodleMarkup('ice-cubes')}></div>
-        <span class="hero-art__caption">ENDLESS VIBES ∞</span>
+        <div class="hero-art__orbit">
+          <img
+            class="hero-art__cup"
+            src={VISUAL_ASSETS.icedCupSlogan.src}
+            width={VISUAL_ASSETS.icedCupSlogan.width}
+            height={VISUAL_ASSETS.icedCupSlogan.height}
+            alt=""
+            fetchpriority="high"
+          />
+        </div>
+        <div class="hero-art__sticker hero-art__sticker--lounger">
+          <img
+            src={VISUAL_ASSETS.croissantLounger.src}
+            width={VISUAL_ASSETS.croissantLounger.width}
+            height={VISUAL_ASSETS.croissantLounger.height}
+            alt=""
+          />
+        </div>
+        <div class="hero-art__sticker hero-art__sticker--ice">
+          <img
+            src={VISUAL_ASSETS.meltingIce.src}
+            width={VISUAL_ASSETS.meltingIce.width}
+            height={VISUAL_ASSETS.meltingIce.height}
+            alt=""
+          />
+        </div>
+        <span class="hero-art__caption"><BrandMark class="hero-art__caption-mark" tone="cream" /> SUEZ · ENDLESS VIBES</span>
       </div>
     </section>
-
-    <StoryDoodles />
 
     <div class="content-wrap">
       <MoodSlider />
       <VibeCanvas />
+      <StoryDoodles />
       <QuickList />
     </div>
 
     <section class="counter-callout" aria-label="How ordering works">
-      <div class="counter-callout__icon" aria-hidden="true">∞</div>
-      <div>
+      <div class="counter-callout__illustration" aria-hidden="true">
+        <img
+          src={VISUAL_ASSETS.slowMoment.src}
+          width={VISUAL_ASSETS.slowMoment.width}
+          height={VISUAL_ASSETS.slowMoment.height}
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <div class="counter-callout__copy">
         <p class="eyebrow">Simple Counter Flow</p>
         <h2>Order here. Pay at the cashier.</h2>
         <p>Pick your drinks and pastries into your bag, send the list to our cashier on WhatsApp, and grab your vibe fresh from the bar.</p>
@@ -56,7 +85,7 @@ import { SITE_CONFIG } from '../config/site.js';
   </main>
 
   <footer class="site-footer">
-    <a class="footer-brand" href="#top">KLEIV <span>∞</span></a>
+    <a class="footer-brand" href="#top"><BrandMark class="footer-brand__mark" /> KLEIV</a>
     <p>Behind Engineers Syndicate · Suez, Egypt</p>
     <nav class="footer-socials" aria-label="Follow KLEIV on social media">
       {SITE_CONFIG.socialLinks.map(({ name, url }) => (

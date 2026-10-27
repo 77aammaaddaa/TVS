@@ -1,17 +1,12 @@
+---
+import BrandMark from './BrandMark.astro';
+---
+
 <div class="splash" id="splash-screen" role="presentation">
   <div class="splash__atmosphere" aria-hidden="true"></div>
   <div class="splash__stage">
     <div class="splash__glow-ring" aria-hidden="true"></div>
-    <svg class="splash__infinity-svg" viewBox="0 0 200 100" fill="none" aria-hidden="true">
-      <path
-        class="infinity-track"
-        d="M 50,50 C 20,20 5,35 5,50 C 5,65 20,80 50,50 C 80,20 100,50 100,50 C 100,50 120,80 150,50 C 180,20 195,35 195,50 C 195,65 180,80 150,50 C 120,20 100,50 100,50 Z"
-      />
-      <path
-        class="infinity-pulse"
-        d="M 50,50 C 20,20 5,35 5,50 C 5,65 20,80 50,50 C 80,20 100,50 100,50 C 100,50 120,80 150,50 C 180,20 195,35 195,50 C 195,65 180,80 150,50 C 120,20 100,50 100,50 Z"
-      />
-    </svg>
+    <BrandMark class="splash__infinity-mark" tone="cream" />
     <h1 class="splash__logo">KLEIV</h1>
     <p class="splash__slogan">ENJOY COFFEE · ENJOY VIBES</p>
     <button class="splash__skip" id="splash-enter" type="button">Enter menu <span aria-hidden="true">↓</span></button>
