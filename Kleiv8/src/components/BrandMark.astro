@@ -13,11 +13,14 @@ const { class: className = '', tone = 'pine' } = Astro.props;
   class:list={['brand-mark-art', `brand-mark-art--${tone}`, className]}
   style={`--brand-mark-image: url("${VISUAL_ASSETS.infinity.src}")`}
   aria-hidden="true"
+  role="presentation"
 ></span>
 
 <style>
   .brand-mark-art {
-    display: inline-block;
+    display: block;
+    width: 100%;
+    height: 100%;
     flex: 0 0 auto;
     background-color: currentColor;
     -webkit-mask-image: var(--brand-mark-image);
@@ -26,8 +29,10 @@ const { class: className = '', tone = 'pine' } = Astro.props;
     mask-position: center;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
-    -webkit-mask-size: contain;
-    mask-size: contain;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-origin: content-box;
+    mask-origin: content-box;
   }
 
   .brand-mark-art--pine {
