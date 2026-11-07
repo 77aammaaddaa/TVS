@@ -1,0 +1,89 @@
+
+/* KLEIV Motion System v2 — Intro + Vector Lab
+   Principles: transform/opacity only (GPU), prefers-reduced-motion, 1.4s intro max, skip always available
+   Colors: #213A23 deep forest, #2C795D emerald, #FCFCFC off-white
+*/
+:root{
+  --kleiv-deep:#213A23; --kleiv-emerald:#2C795D; --kleiv-cream:#FCFCFC;
+  --kleiv-ease-out:cubic-bezier(.22,1,.36,1); --kleiv-ease-bounce:cubic-bezier(.34,1.56,.64,1);
+}
+
+/* ============ INTRO ============ */
+.kleiv-intro{position:fixed; inset:0; z-index:9999; background:var(--kleiv-deep); display:grid; place-items:center; overflow:hidden; transition:opacity .45s var(--kleiv-ease-out), visibility .45s;}
+.kleiv-intro.is-done{opacity:0; visibility:hidden; pointer-events:none;}
+.kleiv-intro-stage{width:min(88vw,520px); text-align:center; color:var(--kleiv-cream);}
+.kleiv-intro-line{width:100%; height:auto; overflow:visible;}
+.kleiv-intro-line .draw-path{fill:none; stroke:var(--kleiv-cream); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1200; stroke-dashoffset:1200; animation:kleiv-draw 1.05s var(--kleiv-ease-out) .05s forwards;}
+@keyframes kleiv-draw{to{stroke-dashoffset:0}}
+.kleiv-intro-wordmark{font-family:'Arial Nova Light',Arial,sans-serif; font-weight:300; letter-spacing:.42em; font-size:clamp(28px,7vw,44px); margin:18px 0 6px; opacity:0; transform:translateY(10px); animation:kleiv-rise .5s var(--kleiv-ease-out) .75s forwards;}
+.kleiv-intro-slogan{font-family:'Arial Rounded MT Bold',system-ui; font-size:clamp(13px,3.4vw,16px); opacity:0; animation:kleiv-rise .5s var(--kleiv-ease-out) .95s forwards;}
+.kleiv-intro-waves{margin-top:18px; opacity:0; animation:kleiv-rise .5s var(--kleiv-ease-out) 1.05s forwards;}
+.kleiv-intro-skip{position:absolute; bottom:22px; right:22px; background:transparent; border:1px solid rgba(252,252,252,.35); color:var(--kleiv-cream); padding:8px 14px; border-radius:999px; font-size:13px; cursor:pointer;}
+.kleiv-intro-progress{position:absolute; bottom:0; left:0; height:3px; background:var(--kleiv-emerald); width:0; animation:kleiv-progress 1.4s linear forwards;}
+@keyframes kleiv-progress{to{width:100%}}
+@keyframes kleiv-rise{to{opacity:1; transform:translateY(0)}}
+
+/* ============ DOODLE BASE ============ */
+.kleiv-doodle{color:var(--kleiv-cream); line-height:0; will-change:transform;}
+.kleiv-doodle svg{width:100%; height:auto; display:block; overflow:visible;}
+.kleiv-doodle path, .kleiv-doodle g{transform-box:fill-box; transform-origin:center;}
+
+/* ============ VECTOR LAB ANIMATIONS (all GPU) ============ */
+/* Infinity — draw + slow infinite rotate pulse */
+.anim-infinity .infinity-loop-base{animation:kleiv-breathe 3.6s ease-in-out infinite;}
+.anim-infinity .infinity-loop-texture{animation:kleiv-drift 4.2s ease-in-out infinite;}
+@keyframes kleiv-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.03) rotate(-1deg)}}
+@keyframes kleiv-drift{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+
+/* Melting Ice — cubes float, droplets fall */
+.anim-ice .ice-cube-1{animation:kleiv-float 3s ease-in-out infinite;}
+.anim-ice .ice-cube-2{animation:kleiv-float 3.4s ease-in-out .3s infinite;}
+.anim-ice .ice-cube-3{animation:kleiv-float 2.8s ease-in-out .6s infinite;}
+.anim-ice .melt-puddle{animation:kleiv-melt 3.8s ease-in-out infinite; transform-origin:bottom center;}
+@keyframes kleiv-float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-6px) rotate(1.2deg)}}
+@keyframes kleiv-melt{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.06) scaleY(.96)}}
+
+/* Croissant Lounger — rolling pin spins, guy breathes, croissant bounces */
+.anim-croissant .rolling-pin{animation:kleiv-spin-slow 6s linear infinite;}
+.anim-croissant .lounger-guy{animation:kleiv-breathe 3.2s ease-in-out infinite;}
+.anim-croissant .croissant-body{animation:kleiv-bounce-soft 2.8s var(--kleiv-ease-bounce) infinite;}
+@keyframes kleiv-spin-slow{to{transform:rotate(360deg)}}
+@keyframes kleiv-bounce-soft{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* Barista — steam rises, portafilter pour */
+.anim-barista .steam-vapors{animation:kleiv-steam 2.6s ease-in-out infinite;}
+.anim-barista .espresso-machine{animation:kleiv-breathe 4s ease-in-out infinite;}
+.anim-barista .grinder-hopper{animation:kleiv-float 3.5s ease-in-out infinite;}
+@keyframes kleiv-steam{0%{opacity:.2; transform:translateY(4px) scale(.96)}50%{opacity:.9; transform:translateY(-2px) scale(1.02)}100%{opacity:.2; transform:translateY(-6px) scale(1)}}
+
+/* Balance Girl — cup wobble, hair sway */
+.anim-balance .iced-cup-on-head{animation:kleiv-wobble 2.8s ease-in-out infinite; transform-origin:bottom center;}
+.anim-balance .hair-mass{animation:kleiv-sway 3.4s ease-in-out infinite;}
+.anim-balance .girl-body{animation:kleiv-breathe 3.8s ease-in-out infinite;}
+@keyframes kleiv-wobble{0%,100%{transform:rotate(0deg)}25%{transform:rotate(2.2deg)}75%{transform:rotate(-2.2deg)}}
+@keyframes kleiv-sway{0%,100%{transform:rotate(0deg)}50%{transform:rotate(1.4deg)}}
+
+/* Iced Cup — ice bob, cup glow */
+.anim-cup .ice-detail{animation:kleiv-float 2.6s ease-in-out infinite;}
+.anim-cup .cup-body{animation:kleiv-breathe 3.2s ease-in-out infinite;}
+.anim-cup .cup-lid{animation:kleiv-bounce-soft 3s ease-in-out infinite;}
+
+/* Wavy — endless loop marquee */
+.anim-waves .wave-pattern{animation:kleiv-marquee 8s linear infinite;}
+.anim-waves .wave-1{animation:kleiv-marquee 9s linear infinite reverse;}
+@keyframes kleiv-marquee{from{transform:translateX(0)}to{transform:translateX(-18px)}}
+
+/* Person with box — box open, steam */
+.anim-person .coffee-box{animation:kleiv-breathe 3s ease-in-out infinite;}
+.anim-person .head-hair{animation:kleiv-sway 3.6s ease-in-out infinite;}
+
+/* ============ DUAL MODE: Vibe vs Speed ============ */
+.kleiv-mode-vibe .kleiv-doodle{opacity:1; transition:opacity .4s;}
+.kleiv-mode-speed .kleiv-doodle{opacity:.12; pointer-events:none;}
+.kleiv-mode-speed .kleiv-anim{animation:none !important;}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .kleiv-intro-line .draw-path, .kleiv-intro-wordmark, .kleiv-intro-slogan, .kleiv-intro-waves{animation:none; opacity:1; transform:none; stroke-dashoffset:0;}
+  .kleiv-doodle *, .anim-infinity *, .anim-ice *, .anim-croissant *, .anim-barista *, .anim-balance *, .anim-cup *, .anim-waves *, .anim-person *{animation:none !important;}
+}
