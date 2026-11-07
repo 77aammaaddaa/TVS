@@ -15,8 +15,21 @@ const { title = SITE_CONFIG.name, description = 'A little coffee ritual in Suez,
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script is:inline>
+      (() => {
+        let lang = 'en';
+        try { lang = localStorage.getItem('kleiv_lang') === 'ar' ? 'ar' : 'en'; } catch {}
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,400;0,600;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#213a23" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.svg" />
     <meta name="description" content={description} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -32,5 +45,9 @@ const { title = SITE_CONFIG.name, description = 'A little coffee ritual in Suez,
     <LatteArtModal />
     <AsmrPrompt />
     <CartDrawer />
+    <script>
+      import { applyLanguage, getLanguage } from '../scripts/language.js';
+      applyLanguage(getLanguage());
+    </script>
   </body>
 </html>

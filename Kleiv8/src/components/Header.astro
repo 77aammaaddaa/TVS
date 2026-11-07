@@ -9,6 +9,9 @@ import BrandMark from './BrandMark.astro';
   </a>
 
   <nav class="header-actions" aria-label="Menu controls">
+    <button class="language-toggle" id="language-toggle" type="button" aria-label="Change language">
+      <span id="language-toggle-label">EN</span>
+    </button>
     <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" aria-label="ASMR Ambient: off" title="Enable optional ASMR and rain ambience">
       <div class="sound-bars" aria-hidden="true">
         <span></span><span></span><span></span>
@@ -28,6 +31,28 @@ import BrandMark from './BrandMark.astro';
 
 <script>
   import { asmr, ASMR_STATE_EVENT } from '../scripts/asmr-engine.js';
+  import { getLanguage, setLanguage, LANGUAGE_UPDATED_EVENT, t } from '../scripts/language.js';
+
+  const languageToggle = document.querySelector<HTMLButtonElement>('#language-toggle');
+  const languageLabel = document.querySelector<HTMLElement>('#language-toggle-label');
+
+  function syncLanguageControl(lang: 'ar' | 'en') {
+    if (languageLabel) languageLabel.textContent = lang === 'ar' ? 'EN' : 'عربي';
+    languageToggle?.setAttribute('aria-label', lang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية');
+  }
+
+  syncLanguageControl(getLanguage() as 'ar' | 'en');
+  languageToggle?.addEventListener('click', async () => {
+    const next = getLanguage() === 'ar' ? 'en' : 'ar';
+    setLanguage(next);
+    await asmr.playClick();
+  });
+  window.addEventListener(LANGUAGE_UPDATED_EVENT, (event) => {
+    const lang = (event as CustomEvent<{ lang: 'ar' | 'en' }>).detail.lang;
+    syncLanguageControl(lang);
+    const label = document.querySelector<HTMLElement>('#mode-label');
+    if (label) label.textContent = document.body.dataset.mode === 'speed' ? t('modeSpeed', lang) : t('modeVibe', lang);
+  });
 
   const modeToggle = document.querySelector<HTMLButtonElement>('#mode-toggle');
   const modeLabel = document.querySelector<HTMLElement>('#mode-label');
@@ -56,7 +81,7 @@ import BrandMark from './BrandMark.astro';
     document.body.dataset.mode = isSpeed ? 'speed' : 'vibe';
     modeToggle.setAttribute('aria-pressed', String(isSpeed));
     if (modeLabel) {
-      modeLabel.textContent = isSpeed ? 'Speed List' : 'Vibe Reel';
+      modeLabel.textContent = isSpeed ? t('modeSpeed') : t('modeVibe');
     }
     await asmr.playClick();
   });

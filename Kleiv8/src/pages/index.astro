@@ -16,12 +16,12 @@ import { SITE_CONFIG } from '../config/site.js';
   <main id="main-content">
     <section class="hero" id="top">
       <div class="hero__copy">
-        <p class="eyebrow"><span class="status-dot"></span> Specialty Coffee · Suez, Egypt</p>
-        <h1>Enjoy Coffee.<br /><em>Enjoy Vibes.</em></h1>
-        <p class="hero__description">Find your signature brew or discover a daily comfort ritual. Explore the endless film reel below, then order at the counter.</p>
+        <p class="eyebrow"><span class="status-dot"></span><span data-i18n="heroEyebrow">Specialty Coffee · Suez, Egypt</span></p>
+        <h1><span data-i18n="tagline">Enjoy Coffee. Enjoy Vibes</span></h1>
+        <p class="hero__description" data-i18n="heroDescription">Find your signature brew or discover a daily comfort ritual. Explore the endless reel below, then order at the counter.</p>
         <div class="hero__actions">
-          <a class="button-primary" href="#vibe-engine">Explore Reel <span aria-hidden="true">↓</span></a>
-          <span class="payment-note"><span aria-hidden="true">◉</span> Counter Service · EGP</span>
+          <a class="button-primary" href="#vibe-engine"><span data-i18n="explore">Explore Reel</span> <span aria-hidden="true">↓</span></a>
+          <span class="payment-note"><span aria-hidden="true">◉</span> <span data-i18n="counterService">Counter Service · EGP</span></span>
         </div>
       </div>
       <div class="hero-art" aria-hidden="true">
@@ -74,19 +74,19 @@ import { SITE_CONFIG } from '../config/site.js';
         />
       </div>
       <div class="counter-callout__copy">
-        <p class="eyebrow">Simple Counter Flow</p>
-        <h2>Order here. Pay at the cashier.</h2>
-        <p>Pick your drinks and pastries into your bag, send the list to our cashier on WhatsApp, and grab your vibe fresh from the bar.</p>
+        <p class="eyebrow" data-i18n="counterEyebrow">Simple Counter Flow</p>
+        <h2 data-i18n="counterTitle">Order here. Pay at the cashier.</h2>
+        <p data-i18n="counterCopy">Pick your drinks and pastries into your bag, send the list to our cashier on WhatsApp, and grab your vibe fresh from the bar.</p>
       </div>
       <a href={`https://wa.me/${SITE_CONFIG.whatsappNumber}`} target="_blank" rel="noopener noreferrer">
-        Chat with Barista <span aria-hidden="true">↗</span>
+        <span data-i18n="chatBarista">Chat with Barista</span> <span aria-hidden="true">↗</span>
       </a>
     </section>
   </main>
 
   <footer class="site-footer">
     <a class="footer-brand" href="#top"><BrandMark class="footer-brand__mark" /> KLEIV</a>
-    <p>Behind Engineers Syndicate · Suez, Egypt</p>
+    <p data-i18n="footerLocation">Behind Engineers Syndicate · Suez, Egypt</p>
     <nav class="footer-socials" aria-label="Follow KLEIV on social media">
       {SITE_CONFIG.socialLinks.map(({ name, url }) => (
         <a href={url} target="_blank" rel="noopener noreferrer" aria-label={`Follow KLEIV on ${name}`}>

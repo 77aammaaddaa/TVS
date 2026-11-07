@@ -18,6 +18,8 @@
 }
 
 * { box-sizing: border-box; }
+html[lang="ar"] body { font-family: Cairo, Bricolage Grotesque, sans-serif; }
+html[lang="en"] body { font-family: Bricolage Grotesque, Aleo, Inter, sans-serif; }
 html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 body { min-width: 320px; margin: 0; background: var(--paper); }
 body.drawer-open { overflow: hidden; }
@@ -40,6 +42,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .brand-lockup small { margin-top: 4px; color: var(--muted); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
 .header-actions { display: flex; align-items: center; gap: 10px; }
 .header-actions button { min-height: 42px; border: 0; cursor: pointer; }
+.language-toggle { display: inline-grid; min-width: 42px; place-items: center; padding: 0 10px; border-radius: 999px; color: var(--pine); background: white; box-shadow: inset 0 0 0 1px rgba(33,58,35,.16); font-size: 11px; font-weight: 800; }
+.language-toggle:hover { color: white; background: var(--jade); }
 .sound-toggle, .mode-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 999px; color: var(--pine); background: var(--mist); font-size: 12px; font-weight: 650; transition: all .24s ease; }
 .sound-toggle:hover { transform: translateY(-2px); }
 .sound-toggle[aria-pressed="true"] { color: white; background: var(--jade); box-shadow: 0 6px 18px rgba(44,121,93,.28); }

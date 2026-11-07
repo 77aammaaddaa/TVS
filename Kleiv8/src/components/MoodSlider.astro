@@ -1,16 +1,16 @@
 <section class="mood-panel" aria-labelledby="mood-title">
   <div class="mood-panel__heading">
     <div>
-      <p class="eyebrow">Choose your feeling</p>
-      <h2 id="mood-title">What’s the mood?</h2>
+      <p class="eyebrow" data-i18n="chooseMood">Choose your feeling</p>
+      <h2 id="mood-title" data-i18n="moodQuestion">What’s the mood?</h2>
     </div>
-    <span id="mood-current" class="mood-current">Chill</span>
+    <span id="mood-current" class="mood-current" data-i18n="chill">Chill</span>
   </div>
   <div class="mood-control">
     <div class="mood-labels" aria-hidden="true">
-      <span data-mood-label="chill">Chill</span>
-      <span data-mood-label="focus">Focus</span>
-      <span data-mood-label="refresh">Refresh</span>
+      <span data-mood-label="chill" data-i18n="chill">Chill</span>
+      <span data-mood-label="focus" data-i18n="focus">Focus</span>
+      <span data-mood-label="refresh" data-i18n="refresh">Refresh</span>
     </div>
     <input
       id="mood-range"
@@ -20,26 +20,38 @@
       step="1"
       value="0"
       aria-label="Filter menu by mood"
+      data-i18n-aria="filterMood"
       aria-valuetext="Chill"
     />
   </div>
 </section>
 
 <script>
+  import { LANGUAGE_UPDATED_EVENT, getLanguage, t } from '../scripts/language.js';
+
   const slider = document.querySelector<HTMLInputElement>('#mood-range');
   const moodNames = ['chill', 'focus', 'refresh'];
-  const moodLabels = ['Chill', 'Focus', 'Refresh'];
   const currentMood = document.querySelector<HTMLElement>('#mood-current');
 
-  slider?.addEventListener('input', () => {
-    const index = Number(slider.value);
+  const renderMood = () => {
+    const index = Number(slider?.value ?? 0);
     const mood = moodNames[index] ?? 'chill';
-    const label = moodLabels[index] ?? 'Chill';
-    slider.setAttribute('aria-valuetext', label);
+    const label = t(mood, getLanguage());
+
+    if (slider) slider.setAttribute('aria-valuetext', label);
     if (currentMood) currentMood.textContent = label;
     document.querySelectorAll<HTMLElement>('[data-mood-label]').forEach((element) => {
       element.classList.toggle('is-active', element.dataset.moodLabel === mood);
     });
+  };
+
+  slider?.addEventListener('input', () => {
+    renderMood();
+    const index = Number(slider.value);
+    const mood = moodNames[index] ?? 'chill';
     window.dispatchEvent(new CustomEvent('kleiv8:mood-change', { detail: { mood } }));
   });
+
+  window.addEventListener(LANGUAGE_UPDATED_EVENT, renderMood);
+  renderMood();
 </script>

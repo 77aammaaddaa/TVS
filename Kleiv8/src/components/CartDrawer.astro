@@ -2,21 +2,21 @@
 <aside class="cart-drawer" id="cart-drawer" aria-labelledby="cart-title" aria-hidden="true">
   <div class="cart-drawer__header">
     <div>
-      <p class="eyebrow">Order & pay at cashier</p>
-      <h2 id="cart-title">Your little list<span id="cart-item-count"></span></h2>
+      <p class="eyebrow" data-i18n="orderEyebrow">Order & pay at cashier</p>
+      <h2 id="cart-title"><span data-i18n="cartTitle">Your little list</span><span id="cart-item-count"></span></h2>
     </div>
     <button class="icon-button" id="close-cart-btn" type="button" aria-label="Close order">×</button>
   </div>
   <div class="cart-items" id="cart-items" aria-live="polite"></div>
   <label class="notes-field" for="order-notes">
-    <span>A note for the barista <small>(optional)</small></span>
-    <textarea id="order-notes" rows="2" maxlength="180" placeholder="Milk preference, less ice…"></textarea>
+    <span><span data-i18n="baristaNote">A note for the barista</span> <small data-i18n="optional">(optional)</small></span>
+    <textarea id="order-notes" rows="2" maxlength="180" data-i18n-placeholder="notePlaceholder" placeholder="Milk preference, less ice…"></textarea>
   </label>
   <div class="cart-summary">
-    <p><span>Total</span><strong id="cart-total">0 EGP</strong></p>
-    <p class="cashier-note">Send your order, then pay at our counter.</p>
+    <p><span data-i18n="total">Total</span><strong id="cart-total">0 EGP</strong></p>
+    <p class="cashier-note" data-i18n="cashierNote">Send your order, then pay at our counter.</p>
     <button class="checkout-button" id="checkout-btn" type="button">
-      <span>Send to cashier on WhatsApp</span><span aria-hidden="true">↗</span>
+      <span data-i18n="sendCashier">Send to cashier on WhatsApp</span><span aria-hidden="true">↗</span>
     </button>
   </div>
 </aside>
@@ -25,10 +25,12 @@
   import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
   import { menuStore, CART_UPDATED_EVENT } from '../scripts/menu-store.js';
   import { checkoutViaWhatsApp } from '../scripts/order-handler.js';
+  import { getLanguage, LANGUAGE_UPDATED_EVENT, applyLanguage, itemName, t } from '../scripts/language.js';
 
   type CartItem = {
     id: string;
     name_en: string;
+    name_ar?: string;
     price: number;
     emoji: string;
     quantity: number;
@@ -65,7 +67,7 @@
 
     if (cart.length === 0) {
 
-     cartItems.innerHTML = '<div class="cart-empty"><span aria-hidden="true">☕</span><p>Your bag is waiting for its first sip.</p><small>Add your favorite drinks from the reel</small></div>';
+      cartItems.innerHTML = `<div class="cart-empty"><span aria-hidden="true">☕</span><p>${t('emptyCart')}</p><small>${t('emptyCartHint')}</small></div>`;
 
       return;
     }
@@ -78,9 +80,9 @@
       const copy = document.createElement('div');
       copy.className = 'cart-line__copy';
       const name = document.createElement('strong');
-      name.textContent = item.name_en;
+      name.textContent = itemName(item);
       const amount = document.createElement('small');
-      amount.textContent = `${formatter.format(item.price)} EGP each`;
+      amount.textContent = `${formatter.format(item.price)} EGP ${t('each')}`;
       copy.append(name, amount);
       const controls = document.createElement('div');
       controls.className = 'quantity-control';
@@ -88,7 +90,7 @@
       decrement.type = 'button';
       decrement.dataset.change = '-1';
       decrement.dataset.itemId = item.id;
-      decrement.setAttribute('aria-label', `Remove one ${item.name_en}`);
+      decrement.setAttribute('aria-label', `${t('removeOne')} ${itemName(item)}`);
       decrement.textContent = '−';
       const value = document.createElement('span');
       value.textContent = String(item.quantity);
@@ -96,7 +98,7 @@
       increment.type = 'button';
       increment.dataset.change = '1';
       increment.dataset.itemId = item.id;
-      increment.setAttribute('aria-label', `Add one ${item.name_en}`);
+      increment.setAttribute('aria-label', `${t('addOne')} ${itemName(item)}`);
       increment.textContent = '+';
       controls.append(decrement, value, increment);
       row.append(doodle, copy, controls);
@@ -135,5 +137,9 @@
   });
 
   menuStore.subscribe(CART_UPDATED_EVENT, (event: CustomEvent<CartItem[]>) => renderCart(event.detail));
+  window.addEventListener(LANGUAGE_UPDATED_EVENT, () => {
+    applyLanguage(getLanguage());
+    renderCart(menuStore.getCart());
+  });
   menuStore.init();
 </script>

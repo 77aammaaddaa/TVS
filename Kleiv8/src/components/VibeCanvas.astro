@@ -84,11 +84,13 @@ const filmStripItems = [...activeMenu, ...activeMenu];
   import { illustrationForMenuItem } from '../config/visual-assets.js';
   import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
   import { asmr } from '../scripts/asmr-engine.js';
+  import { LANGUAGE_UPDATED_EVENT, applyLanguage, getLanguage, itemName, itemDescription } from '../scripts/language.js';
 
   type MenuItem = {
     id: string;
     name_en: string;
     description: string;
+    description_ar?: string;
     price: number;
     category: string;
     mood: string;
@@ -155,9 +157,9 @@ const filmStripItems = [...activeMenu, ...activeMenu];
       const details = document.createElement('div');
       details.className = 'film-card__details';
       const title = document.createElement('h3');
-      title.textContent = item.name_en;
+      title.textContent = itemName(item);
       const desc = document.createElement('p');
-      desc.textContent = item.description;
+      desc.textContent = itemDescription(item);
       details.append(title, desc);
 
       const footer = document.createElement('div');
@@ -214,7 +216,7 @@ const filmStripItems = [...activeMenu, ...activeMenu];
       const item = menuStore.getMenu().find((entry) => entry.id === latteArtButton.dataset.latteArt)
         ?? initialMenu.find((entry) => entry.id === latteArtButton.dataset.latteArt);
       if (item) {
-        window.dispatchEvent(new CustomEvent('kleiv8:latte-art-open', { detail: { name: item.name_en } }));
+        window.dispatchEvent(new CustomEvent('kleiv8:latte-art-open', { detail: { name: itemName(item) } }));
       }
       return;
     }
@@ -237,5 +239,9 @@ const filmStripItems = [...activeMenu, ...activeMenu];
   });
 
   menuStore.subscribe(MENU_UPDATED_EVENT, (event: CustomEvent<MenuItem[]>) => renderFilmStrip(event.detail));
+  window.addEventListener(LANGUAGE_UPDATED_EVENT, () => {
+    applyLanguage(getLanguage());
+    renderFilmStrip(menuStore.getMenu());
+  });
   menuStore.init(initialMenu);
 </script>
