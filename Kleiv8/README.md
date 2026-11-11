@@ -15,7 +15,7 @@ Use Node.js 22.22 or newer. Create the static production site with `npm run buil
 
 The site ships with sample EGP menu entries in `public/data/default-menu.json`. These are demonstration values and should be replaced with the shop's approved products and prices before launch.
 
-The browser renders the fallback menu in the generated HTML, then initializes a localStorage-backed store and performs stale-while-revalidate when configured. To enable Google Apps Script sync, set `PUBLIC_MENU_ENDPOINT` to the deployed web-app URL at build time. The endpoint may return an array or `{ "success": true, "data": [...] }`. `Hidden` products are excluded and invalid rows are ignored. No endpoint is contacted when the setting is empty.
+The browser renders the fallback menu in the generated HTML, then initializes a localStorage-backed store and performs stale-while-revalidate. The Google Apps Script web-app endpoint is configured by default; override it with `PUBLIC_MENU_ENDPOINT` at build time, or set that variable to an empty value to disable synchronization. The endpoint may return an array or `{ "success": true, "data": [...] }`. `Hidden` products are excluded and invalid rows are ignored. If synchronization fails, the local fallback menu remains available.
 
 ## Counter ordering
 
