@@ -5,7 +5,7 @@
       <p class="eyebrow" data-i18n="orderEyebrow">Order & pay at cashier</p>
       <h2 id="cart-title"><span data-i18n="cartTitle">Your little list</span><span id="cart-item-count"></span></h2>
     </div>
-    <button class="icon-button" id="close-cart-btn" type="button" aria-label="Close order">×</button>
+    <button class="icon-button" id="close-cart-btn" type="button" aria-label="Close order" data-i18n-aria="closeCart">×</button>
   </div>
   <div class="cart-items" id="cart-items" aria-live="polite"></div>
   <label class="notes-field" for="order-notes">
@@ -18,6 +18,7 @@
     <button class="checkout-button" id="checkout-btn" type="button">
       <span data-i18n="sendCashier">Send to cashier on WhatsApp</span><span aria-hidden="true">↗</span>
     </button>
+    <p class="cart-feedback" id="cart-feedback" role="status" aria-live="polite" hidden></p>
   </div>
 </aside>
 
@@ -25,7 +26,7 @@
   import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
   import { menuStore, CART_UPDATED_EVENT } from '../scripts/menu-store.js';
   import { checkoutViaWhatsApp } from '../scripts/order-handler.js';
-  import { getLanguage, LANGUAGE_UPDATED_EVENT, applyLanguage, itemName, t } from '../scripts/language.js';
+  import { getLanguage, LANGUAGE_UPDATED_EVENT, applyLanguage, formatNumber, formatPrice, itemName, t } from '../scripts/language.js';
 
   type CartItem = {
     id: string;
@@ -43,7 +44,15 @@
   const cartTotal = document.querySelector<HTMLElement>('#cart-total');
   const countLabel = document.querySelector<HTMLElement>('#cart-item-count');
   const notes = document.querySelector<HTMLTextAreaElement>('#order-notes');
-  const formatter = new Intl.NumberFormat('en-EG', { maximumFractionDigits: 2 });
+  const feedback = document.querySelector<HTMLElement>('#cart-feedback');
+  let feedbackKey = '';
+
+  function showFeedback(key: string) {
+    feedbackKey = key;
+    if (!feedback) return;
+    feedback.textContent = key ? t(key) : '';
+    feedback.hidden = !key;
+  }
 
   function setDrawerOpen(open: boolean) {
     drawer?.classList.toggle('is-open', open);
@@ -57,12 +66,17 @@
   function renderCart(cart: CartItem[]) {
     const quantity = cart.reduce((sum, item) => sum + item.quantity, 0);
     if (badge) {
-      badge.textContent = String(quantity);
+      badge.textContent = formatNumber(quantity);
       badge.classList.toggle('hidden', quantity === 0);
     }
-    if (countLabel) countLabel.textContent = quantity ? ` · ${quantity}` : '';
+    const openCartButton = document.querySelector<HTMLButtonElement>('#open-cart-btn');
+    openCartButton?.setAttribute(
+      'aria-label',
+      quantity ? t('openCartCount').replace('{count}', formatNumber(quantity)) : t('openCart'),
+    );
+    if (countLabel) countLabel.textContent = quantity ? ` · ${formatNumber(quantity)}` : '';
     const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    if (cartTotal) cartTotal.textContent = `${formatter.format(total)} EGP`;
+    if (cartTotal) cartTotal.textContent = formatPrice(total);
     if (!cartItems) return;
 
     if (cart.length === 0) {
@@ -82,7 +96,7 @@
       const name = document.createElement('strong');
       name.textContent = itemName(item);
       const amount = document.createElement('small');
-      amount.textContent = `${formatter.format(item.price)} EGP ${t('each')}`;
+      amount.textContent = `${formatPrice(item.price)} ${t('each')}`;
       copy.append(name, amount);
       const controls = document.createElement('div');
       controls.className = 'quantity-control';
@@ -93,7 +107,7 @@
       decrement.setAttribute('aria-label', `${t('removeOne')} ${itemName(item)}`);
       decrement.textContent = '−';
       const value = document.createElement('span');
-      value.textContent = String(item.quantity);
+      value.textContent = formatNumber(item.quantity);
       const increment = document.createElement('button');
       increment.type = 'button';
       increment.dataset.change = '1';
@@ -127,11 +141,15 @@
     const result = checkoutViaWhatsApp(menuStore.getCart(), notes?.value ?? '');
     if (!result.ok) {
       if (result.reason === 'empty-cart') {
-        cartItems?.setAttribute('data-message', 'Add at least one item before sending your order.');
-        window.setTimeout(() => cartItems?.removeAttribute('data-message'), 2400);
+        showFeedback('emptyCheckout');
+      } else if (result.reason === 'note-language-mismatch') {
+        showFeedback('notesLanguageError');
+      } else if (result.reason === 'invalid-cart') {
+        showFeedback('invalidCart');
       }
       return;
     }
+    showFeedback('');
     menuStore.clearCart();
     if (notes) notes.value = '';
   });
@@ -140,6 +158,8 @@
   window.addEventListener(LANGUAGE_UPDATED_EVENT, () => {
     applyLanguage(getLanguage());
     renderCart(menuStore.getCart());
+    if (feedbackKey) showFeedback(feedbackKey);
   });
   menuStore.init();
+  renderCart(menuStore.getCart());
 </script>

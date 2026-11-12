@@ -11,7 +11,9 @@ import { SITE_CONFIG } from '../config/site.js';
 
 <Layout
   title="KLEIV ∞ | Enjoy Coffee, Enjoy Vibes"
+  titleAr="كليف ∞ | استمتع بالقهوة، استمتع بالأجواء"
   description="Specialty coffee and comfort space in Suez, Egypt. Counter service, pay in EGP."
+  descriptionAr="قهوة مختصة ومساحة مريحة في السويس، مصر. اطلب وادفع بالجنيه المصري عند الكاشير."
 >
   <main id="main-content">
     <section class="hero" id="top">
@@ -29,6 +31,8 @@ import { SITE_CONFIG } from '../config/site.js';
           <img
             class="hero-art__cup"
             src={VISUAL_ASSETS.icedCupSlogan.src}
+            data-i18n-src-en={VISUAL_ASSETS.icedCupSlogan.src}
+            data-i18n-src-ar={VISUAL_ASSETS.icedCup.src}
             width={VISUAL_ASSETS.icedCupSlogan.width}
             height={VISUAL_ASSETS.icedCupSlogan.height}
             alt=""
@@ -51,7 +55,7 @@ import { SITE_CONFIG } from '../config/site.js';
             alt=""
           />
         </div>
-        <span class="hero-art__caption"><BrandMark class="hero-art__caption-mark" tone="cream" /> SUEZ · ENDLESS VIBES</span>
+        <span class="hero-art__caption"><BrandMark class="hero-art__caption-mark" tone="cream" /> <span data-i18n="heroCaption">SUEZ · ENDLESS VIBES</span></span>
       </div>
     </section>
 
@@ -62,7 +66,7 @@ import { SITE_CONFIG } from '../config/site.js';
       <QuickList />
     </div>
 
-    <section class="counter-callout" aria-label="How ordering works">
+    <section class="counter-callout" aria-label="How ordering works" data-i18n-aria="counterRegion">
       <div class="counter-callout__illustration" aria-hidden="true">
         <img
           src={VISUAL_ASSETS.slowMoment.src}
@@ -85,15 +89,21 @@ import { SITE_CONFIG } from '../config/site.js';
   </main>
 
   <footer class="site-footer">
-    <a class="footer-brand" href="#top"><BrandMark class="footer-brand__mark" /> KLEIV</a>
+    <a class="footer-brand" href="#top" data-i18n-aria="homeLink"><BrandMark class="footer-brand__mark" /> <span data-i18n="brandName">KLEIV</span></a>
     <p data-i18n="footerLocation">Behind Engineers Syndicate · Suez, Egypt</p>
-    <nav class="footer-socials" aria-label="Follow KLEIV on social media">
+    <nav class="footer-socials" aria-label="Follow KLEIV on social media" data-i18n-aria="socialNavigation">
       {SITE_CONFIG.socialLinks.map(({ name, url }) => (
-        <a href={url} target="_blank" rel="noopener noreferrer" aria-label={`Follow KLEIV on ${name}`}>
-          {name}
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Follow KLEIV on ${name}`}
+          data-i18n-aria={`follow${name}`}
+        >
+          <span data-i18n={`social${name}`}>{name}</span>
         </a>
       ))}
     </nav>
-    <p>© {new Date().getFullYear()} KLEIV. Enjoy Coffee, Enjoy Vibes.</p>
+    <p>© {new Date().getFullYear()} <span data-i18n="footerCopyright">KLEIV. Enjoy Coffee, Enjoy Vibes.</span></p>
   </footer>
 </Layout>

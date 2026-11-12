@@ -1,17 +1,18 @@
-<aside class="asmr-prompt" id="asmr-prompt" role="status" aria-live="polite" aria-label="Optional sound" hidden>
+<aside class="asmr-prompt" id="asmr-prompt" role="status" aria-live="polite" aria-label="Optional sound" data-i18n-aria="soundPromptLabel" hidden>
   <span class="asmr-prompt__icon" aria-hidden="true">🎧</span>
   <div class="asmr-prompt__copy">
-    <strong>Optional ASMR Ambient · no music</strong>
-    <p>Enable gentle rain ambience and barista-inspired sound design, or keep browsing silently.</p>
+    <strong data-i18n="soundPromptTitle">Optional ASMR Ambient · no music</strong>
+    <p data-i18n="soundPromptCopy">Enable gentle rain ambience and café-inspired sound design, or keep browsing silently.</p>
   </div>
   <div class="asmr-prompt__actions">
-    <button class="asmr-prompt__enable" id="asmr-enable" type="button">Enable</button>
-    <button class="asmr-prompt__dismiss" id="asmr-dismiss" type="button">Keep silent</button>
+    <button class="asmr-prompt__enable" id="asmr-enable" type="button" data-i18n="soundEnableButton">Enable sound</button>
+    <button class="asmr-prompt__dismiss" id="asmr-dismiss" type="button" data-i18n="soundDismissButton">Keep silent</button>
   </div>
 </aside>
 
 <script>
   import { asmr } from '../scripts/asmr-engine.js';
+  import { applyLanguage, getLanguage } from '../scripts/language.js';
 
   const PROMPT_SEEN_KEY = 'kleiv8:asmr-prompt-seen:v1';
   const prompt = document.querySelector<HTMLElement>('#asmr-prompt');
@@ -46,7 +47,10 @@
     const enabled = await asmr.enable();
     if (!enabled) {
       const copy = prompt?.querySelector<HTMLElement>('.asmr-prompt__copy p');
-      if (copy) copy.textContent = 'Sound is unavailable in this browser. You can keep browsing silently.';
+      if (copy) {
+        copy.dataset.i18n = 'soundUnavailable';
+        applyLanguage(getLanguage());
+      }
       return;
     }
     await asmr.playSteamWand();

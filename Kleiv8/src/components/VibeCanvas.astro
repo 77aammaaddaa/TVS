@@ -6,13 +6,13 @@ const activeMenu = Menu.filter((item) => item.status !== 'Hidden');
 const filmStripItems = [...activeMenu, ...activeMenu];
 ---
 
-<section class="film-strip-section vibe-section" id="vibe-engine" aria-label="Featured endless menu reel">
+<section class="film-strip-section vibe-section" id="vibe-engine" aria-label="Featured endless menu reel" data-i18n-aria="vibeRegion">
   <div class="film-header">
     <div>
-      <span class="film-badge">THE ENDLESS REEL ∞</span>
-      <h2>Curated Sips & <em>Bites.</em></h2>
+      <span class="film-badge" data-i18n="vibeBadge">THE ENDLESS REEL ∞</span>
+      <h2><span data-i18n="vibeTitle1">Curated Sips &</span> <em data-i18n="vibeTitle2">Bites.</em></h2>
     </div>
-    <span class="swipe-note">Hover or touch to pause <span aria-hidden="true">↔</span></span>
+    <span class="swipe-note"><span data-i18n="pause">Hover or touch to pause</span> <span aria-hidden="true">↔</span></span>
   </div>
 
   <div class="film-track-container">
@@ -84,18 +84,34 @@ const filmStripItems = [...activeMenu, ...activeMenu];
   import { illustrationForMenuItem } from '../config/visual-assets.js';
   import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
   import { asmr } from '../scripts/asmr-engine.js';
-  import { LANGUAGE_UPDATED_EVENT, applyLanguage, getLanguage, itemName, itemDescription } from '../scripts/language.js';
+  import {
+    LANGUAGE_UPDATED_EVENT,
+    applyLanguage,
+    badgeName,
+    categoryName,
+    formatPrice,
+    getLanguage,
+    itemName,
+    itemDescription,
+    t,
+  } from '../scripts/language.js';
 
   type MenuItem = {
     id: string;
     name_en: string;
+    name_ar?: string;
+    description_en?: string;
     description: string;
     description_ar?: string;
     price: number;
     category: string;
+    category_en?: string;
+    category_ar?: string;
     mood: string;
     mood_scores?: Record<string, number>;
     badge?: string;
+    badge_en?: string;
+    badge_ar?: string;
     status: string;
     latte_art?: boolean;
   };
@@ -121,7 +137,7 @@ const filmStripItems = [...activeMenu, ...activeMenu];
       top.className = 'film-card__top';
       const badge = document.createElement('span');
       badge.className = 'film-card__badge';
-      badge.textContent = item.badge || item.category;
+      badge.textContent = badgeName(item) || categoryName(item);
       const frame = document.createElement('span');
       frame.className = 'film-card__frame';
       frame.textContent = `0${(index % visible.length) + 1} ∞`;
@@ -148,8 +164,9 @@ const filmStripItems = [...activeMenu, ...activeMenu];
         latteArt.type = 'button';
         latteArt.dataset.latteArt = item.id;
         latteArt.textContent = '∞';
-        latteArt.setAttribute('aria-label', `See latte art for ${item.name_en}`);
-        latteArt.title = `See latte art for ${item.name_en}`;
+        const label = `${t('latteArt')} ${itemName(item)}`;
+        latteArt.setAttribute('aria-label', label);
+        latteArt.title = label;
         if (index >= visible.length) latteArt.tabIndex = -1;
         visual.append(latteArt);
       }
@@ -166,13 +183,13 @@ const filmStripItems = [...activeMenu, ...activeMenu];
       footer.className = 'film-card__footer';
       const price = document.createElement('strong');
       price.className = 'price-val';
-      price.innerHTML = `${item.price} <small>EGP</small>`;
+      price.textContent = formatPrice(item.price);
       const btn = document.createElement('button');
       btn.className = 'add-button';
       btn.type = 'button';
       btn.dataset.addItem = item.id;
       btn.textContent = '+';
-      btn.setAttribute('aria-label', `Add ${item.name_en} to bag`);
+      btn.setAttribute('aria-label', t('addItemToBag').replace('{item}', itemName(item)));
       if (index >= visible.length) btn.tabIndex = -1;
       footer.append(price, btn);
 
@@ -216,7 +233,7 @@ const filmStripItems = [...activeMenu, ...activeMenu];
       const item = menuStore.getMenu().find((entry) => entry.id === latteArtButton.dataset.latteArt)
         ?? initialMenu.find((entry) => entry.id === latteArtButton.dataset.latteArt);
       if (item) {
-        window.dispatchEvent(new CustomEvent('kleiv8:latte-art-open', { detail: { name: itemName(item) } }));
+        window.dispatchEvent(new CustomEvent('kleiv8:latte-art-open', { detail: { item } }));
       }
       return;
     }
@@ -229,8 +246,13 @@ const filmStripItems = [...activeMenu, ...activeMenu];
     menuStore.addToCart(item);
     await asmr.playClick('add');
     button.classList.add('is-added');
+    button.setAttribute('aria-label', `${t('added')} ${itemName(item)}`);
     popParticles(button);
-    window.setTimeout(() => button.classList.remove('is-added'), 360);
+    window.setTimeout(() => {
+      if (!button.isConnected) return;
+      button.classList.remove('is-added');
+      button.setAttribute('aria-label', t('addItemToBag').replace('{item}', itemName(item)));
+    }, 360);
   });
 
   window.addEventListener('kleiv8:mood-change', (event: Event) => {
@@ -244,4 +266,5 @@ const filmStripItems = [...activeMenu, ...activeMenu];
     renderFilmStrip(menuStore.getMenu());
   });
   menuStore.init(initialMenu);
+  renderFilmStrip(menuStore.getMenu());
 </script>

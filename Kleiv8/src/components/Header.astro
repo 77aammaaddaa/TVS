@@ -3,27 +3,33 @@ import BrandMark from './BrandMark.astro';
 ---
 
 <header class="site-header">
-  <a class="brand-lockup" href="#top" aria-label="KLEIV home">
+  <a class="brand-lockup" href="#top" aria-label="KLEIV home" data-i18n-aria="homeLink">
     <span class="brand-mark"><BrandMark class="brand-mark__symbol" tone="cream" /></span>
-    <span><strong>KLEIV</strong><small>Suez · Coffee & Vibes</small></span>
+    <span>
+      <strong data-i18n="brandName">KLEIV</strong>
+      <small data-i18n="brandSubtitle">Suez · Coffee & Vibes</small>
+    </span>
   </a>
 
-  <nav class="header-actions" aria-label="Menu controls">
-    <button class="language-toggle" id="language-toggle" type="button" aria-label="Change language">
-      <span id="language-toggle-label">EN</span>
+  <nav class="header-actions" aria-label="Menu controls" data-i18n-aria="headerActions">
+    <button class="language-toggle" id="language-toggle" type="button" aria-label="Change language" data-i18n-aria="languageToggle" title="Change language" data-i18n-title="languageToggle">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7" />
+        <path d="M3.5 12h17M12 3c2.4 2.5 3.5 5.5 3.5 9s-1.1 6.5-3.5 9c-2.4-2.5-3.5-5.5-3.5-9S9.6 5.5 12 3Z" fill="none" stroke="currentColor" stroke-width="1.4" />
+      </svg>
     </button>
-    <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" aria-label="ASMR Ambient: off" title="Enable optional ASMR and rain ambience">
+    <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" aria-label="Turn ambient sound on" data-i18n-aria="soundTurnOn" title="Enable optional ASMR and rain ambience" data-i18n-title="soundEnableTitle">
       <div class="sound-bars" aria-hidden="true">
         <span></span><span></span><span></span>
       </div>
-      <span class="sound-label">ASMR Ambient</span>
+      <span class="sound-label" data-i18n="soundLabel">ASMR Ambient</span>
     </button>
-    <button class="mode-toggle" id="mode-toggle" type="button" aria-pressed="false">
+    <button class="mode-toggle" id="mode-toggle" type="button" aria-pressed="false" aria-label="Switch to speed mode" data-i18n-aria="switchToSpeed">
       <span class="mode-toggle__dot" aria-hidden="true"></span>
-      <span id="mode-label">Vibe Reel</span>
+      <span id="mode-label" data-i18n="modeVibe">Vibe Reel</span>
     </button>
-    <button class="cart-trigger" id="open-cart-btn" type="button" aria-label="Open Cart">
-      <span aria-hidden="true">Bag</span>
+    <button class="cart-trigger" id="open-cart-btn" type="button" aria-label="Open cart" data-i18n-aria="openCart">
+      <span aria-hidden="true" data-i18n="cart">Bag</span>
       <span class="cart-trigger__count hidden" id="cart-badge">0</span>
     </button>
   </nav>
@@ -34,43 +40,48 @@ import BrandMark from './BrandMark.astro';
   import { getLanguage, setLanguage, LANGUAGE_UPDATED_EVENT, t } from '../scripts/language.js';
 
   const languageToggle = document.querySelector<HTMLButtonElement>('#language-toggle');
-  const languageLabel = document.querySelector<HTMLElement>('#language-toggle-label');
-
-  function syncLanguageControl(lang: 'ar' | 'en') {
-    if (languageLabel) languageLabel.textContent = lang === 'ar' ? 'EN' : 'عربي';
-    languageToggle?.setAttribute('aria-label', lang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية');
-  }
-
-  syncLanguageControl(getLanguage() as 'ar' | 'en');
-  languageToggle?.addEventListener('click', async () => {
-    const next = getLanguage() === 'ar' ? 'en' : 'ar';
-    setLanguage(next);
-    await asmr.playClick();
-  });
-  window.addEventListener(LANGUAGE_UPDATED_EVENT, (event) => {
-    const lang = (event as CustomEvent<{ lang: 'ar' | 'en' }>).detail.lang;
-    syncLanguageControl(lang);
-    const label = document.querySelector<HTMLElement>('#mode-label');
-    if (label) label.textContent = document.body.dataset.mode === 'speed' ? t('modeSpeed', lang) : t('modeVibe', lang);
-  });
-
   const modeToggle = document.querySelector<HTMLButtonElement>('#mode-toggle');
   const modeLabel = document.querySelector<HTMLElement>('#mode-label');
   const soundButton = document.querySelector<HTMLButtonElement>('#sound-toggle');
   const soundLabel = soundButton?.querySelector<HTMLElement>('.sound-label');
 
+  function updateLanguageControl() {
+    if (!languageToggle) return;
+    languageToggle.setAttribute('aria-label', t('languageToggle'));
+    languageToggle.title = t('languageToggle');
+  }
+
+  function updateModeControl() {
+    const isSpeed = document.body.dataset.mode === 'speed';
+    if (modeLabel) modeLabel.textContent = t(isSpeed ? 'modeSpeed' : 'modeVibe');
+    modeToggle?.setAttribute('aria-label', t(isSpeed ? 'switchToVibe' : 'switchToSpeed'));
+    modeToggle?.setAttribute('aria-pressed', String(isSpeed));
+  }
+
   function updateSoundControl(enabled: boolean) {
     if (!soundButton) return;
     soundButton.setAttribute('aria-pressed', String(enabled));
-    soundButton.setAttribute('aria-label', `ASMR Ambient: ${enabled ? 'on' : 'off'}`);
-    soundButton.title = enabled ? 'Turn ASMR and rain ambience off' : 'Enable optional ASMR and rain ambience';
-    if (soundLabel) soundLabel.textContent = 'ASMR Ambient';
+    soundButton.setAttribute('aria-label', t(enabled ? 'soundTurnOff' : 'soundTurnOn'));
+    soundButton.title = t(enabled ? 'soundDisableTitle' : 'soundEnableTitle');
+    if (soundLabel) soundLabel.textContent = t('soundLabel');
     soundButton.querySelectorAll('.sound-bars span').forEach((bar) => {
       bar.classList.toggle('is-dancing', enabled);
     });
   }
 
+  updateLanguageControl();
+  updateModeControl();
   updateSoundControl(asmr.enabled);
+  languageToggle?.addEventListener('click', async () => {
+    const next = getLanguage() === 'ar' ? 'en' : 'ar';
+    setLanguage(next);
+    await asmr.playClick();
+  });
+  window.addEventListener(LANGUAGE_UPDATED_EVENT, () => {
+    updateLanguageControl();
+    updateModeControl();
+    updateSoundControl(asmr.enabled);
+  });
   window.addEventListener(ASMR_STATE_EVENT, (event) => {
     const stateEvent = event as CustomEvent<{ enabled: boolean }>;
     updateSoundControl(stateEvent.detail.enabled);
@@ -79,10 +90,7 @@ import BrandMark from './BrandMark.astro';
   modeToggle?.addEventListener('click', async () => {
     const isSpeed = document.body.dataset.mode !== 'speed';
     document.body.dataset.mode = isSpeed ? 'speed' : 'vibe';
-    modeToggle.setAttribute('aria-pressed', String(isSpeed));
-    if (modeLabel) {
-      modeLabel.textContent = isSpeed ? t('modeSpeed') : t('modeVibe');
-    }
+    updateModeControl();
     await asmr.playClick();
   });
 

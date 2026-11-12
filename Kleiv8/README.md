@@ -2,6 +2,8 @@
 
 A static, bilingual-first coffee menu for Kleiv 8 in Suez. Built with Astro and Tailwind CSS; client interactions use native ES modules and browser APIs only.
 
+The Arabic and English interface, story cards, accessibility labels, page metadata, prices, and WhatsApp checkout follow the selected language. Menu items use separate English and Arabic fields; missing or mixed-script content is never substituted from the other language.
+
 ## Run locally
 
 ```sh
@@ -27,7 +29,7 @@ The welcome animation draws the infinity mark for 1.2 seconds and can be dismiss
 
 ## Interactive brand stories
 
-Five illustrated characters open short, English-language stories with menu recommendations. Recommendations and EGP totals follow the current menu, and available products can be added directly to the cart; unavailable items cannot be ordered from a story.
+Five illustrated characters open short stories in the selected language with menu recommendations. Recommendations and EGP totals follow the current menu, and available products can be added directly to the cart; unavailable items cannot be ordered from a story.
 
 Hot-coffee items marked `latte_art` open an interactive top-down cup modal with an animated infinity pour and touch/mouse ripples. Vibe mode shows a horizontal looping menu reel; Speed mode shows a searchable, category-filtered list. The mood slider highlights products tagged for chill, focus, or refresh.
 

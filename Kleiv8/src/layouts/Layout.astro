@@ -5,10 +5,14 @@ import Header from '../components/Header.astro';
 import AsmrPrompt from '../components/AsmrPrompt.astro';
 import LatteArtModal from '../components/LatteArtModal.astro';
 import CartDrawer from '../components/CartDrawer.astro';
-import { SITE_CONFIG } from '../config/site.js';
 import { VISUAL_ASSETS } from '../config/visual-assets.js';
 
-const { title = SITE_CONFIG.name, description = 'A little coffee ritual in Suez, Egypt.' } = Astro.props;
+const {
+  title = 'KLEIV ∞ | Enjoy Coffee, Enjoy Vibes',
+  titleAr = 'كليف ∞ | استمتع بالقهوة، استمتع بالأجواء',
+  description = 'Specialty coffee and a comfortable space in Suez, Egypt.',
+  descriptionAr = 'قهوة مختصة ومساحة مريحة في السويس، مصر.',
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -21,6 +25,7 @@ const { title = SITE_CONFIG.name, description = 'A little coffee ritual in Suez,
         try { lang = localStorage.getItem('kleiv_lang') === 'ar' ? 'ar' : 'en'; } catch {}
         document.documentElement.lang = lang;
         document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        if (lang === 'ar') document.documentElement.classList.add('locale-pending');
       })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -30,15 +35,41 @@ const { title = SITE_CONFIG.name, description = 'A little coffee ritual in Suez,
     <meta name="theme-color" content="#213a23" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.svg" />
-    <meta name="description" content={description} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
+    <meta
+      name="description"
+      content={description}
+      data-i18n-content-en={description}
+      data-i18n-content-ar={descriptionAr}
+    />
+    <meta
+      property="og:title"
+      content={title}
+      data-i18n-content-en={title}
+      data-i18n-content-ar={titleAr}
+    />
+    <meta
+      property="og:description"
+      content={description}
+      data-i18n-content-en={description}
+      data-i18n-content-ar={descriptionAr}
+    />
     <meta property="og:type" content="website" />
     <link rel="preload" as="image" href={VISUAL_ASSETS.infinity.src} />
-    <title>{title} · Coffee, comfort & good company</title>
+    <title data-i18n-title-en={title} data-i18n-title-ar={titleAr}>{title}</title>
+    <script is:inline>
+      (() => {
+        if (document.documentElement.lang !== 'ar') return;
+        const title = document.querySelector('title[data-i18n-title-ar]');
+        if (title?.dataset.i18nTitleAr) document.title = title.dataset.i18nTitleAr;
+        document.querySelectorAll('meta[data-i18n-content-ar]').forEach((meta) => {
+          const content = meta.dataset.i18nContentAr;
+          if (content !== undefined) meta.setAttribute('content', content);
+        });
+      })();
+    </script>
   </head>
   <body data-mode="vibe">
-    <a class="skip-link" href="#main-content">Skip to menu</a>
+    <a class="skip-link" href="#main-content" data-i18n="skipToMenu">Skip to menu</a>
     <Splash />
     <Header />
     <slot />

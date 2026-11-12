@@ -1,9 +1,9 @@
 <dialog class="latte-modal" id="latte-modal" aria-labelledby="latte-modal-title">
   <div class="latte-modal__panel">
-    <button class="latte-modal__close" type="button" data-close-latte aria-label="Close latte art">×</button>
-    <p class="eyebrow">Hand-crafted · served warm</p>
-    <h2 id="latte-modal-title">A little latte art</h2>
-    <div class="latte-cup" role="img" aria-label="Interactive cup of espresso with latte art">
+    <button class="latte-modal__close" type="button" data-close-latte aria-label="Close latte art" data-i18n-aria="latteClose">×</button>
+    <p class="eyebrow" data-i18n="latteHandcrafted">Hand-crafted · served warm</p>
+    <h2 id="latte-modal-title" data-i18n="latteTitle">A little latte art</h2>
+    <div class="latte-cup" role="img" aria-label="Interactive espresso cup with latte art" data-i18n-aria="latteCupDescription">
       <div class="espresso-surface" id="espresso-surface">
         <div class="crema-ring" aria-hidden="true"></div>
         <svg class="milk-pour-svg" viewBox="0 0 160 160" aria-hidden="true">
@@ -15,18 +15,20 @@
         </svg>
       </div>
     </div>
-    <p class="latte-caption"><span id="latte-drink-name">Your hot coffee</span> · Crafted at 9 Bars · Velvety Microfoam</p>
-    <p class="latte-modal__hint">Tap or move your finger across the cup to ripple the crema.</p>
-    <button class="latte-modal__done" type="button" data-close-latte>Back to menu</button>
+    <p class="latte-caption"><span id="latte-drink-name" data-i18n="hotCoffee">Your hot coffee</span> · <span data-i18n="latteCaption">Crafted at 9 Bars · Velvety Microfoam</span></p>
+    <p class="latte-modal__hint" data-i18n="latteHint">Tap or move your finger across the cup to ripple the crema.</p>
+    <button class="latte-modal__done" type="button" data-close-latte data-i18n="latteBack">Back to the menu</button>
   </div>
 </dialog>
 
 <script>
   import { asmr } from '../scripts/asmr-engine.js';
+  import { getLanguage, itemName, LANGUAGE_UPDATED_EVENT, t } from '../scripts/language.js';
 
   const modal = document.querySelector<HTMLDialogElement>('#latte-modal');
   const surface = document.querySelector<HTMLElement>('#espresso-surface');
   const drinkName = document.querySelector<HTMLElement>('#latte-drink-name');
+  let activeDrink: { name_en?: string; name_ar?: string } | null = null;
   let previousFocus: HTMLElement | null = null;
   let lastRippleAt = 0;
 
@@ -56,10 +58,11 @@
   }
 
   window.addEventListener('kleiv8:latte-art-open', (event: Event) => {
-    const detail = (event as CustomEvent<{ name?: string }>).detail;
+    const detail = (event as CustomEvent<{ item?: { name_en?: string; name_ar?: string } }>).detail;
     if (!modal) return;
     previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    if (drinkName) drinkName.textContent = detail?.name || 'Your hot coffee';
+    activeDrink = detail?.item ?? null;
+    if (drinkName) drinkName.textContent = activeDrink ? itemName(activeDrink) : t('hotCoffee');
     if (!modal.open) modal.showModal();
     modal.classList.remove('is-pouring');
     requestAnimationFrame(() => modal.classList.add('is-pouring'));
@@ -76,6 +79,12 @@
     modal.classList.remove('is-pouring');
     previousFocus?.focus();
     previousFocus = null;
+    activeDrink = null;
+  });
+  window.addEventListener(LANGUAGE_UPDATED_EVENT, () => {
+    if (drinkName && modal?.open) {
+      drinkName.textContent = activeDrink ? itemName(activeDrink, getLanguage()) : t('hotCoffee');
+    }
   });
   surface?.addEventListener('pointerdown', makeRipple);
   surface?.addEventListener('pointermove', (event) => {

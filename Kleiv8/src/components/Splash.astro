@@ -7,9 +7,12 @@ import BrandMark from './BrandMark.astro';
   <div class="splash__stage">
     <div class="splash__glow-ring" aria-hidden="true"></div>
     <BrandMark class="splash__infinity-mark" tone="cream" />
-    <h1 class="splash__logo">KLEIV</h1>
-    <p class="splash__slogan">ENJOY COFFEE · ENJOY VIBES</p>
-    <button class="splash__skip" id="splash-enter" type="button">Enter menu <span aria-hidden="true">↓</span></button>
+    <h1 class="splash__logo" data-i18n="brandName">KLEIV</h1>
+    <p class="splash__slogan" data-i18n="splashTagline">ENJOY COFFEE · ENJOY VIBES</p>
+    <button class="splash__skip" id="splash-enter" type="button">
+      <span data-i18n="enterMenu">Enter the menu</span>
+      <span aria-hidden="true">↓</span>
+    </button>
   </div>
 </div>
 

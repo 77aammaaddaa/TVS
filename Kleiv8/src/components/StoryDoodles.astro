@@ -4,24 +4,29 @@ import { STORY_DOODLES } from '../config/story-doodles.js';
 
 <section class="story-doodles-section" id="story-doodles" aria-labelledby="story-doodles-title">
   <header class="story-header">
-    <p class="eyebrow">Interactive moments</p>
-    <h2 id="story-doodles-title">Every little detail has a <em>story.</em></h2>
-    <p>Tap a character to find a little moment that feels like you.</p>
+    <p class="eyebrow" data-i18n="storyEyebrow">Interactive moments</p>
+    <h2 id="story-doodles-title"><span data-i18n="storyTitle1">Every little detail has a</span> <em data-i18n="storyTitle2">story.</em></h2>
+    <p data-i18n="storyDescription">Tap a character to find a little moment that feels like you.</p>
   </header>
 
-  <div class="doodles-canvas" role="group" aria-label="KLEIV story characters">
+  <div class="doodles-canvas" role="group" aria-label="KLEIV story characters" data-i18n-aria="storyRegion">
     {STORY_DOODLES.map((story) => (
       <button
         class="story-trigger"
         type="button"
         data-story-trigger={story.id}
-        data-story-badge={story.badge}
-        data-story-title={story.title}
-        data-story-copy={story.copy}
+        data-story-label-en={story.label_en}
+        data-story-label-ar={story.label_ar}
+        data-story-badge-en={story.badge_en}
+        data-story-badge-ar={story.badge_ar}
+        data-story-title-en={story.title_en}
+        data-story-title-ar={story.title_ar}
+        data-story-copy-en={story.copy_en}
+        data-story-copy-ar={story.copy_ar}
         data-recommendation-ids={story.recommendationIds.join(',')}
         aria-expanded="false"
         aria-controls="story-panel"
-        aria-label={`Open story: ${story.label}`}
+        aria-label={`Open story: ${story.label_en}`}
       >
         <span class="story-figure" aria-hidden="true">
           <img
@@ -34,7 +39,7 @@ import { STORY_DOODLES } from '../config/story-doodles.js';
             decoding="async"
           />
         </span>
-        <span class="doodle-tag">{story.label}</span>
+        <span class="doodle-tag">{story.label_en}</span>
       </button>
     ))}
   </div>
@@ -47,15 +52,16 @@ import { STORY_DOODLES } from '../config/story-doodles.js';
     </div>
     <div class="story-panel__actions" aria-live="polite">
       <div class="story-recommendation">
-        <span class="story-recommendation__label">A little pick for you</span>
+        <span class="story-recommendation__label" data-i18n="storyPick">A little pick for you</span>
         <strong id="story-recommendation-names"></strong>
         <small id="story-recommendation-price"></small>
       </div>
       <button class="bubble-cta" id="story-add-button" type="button" data-story-add>
-        Add to your bag <span aria-hidden="true">→</span>
+        <span data-i18n="storyAdd">Add to your bag</span>
+        <span aria-hidden="true">→</span>
       </button>
     </div>
-    <button class="story-panel__close" type="button" data-story-close aria-label="Close story">×</button>
+    <button class="story-panel__close" type="button" data-story-close aria-label="Close story" data-i18n-aria="storyClose">×</button>
   </div>
 </section>
 
@@ -63,10 +69,18 @@ import { STORY_DOODLES } from '../config/story-doodles.js';
   import Menu from '../../public/data/default-menu.json';
   import { asmr } from '../scripts/asmr-engine.js';
   import { CART_UPDATED_EVENT, MENU_UPDATED_EVENT, menuStore } from '../scripts/menu-store.js';
+  import {
+    formatPrice,
+    getLanguage,
+    itemName,
+    LANGUAGE_UPDATED_EVENT,
+    t,
+  } from '../scripts/language.js';
 
   type StoryMenuItem = {
     id: string;
     name_en: string;
+    name_ar?: string;
     price: number;
     status: string;
   };
@@ -79,8 +93,40 @@ import { STORY_DOODLES } from '../config/story-doodles.js';
   const recommendationNames = document.querySelector<HTMLElement>('#story-recommendation-names');
   const recommendationPrice = document.querySelector<HTMLElement>('#story-recommendation-price');
   const addButton = document.querySelector<HTMLButtonElement>('#story-add-button');
-  const formatter = new Intl.NumberFormat('en-EG', { maximumFractionDigits: 2 });
   let activeTrigger: HTMLButtonElement | null = null;
+  let recommendationAdded = false;
+
+  function setAddButtonLabel(key: string) {
+    if (!addButton) return;
+    const label = addButton.querySelector<HTMLElement>('[data-i18n]');
+    if (label) label.textContent = t(key);
+    else addButton.textContent = t(key);
+  }
+
+  function storyText(trigger: HTMLButtonElement, field: 'label' | 'badge' | 'title' | 'copy') {
+    const suffix = getLanguage() === 'ar' ? 'Ar' : 'En';
+    const value = trigger.dataset[`story${field[0].toUpperCase()}${field.slice(1)}${suffix}`];
+    return value || t('unknownStory');
+  }
+
+  function localizeStoryTriggers() {
+    root?.querySelectorAll<HTMLButtonElement>('[data-story-trigger]').forEach((trigger) => {
+      const label = storyText(trigger, 'label');
+      const tag = trigger.querySelector<HTMLElement>('.doodle-tag');
+      if (tag) tag.textContent = label;
+      trigger.setAttribute('aria-label', `${t('storyOpen')}: ${label}`);
+      trigger.title = label;
+    });
+
+    if (activeTrigger) {
+      if (badge) badge.textContent = storyText(activeTrigger, 'badge');
+      if (title) title.textContent = storyText(activeTrigger, 'title');
+      if (copy) copy.textContent = storyText(activeTrigger, 'copy');
+      updateRecommendation(menuStore.getMenu());
+    }
+
+    setAddButtonLabel(recommendationAdded ? 'storyAdded' : 'storyAdd');
+  }
 
   function availableRecommendations(menu: StoryMenuItem[]) {
     const ids = addButton?.dataset.availableItemIds?.split(',').filter(Boolean) ?? [];
@@ -97,19 +143,20 @@ import { STORY_DOODLES } from '../config/story-doodles.js';
       .map((id) => menu.find((item) => item.id === id))
       .filter((item): item is StoryMenuItem => Boolean(item && item.status !== 'Sold Out' && item.status !== 'Hidden'));
     const total = items.reduce((sum, item) => sum + item.price, 0);
+    const names = items.map((item) => itemName(item)).join(' + ');
 
     addButton.dataset.availableItemIds = items.map((item) => item.id).join(',');
-    addButton.disabled = items.length === 0;
+    addButton.disabled = items.length === 0 || recommendationAdded;
     recommendationNames.textContent = items.length
-      ? items.map((item) => item.name_en).join(' + ')
-      : 'This pick is currently unavailable.';
-    recommendationPrice.textContent = items.length ? `${formatter.format(total)} EGP` : '';
-    addButton.setAttribute(
-      'aria-label',
-      items.length
-        ? `Add ${items.map((item) => item.name_en).join(' and ')} to your bag for ${formatter.format(total)} EGP`
-        : 'This recommendation is currently unavailable',
-    );
+      ? names
+      : t('storyUnavailable');
+    recommendationPrice.textContent = items.length ? formatPrice(total) : '';
+    const ariaLabel = items.length
+      ? t('addRecommendation')
+        .replace('{items}', names)
+        .replace('{total}', formatPrice(total))
+      : t('storyUnavailableLabel');
+    addButton.setAttribute('aria-label', recommendationAdded ? t('storyAdded') : ariaLabel);
   }
 
   function updatePanelAnchor() {
@@ -129,9 +176,11 @@ import { STORY_DOODLES } from '../config/story-doodles.js';
     root.classList.remove('has-open-story');
     activeTrigger?.setAttribute('aria-expanded', 'false');
     activeTrigger = null;
+    recommendationAdded = false;
     if (addButton) {
       addButton.disabled = false;
-      addButton.textContent = 'Add to your bag →';
+      setAddButtonLabel('storyAdd');
+      addButton.removeAttribute('aria-label');
     }
     if (returnFocus) triggerToFocus?.focus();
   }
@@ -148,10 +197,11 @@ import { STORY_DOODLES } from '../config/story-doodles.js';
     });
 
     activeTrigger = trigger;
+    recommendationAdded = false;
     trigger.setAttribute('aria-expanded', 'true');
-    badge.textContent = trigger.dataset.storyBadge ?? '';
-    title.textContent = trigger.dataset.storyTitle ?? '';
-    copy.textContent = trigger.dataset.storyCopy ?? '';
+    badge.textContent = storyText(trigger, 'badge');
+    title.textContent = storyText(trigger, 'title');
+    copy.textContent = storyText(trigger, 'copy');
     panel.hidden = false;
     panel.classList.remove('is-visible');
     root?.classList.add('has-open-story');
@@ -187,8 +237,10 @@ import { STORY_DOODLES } from '../config/story-doodles.js';
 
     items.forEach((item) => menuStore.addToCart(item));
     await asmr.playClick('add');
+    recommendationAdded = true;
     addButton.disabled = true;
-    addButton.textContent = 'Added to your bag';
+    setAddButtonLabel('storyAdded');
+    addButton.setAttribute('aria-label', t('storyAdded'));
     window.setTimeout(() => {
       if (panel && !panel.hidden && addButton.isConnected) closeStory(true);
     }, 900);
@@ -203,15 +255,14 @@ import { STORY_DOODLES } from '../config/story-doodles.js';
   });
 
   window.addEventListener('resize', updatePanelAnchor);
+  window.addEventListener(LANGUAGE_UPDATED_EVENT, localizeStoryTriggers);
   menuStore.subscribe(MENU_UPDATED_EVENT, (event: CustomEvent<StoryMenuItem[]>) => {
     updateRecommendation(event.detail);
   });
   menuStore.subscribe(CART_UPDATED_EVENT, () => {
-    if (addButton && addButton.textContent === 'Added to your bag') {
-      addButton.disabled = false;
-      addButton.textContent = 'Add to your bag →';
-    }
+    if (activeTrigger) updateRecommendation(menuStore.getMenu());
   });
+  localizeStoryTriggers();
   menuStore.init(Menu);
 </script>
 

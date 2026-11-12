@@ -1,35 +1,35 @@
 ---
 import Menu from '../../public/data/default-menu.json';
 import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
+import { categoryName } from '../scripts/language.js';
 const categories = [...new Set(Menu.map((item) => item.category))];
 ---
 
-<section class="speed-section" id="speed-engine" aria-label="Quick order menu">
+<section class="speed-section" id="speed-engine" aria-label="Quick order menu" data-i18n-aria="quickRegion">
   <div class="section-heading speed-heading">
     <div>
       <p class="eyebrow" data-i18n="quickEyebrow">Quick list · counter ready</p>
       <h2><span data-i18n="quickTitle1">Pick. Pay.</span> <em data-i18n="quickTitle2">Enjoy.</em></h2>
     </div>
     <label class="search-field">
-      <span class="sr-only">Search the menu</span>
+      <span class="sr-only" data-i18n="search">Search the menu</span>
       <span aria-hidden="true">⌕</span>
-      <input id="menu-search" type="search" data-i18n-placeholder="search" placeholder="Search / ابحث" autocomplete="off" />
+      <input id="menu-search" type="search" data-i18n-placeholder="search" placeholder="Search the menu" autocomplete="off" />
     </label>
   </div>
-  <div class="category-tabs" id="category-tabs" aria-label="Filter by category">
+  <div class="category-tabs" id="category-tabs" aria-label="Filter by category" data-i18n-aria="filterCategory">
     <button class="category-tab is-selected" type="button" data-category="all" aria-pressed="true" data-i18n="everything">Everything</button>
     {categories.map((category) => (
-      <button class="category-tab" type="button" data-category={category} aria-pressed="false">{category}</button>
+      <button class="category-tab" type="button" data-category={category} aria-pressed="false">{categoryName(category, 'en')}</button>
     ))}
   </div>
   <div class="quick-list" id="quick-list">
     {Menu.filter((item) => item.status !== 'Hidden').map((item) => (
-      <article class="quick-item" data-id={item.id} data-category={item.category} data-name={`${item.name_en} ${item.name_ar}`.toLowerCase()}>
+      <article class="quick-item" data-id={item.id} data-category={item.category} data-name={item.name_en.toLowerCase()}>
         <div class="quick-item__doodle" set:html={getDoodleMarkup(doodleForMenuItem(item))}></div>
         <div class="quick-item__copy">
           <strong>{item.name_en}</strong>
-          <span lang="ar" dir="rtl">{item.name_ar}</span>
-          <small>{item.category}</small>
+          <small>{categoryName(item, 'en')}</small>
         </div>
         <div class="quick-item__actions">
           <strong class="quick-item__price">{item.price} <small>EGP</small></strong>
@@ -55,7 +55,7 @@ const categories = [...new Set(Menu.map((item) => item.category))];
   import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
   import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
   import { asmr } from '../scripts/asmr-engine.js';
-  import { getLanguage, LANGUAGE_UPDATED_EVENT, applyLanguage, itemName, categoryName, t } from '../scripts/language.js';
+  import { getLanguage, LANGUAGE_UPDATED_EVENT, applyLanguage, itemName, categoryName, formatPrice, t } from '../scripts/language.js';
 
   type MenuItem = {
     id: string;
@@ -63,6 +63,9 @@ const categories = [...new Set(Menu.map((item) => item.category))];
     name_en: string;
     name_ar: string;
     description: string;
+    description_ar?: string;
+    category_ar?: string;
+    badge_ar?: string;
     price: number;
     status: string;
     emoji?: string;
@@ -83,25 +86,21 @@ const categories = [...new Set(Menu.map((item) => item.category))];
       row.className = `quick-item${item.status === 'Sold Out' ? ' is-sold-out' : ''}`;
       row.dataset.id = item.id;
       row.dataset.category = item.category;
-      row.dataset.name = `${item.name_en} ${item.name_ar}`.toLowerCase();
+      const localizedName = itemName(item);
+      row.dataset.name = localizedName.toLocaleLowerCase(getLanguage() === 'ar' ? 'ar-EG' : 'en-EG');
       const doodle = document.createElement('div');
       doodle.className = 'quick-item__doodle';
       doodle.innerHTML = getDoodleMarkup(doodleForMenuItem(item));
       const copy = document.createElement('div');
       copy.className = 'quick-item__copy';
       const title = document.createElement('strong');
-      title.textContent = itemName(item);
-      const arabic = document.createElement('span');
-      arabic.lang = getLanguage() === 'ar' ? 'ar' : 'en';
-      arabic.dir = getLanguage() === 'ar' ? 'rtl' : 'ltr';
-      arabic.textContent = getLanguage() === 'ar' ? item.name_ar : item.name_en;
-      arabic.hidden = getLanguage() === 'ar' && !item.name_ar;
+      title.textContent = localizedName;
       const category = document.createElement('small');
-      category.textContent = categoryName(item.category);
-      copy.append(title, arabic, category);
+      category.textContent = categoryName(item);
+      copy.append(title, category);
       const price = document.createElement('strong');
       price.className = 'quick-item__price';
-      price.textContent = `${item.price} EGP`;
+      price.textContent = formatPrice(item.price);
       const actions = document.createElement('div');
       actions.className = 'quick-item__actions';
       actions.append(price);
@@ -111,8 +110,9 @@ const categories = [...new Set(Menu.map((item) => item.category))];
         latteArt.type = 'button';
         latteArt.dataset.latteArt = item.id;
         latteArt.textContent = '∞';
-        latteArt.setAttribute('aria-label', `See latte art for ${item.name_en}`);
-        latteArt.title = `See latte art for ${item.name_en}`;
+        const label = `${t('latteArt')} ${localizedName}`;
+        latteArt.setAttribute('aria-label', label);
+        latteArt.title = label;
         actions.append(latteArt);
       }
       const add = document.createElement('button');
@@ -121,7 +121,12 @@ const categories = [...new Set(Menu.map((item) => item.category))];
       add.dataset.addItem = item.id;
       add.disabled = item.status === 'Sold Out';
       add.textContent = item.status === 'Sold Out' ? t('soldOut') : t('add');
-      add.setAttribute('aria-label', `${t('add')} ${itemName(item)}`);
+      add.setAttribute(
+        'aria-label',
+        item.status === 'Sold Out'
+          ? `${t('soldOut')} ${localizedName}`
+          : t('addItemToOrder').replace('{item}', localizedName),
+      );
       actions.append(add);
       row.append(doodle, copy, actions);
       return row;
@@ -139,6 +144,13 @@ const categories = [...new Set(Menu.map((item) => item.category))];
       if (visible) visibleCount += 1;
     });
     emptyMessage?.classList.toggle('hidden', visibleCount > 0);
+  }
+
+  function localizeCategoryTabs() {
+    document.querySelectorAll<HTMLButtonElement>('.category-tab').forEach((tab) => {
+      const category = tab.dataset.category;
+      tab.textContent = category === 'all' ? t('everything') : categoryName(category ?? 'Menu');
+    });
   }
 
   search?.addEventListener('input', () => {
@@ -170,7 +182,7 @@ const categories = [...new Set(Menu.map((item) => item.category))];
     if (latteArtButton) {
       const item = menuStore.getMenu().find((entry) => entry.id === latteArtButton.dataset.latteArt);
       if (item) {
-        window.dispatchEvent(new CustomEvent('kleiv8:latte-art-open', { detail: { name: itemName(item) } }));
+        window.dispatchEvent(new CustomEvent('kleiv8:latte-art-open', { detail: { item } }));
       }
       return;
     }
@@ -180,19 +192,24 @@ const categories = [...new Set(Menu.map((item) => item.category))];
     if (!item) return;
     menuStore.addToCart(item);
     button.textContent = t('added');
+    button.setAttribute('aria-label', `${t('added')} ${itemName(item)}`);
     window.setTimeout(() => {
-      if (button.isConnected) button.textContent = t('add');
+      if (button.isConnected) {
+        button.textContent = t('add');
+        button.setAttribute('aria-label', t('addItemToOrder').replace('{item}', itemName(item)));
+      }
     }, 700);
   });
 
   menuStore.subscribe(MENU_UPDATED_EVENT, (event: CustomEvent<MenuItem[]>) => renderItems(event.detail));
   window.addEventListener(LANGUAGE_UPDATED_EVENT, () => {
     applyLanguage(getLanguage());
-    document.querySelectorAll<HTMLButtonElement>('.category-tab').forEach((tab) => {
-      const category = tab.dataset.category;
-      tab.textContent = category === 'all' ? t('everything') : categoryName(category ?? 'Menu');
-    });
+    if (search) search.value = '';
+    searchTerm = '';
+    localizeCategoryTabs();
     renderItems(menuStore.getMenu());
   });
   menuStore.init(fallback);
+  localizeCategoryTabs();
+  renderItems(menuStore.getMenu());
 </script>
