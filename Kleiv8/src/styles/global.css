@@ -99,10 +99,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .mood-panel__heading { display: flex; min-width: 245px; align-items: center; gap: 22px; }
 .mood-panel h2 { margin: 0; color: var(--pine); font: 400 21px Georgia, serif; }
 .mood-current { padding: 6px 11px; border-radius: 99px; color: var(--jade); background: #eef5ef; font-size: 10px; font-weight: 700; }
-.mood-control { width: min(390px, 100%); }
-.mood-labels { display: flex; justify-content: space-between; margin-bottom: 10px; color: #a3aaa1; font-size: 10px; font-weight: 650; }
-.mood-labels span.is-active { color: var(--pine); }
-#mood-range { width: 100%; height: 5px; border-radius: 99px; accent-color: var(--jade); cursor: pointer; }
+.mood-control { display: flex; width: min(390px, 100%); gap: 8px; }
+.mood-button { flex: 1; min-height: 42px; padding: 10px 14px; border: 1px solid rgba(33,58,35,.12); border-radius: 99px; color: var(--pine); background: #f7f8f5; font: inherit; font-size: 11px; font-weight: 650; cursor: pointer; transition: color .2s, background .2s, border-color .2s, transform .2s; }
+.mood-button:hover { border-color: var(--jade); background: #eef5ef; }
+.mood-button.is-active { border-color: var(--pine); color: #fff; background: var(--pine); box-shadow: 0 6px 16px rgba(33,58,35,.12); }
+.mood-button:focus-visible { outline: 2px solid var(--jade); outline-offset: 3px; }
 
 /* 35mm Infinite Film Strip Section */
 .film-strip-section { position: relative; padding: 48px 0; margin: 0 calc(-1 * max(5vw, 22px)); overflow: hidden; background: #182419; border-radius: 24px; color: #fcfcfc; box-shadow: 0 24px 60px rgba(24, 36, 25, 0.18); }
