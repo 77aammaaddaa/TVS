@@ -51,6 +51,50 @@ export const translations = {
     vibeTitle1: 'Curated Sips &',
     vibeTitle2: 'Bites.',
     pause: 'Hover or touch to pause',
+    filmPrevious: 'Show previous items',
+    filmNext: 'Show more items',
+    productDialog: 'Product details',
+    productDescription: 'About this item',
+    servingNotes: 'Serving notes',
+    addOns: 'Add-ons',
+    noAddOns: 'No add-ons are available for this item.',
+    productNote: 'A note for this item',
+    productNotePlaceholder: 'For example: less ice…',
+    productAddToCart: 'Add to order',
+    productSaveChanges: 'Save changes',
+    productAdded: 'Added to your order.',
+    productSaved: 'Options updated.',
+    productUnavailable: 'This item is currently unavailable.',
+    productNoteLanguageError: 'Please write this note in English while the English menu is selected.',
+    newsRegion: 'Cafe updates',
+    newsLabel: 'A note from KLEIV',
+    storeOpen: 'Open now',
+    storeClosed: 'Closed now',
+    crowdQuiet: 'Quiet',
+    crowdModerate: 'Comfortably busy',
+    crowdBusy: 'Busy',
+    crowdFull: 'Full',
+    syncLive: 'Live menu',
+    syncSaved: 'Saved menu',
+    syncOffline: 'Offline menu',
+    sortMenu: 'Sort menu',
+    sortPopular: 'Most popular',
+    sortAlphabetical: 'A to Z',
+    sortPriceLow: 'Price: low to high',
+    editOptions: 'Edit options',
+    removeLine: 'Remove {item}',
+    subtotal: 'Subtotal',
+    discount: 'Discount',
+    couponCode: 'Promo code',
+    couponPlaceholder: 'Enter a promo code',
+    applyCoupon: 'Apply',
+    couponApplied: 'Promo code applied.',
+    couponInvalid: 'That promo code is invalid or inactive.',
+    couponMinimumOrder: 'Your order does not meet the minimum for this code.',
+    blogEyebrow: 'Notes from KLEIV',
+    blogTitle: 'Little stories,',
+    blogTitleEm: 'good coffee.',
+    blogReadMore: 'Read more',
     storyRegion: 'KLEIV story characters',
     storyEyebrow: 'Interactive moments',
     storyTitle1: 'Every little detail has a',
@@ -124,8 +168,19 @@ export const translations = {
     categoryCoffee: 'Coffee',
     categoryMatcha: 'Matcha',
     categoryColdDrinks: 'Cold drinks',
+    categoryIceCoffee: 'Iced coffee',
+    categoryHotCoffee: 'Hot coffee',
+    categoryFrappe: 'Frappe & Shake',
+    categoryJuice: 'Fresh juice',
+    categoryMixSoda: 'Mix soda',
+    categoryNonCoffee: 'Non-coffee',
+    categoryExtra: 'Extras',
+    categorySoftDrink: 'Soft drinks',
+    categoryBakeryBreakfast: 'Bakery & Breakfast',
+    categoryBagels: 'Bagels & Sourdough',
     categoryBakery: 'Bakery',
     categoryDesserts: 'Desserts',
+    categoryDessert: 'Dessert',
     categoryMenu: 'Menu',
     otherCategory: 'Other',
     untranslatedItem: 'Untranslated menu item',
@@ -180,6 +235,50 @@ export const translations = {
     vibeTitle1: 'مشروبات و',
     vibeTitle2: 'حلويات مختارة.',
     pause: 'أبقِ المؤشر أو المس الشاشة للإيقاف مؤقتًا',
+    filmPrevious: 'عرض الأصناف السابقة',
+    filmNext: 'عرض مزيد من الأصناف',
+    productDialog: 'تفاصيل الصنف',
+    productDescription: 'عن هذا الصنف',
+    servingNotes: 'ملاحظات التقديم',
+    addOns: 'إضافات',
+    noAddOns: 'لا توجد إضافات متاحة لهذا الصنف.',
+    productNote: 'ملاحظة لهذا الصنف',
+    productNotePlaceholder: 'مثال: ثلج أقل…',
+    productAddToCart: 'أضف إلى الطلب',
+    productSaveChanges: 'حفظ التعديلات',
+    productAdded: 'تمت الإضافة إلى طلبك.',
+    productSaved: 'تم تحديث الاختيارات.',
+    productUnavailable: 'هذا الصنف غير متاح حاليًا.',
+    productNoteLanguageError: 'اكتب الملاحظة بالعربية عند اختيار القائمة العربية.',
+    newsRegion: 'تحديثات المقهى',
+    newsLabel: 'من كليف',
+    storeOpen: 'مفتوح الآن',
+    storeClosed: 'مغلق الآن',
+    crowdQuiet: 'هادئ',
+    crowdModerate: 'أجواء معتدلة',
+    crowdBusy: 'مزدحم',
+    crowdFull: 'ممتلئ',
+    syncLive: 'القائمة محدثة',
+    syncSaved: 'القائمة المحفوظة',
+    syncOffline: 'القائمة دون اتصال',
+    sortMenu: 'ترتيب القائمة',
+    sortPopular: 'الأكثر طلبًا',
+    sortAlphabetical: 'أبجديًا',
+    sortPriceLow: 'السعر: من الأقل للأعلى',
+    editOptions: 'تعديل الاختيارات',
+    removeLine: 'إزالة {item}',
+    subtotal: 'المجموع قبل الخصم',
+    discount: 'الخصم',
+    couponCode: 'رمز الخصم',
+    couponPlaceholder: 'أدخل رمز الخصم',
+    applyCoupon: 'تطبيق',
+    couponApplied: 'تم تطبيق رمز الخصم.',
+    couponInvalid: 'رمز الخصم غير صالح أو غير نشط.',
+    couponMinimumOrder: 'الطلب لا يحقق الحد الأدنى لهذا الرمز.',
+    blogEyebrow: 'حكايات من كليف',
+    blogTitle: 'حكايات صغيرة،',
+    blogTitleEm: 'وقهوة جميلة.',
+    blogReadMore: 'اقرأ المزيد',
     storyRegion: 'شخصيات وحكايات كليف',
     storyEyebrow: 'لحظات تفاعلية',
     storyTitle1: 'كل تفصيلة صغيرة تحمل',
@@ -253,8 +352,19 @@ export const translations = {
     categoryCoffee: 'قهوة ساخنة',
     categoryMatcha: 'ماتشا',
     categoryColdDrinks: 'مشروبات باردة',
+    categoryIceCoffee: 'قهوة باردة',
+    categoryHotCoffee: 'قهوة ساخنة',
+    categoryFrappe: 'فرابيه ومخفوقات',
+    categoryJuice: 'عصائر طازجة',
+    categoryMixSoda: 'مشروبات صودا',
+    categoryNonCoffee: 'مشروبات بلا قهوة',
+    categoryExtra: 'إضافات',
+    categorySoftDrink: 'مشروبات غازية',
+    categoryBakeryBreakfast: 'مخبوزات وإفطار',
+    categoryBagels: 'بيغل وخبز مخمر',
     categoryBakery: 'مخبوزات',
     categoryDesserts: 'حلويات',
+    categoryDessert: 'حلويات',
     categoryMenu: 'القائمة',
     otherCategory: 'أخرى',
     untranslatedItem: 'صنف غير مترجم',
@@ -263,17 +373,29 @@ export const translations = {
 };
 
 const categoryDefinitions = [
-  { key: 'categoryCoffee', values: ['coffee', 'hot coffee', 'قهوة', 'قهوة ساخنة'] },
+  { key: 'categoryHotCoffee', values: ['hot coffee', 'قهوة ساخنة'] },
+  { key: 'categoryIceCoffee', values: ['ice coffee', 'iced coffee', 'قهوة باردة'] },
+  { key: 'categoryCoffee', values: ['coffee', 'قهوة'] },
   { key: 'categoryMatcha', values: ['matcha', 'ماتشا'] },
   { key: 'categoryColdDrinks', values: ['cold drinks', 'cold drink', 'مشروبات باردة', 'مشروب بارد'] },
+  { key: 'categoryFrappe', values: ['frappe & shake', 'frappe and shake', 'فرابيه ومخفوقات'] },
+  { key: 'categoryJuice', values: ['fresh juice', 'عصائر طازجة'] },
+  { key: 'categoryMixSoda', values: ['mix soda', 'مشروبات صودا'] },
+  { key: 'categoryNonCoffee', values: ['non coffee', 'non-coffee', 'مشروبات بلا قهوة'] },
+  { key: 'categoryExtra', values: ['extra', 'extras', 'إضافات'] },
+  { key: 'categorySoftDrink', values: ['soft drink', 'soft drinks', 'مشروبات غازية'] },
+  { key: 'categoryBakeryBreakfast', values: ['bakery & breakfast', 'bakery and breakfast', 'مخبوزات وإفطار'] },
+  { key: 'categoryBagels', values: ['bagels & sourdough', 'bagels and sourdough', 'بيغل وخبز مخمر'] },
   { key: 'categoryBakery', values: ['bakery', 'baked goods', 'مخبوزات', 'مخبوز'] },
-  { key: 'categoryDesserts', values: ['dessert', 'desserts', 'حلويات', 'حلوى'] },
+  { key: 'categoryDessert', values: ['dessert', 'حلويات', 'حلوى'] },
+  { key: 'categoryDesserts', values: ['desserts'] },
   { key: 'categoryMenu', values: ['menu', 'القائمة'] },
 ];
 
 const badgeDefinitions = [
   { en: 'Crew pick', ar: 'اختيار فريقنا' },
   { en: 'Popular', ar: 'الأكثر طلبًا' },
+  { en: 'Best Seller', ar: 'الأكثر طلبًا' },
   { en: 'Fresh', ar: 'طازج' },
   { en: 'New', ar: 'جديد' },
   { en: 'Sweet bite', ar: 'لقمة حلوة' },
@@ -307,16 +429,17 @@ export function t(key, lang = getLanguage()) {
   return lang === 'ar' ? 'نص غير متوفر' : 'Text unavailable';
 }
 
-function isLanguageSafe(value, lang) {
+export function isTextSafeForLanguage(value, lang = getLanguage()) {
+  const text = String(value ?? '');
   return lang === 'ar'
-    ? !latinScriptPattern.test(value)
-    : !arabicScriptPattern.test(value);
+    ? !latinScriptPattern.test(text)
+    : !arabicScriptPattern.test(text);
 }
 
 function safeMenuText(value, lang, fallback, item, field) {
   const text = typeof value === 'string' ? value.trim() : '';
   if (!text) return fallback;
-  if (isLanguageSafe(text, lang)) return text;
+  if (isTextSafeForLanguage(text, lang)) return text;
 
   const issueKey = `${item?.id ?? 'menu'}:${field}:${lang}`;
   if (!reportedCopyIssues.has(issueKey)) {
@@ -334,6 +457,18 @@ export function itemName(item, lang = getLanguage()) {
 export function itemDescription(item, lang = getLanguage()) {
   const value = lang === 'ar' ? item?.description_ar : (item?.description_en ?? item?.description);
   return safeMenuText(value, lang, '', item, lang === 'ar' ? 'description_ar' : 'description_en');
+}
+
+export function itemServingNotes(item, lang = getLanguage()) {
+  const value = lang === 'ar'
+    ? item?.serving_notes_ar
+    : (item?.serving_notes_en ?? item?.serving_notes);
+  return safeMenuText(value, lang, '', item, lang === 'ar' ? 'serving_notes_ar' : 'serving_notes_en');
+}
+
+export function itemIngredients(item, lang = getLanguage()) {
+  const value = lang === 'ar' ? item?.ingredients_ar : item?.ingredients_en;
+  return safeMenuText(value, lang, '', item, lang === 'ar' ? 'ingredients_ar' : 'ingredients_en');
 }
 
 export function categoryName(category, lang = getLanguage()) {
