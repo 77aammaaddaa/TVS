@@ -1,7 +1,7 @@
 export const SITE_CONFIG = Object.freeze({
   name: 'KLEIV',
   symbol: '∞',
-  tagline: 'Enjoy Coffee, Enjoy Vibes.',
+  tagline: 'Enjoy Coffee. Enjoy Vibes.',
   subtagline: 'Specialty Coffee & Good Moments · Suez, Egypt',
   location: 'Suez, Egypt',
   currency: 'EGP',

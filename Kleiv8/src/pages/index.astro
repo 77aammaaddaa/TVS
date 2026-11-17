@@ -11,17 +11,17 @@ import { SITE_CONFIG } from '../config/site.js';
 ---
 
 <Layout
-  title="KLEIV ∞ | Enjoy Coffee, Enjoy Vibes"
-  titleAr="كليف ∞ | استمتع بالقهوة، استمتع بالأجواء"
-  description="Specialty coffee and comfort space in Suez, Egypt. Counter service, pay in EGP."
-  descriptionAr="قهوة مختصة ومساحة مريحة في السويس، مصر. اطلب وادفع بالجنيه المصري عند الكاشير."
+  title="KLEIV ∞ | Enjoy Coffee. Enjoy Vibes."
+  titleAr="كليف ∞ | استمتع بالقهوة. استمتع بالأجواء."
+  description="Specialty coffee in Suez, Egypt. Pick your cup and pay at the cashier."
+  descriptionAr="قهوة مختصة في السويس، مصر. اختار كوبك وادفع عند الكاشير."
 >
   <main id="main-content">
     <section class="hero" id="top">
       <div class="hero__copy">
         <p class="eyebrow"><span class="status-dot"></span><span data-i18n="heroEyebrow">Specialty Coffee · Suez, Egypt</span></p>
-        <h1><span data-i18n="tagline">Enjoy Coffee. Enjoy Vibes</span></h1>
-        <p class="hero__description" data-i18n="heroDescription">Find your signature brew or discover a daily comfort ritual. Explore the endless reel below, then order at the counter.</p>
+        <h1><span data-i18n="tagline">Enjoy Coffee. Enjoy Vibes.</span></h1>
+        <p class="hero__description" data-i18n="heroDescription">Pick your mood, pick your cup. Order here, pay at the cashier.</p>
         <div class="hero__actions">
           <a class="button-primary" href="#vibe-engine"><span data-i18n="explore">Explore Reel</span> <span aria-hidden="true">↓</span></a>
           <span class="payment-note"><span aria-hidden="true">◉</span> <span data-i18n="counterService">Counter Service · EGP</span></span>
@@ -82,7 +82,7 @@ import { SITE_CONFIG } from '../config/site.js';
       <div class="counter-callout__copy">
         <p class="eyebrow" data-i18n="counterEyebrow">Simple Counter Flow</p>
         <h2 data-i18n="counterTitle">Order here. Pay at the cashier.</h2>
-        <p data-i18n="counterCopy">Pick your drinks and pastries into your bag, send the list to our cashier on WhatsApp, and grab your vibe fresh from the bar.</p>
+        <p data-i18n="counterCopy">Add your picks to the bag, send the list to our cashier on WhatsApp, pay at the cashier, and pick up your order at the bar.</p>
       </div>
       <a href={`https://wa.me/${SITE_CONFIG.whatsappNumber}`} target="_blank" rel="noopener noreferrer">
         <span data-i18n="chatBarista">Chat with Barista</span> <span aria-hidden="true">↗</span>
@@ -106,6 +106,6 @@ import { SITE_CONFIG } from '../config/site.js';
         </a>
       ))}
     </nav>
-    <p>© {new Date().getFullYear()} <span data-i18n="footerCopyright">KLEIV. Enjoy Coffee, Enjoy Vibes.</span></p>
+    <p>© {new Date().getFullYear()} <span data-i18n="footerCopyright">KLEIV. Enjoy Coffee. Enjoy Vibes.</span></p>
   </footer>
 </Layout>
