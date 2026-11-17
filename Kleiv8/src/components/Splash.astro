@@ -1,14 +1,14 @@
 ---
-import { getKleivSvgMarkup } from '../scripts/kleiv-svg.js';
-
-const infinityMark = getKleivSvgMarkup('infinity_loop', { active: true, instance: 'splash' });
+import BrandMark from './BrandMark.astro';
 ---
 
 <div class="splash" id="splash-screen" role="presentation">
   <div class="splash__atmosphere" aria-hidden="true"></div>
   <div class="splash__stage">
     <div class="splash__glow-ring" aria-hidden="true"></div>
-    <div class="splash__infinity-mark" set:html={infinityMark}></div>
+    <div class="splash__infinity-mark">
+      <BrandMark class="splash__brand-mark" tone="cream" />
+    </div>
     <h1 class="splash__logo" data-i18n="brandName">KLEIV</h1>
     <p class="splash__slogan" data-i18n="splashTagline">ENJOY COFFEE · ENJOY VIBES</p>
     <button class="splash__skip" id="splash-enter" type="button">
