@@ -1,0 +1,7 @@
+<svg class="milk-pour-svg" viewBox="0 0 160 160" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <path
+    class="latte-art-path"
+    d="M 40,80 C 15,50 5,65 5,80 C 5,95 15,110 40,80 C 65,50 80,80 80,80 C 80,80 95,110 120,80 C 145,50 155,65 155,80 C 155,95 145,110 120,80 C 95,50 80,80 80,80 Z"
+  />
+  <circle class="milk-droplet" cx="80" cy="80" r="14" />
+</svg>

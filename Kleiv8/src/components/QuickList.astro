@@ -1,8 +1,16 @@
 ---
 import Menu from '../../public/data/default-menu.json';
 import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
-import { categoryName } from '../scripts/language.js';
-const categories = [...new Set(Menu.map((item) => item.category))];
+import { categoryName, formatPrice } from '../scripts/language.js';
+
+const categories = [...new Map(Menu.map((item) => [
+  item.category_en,
+  { id: item.category_en, category_en: item.category_en, category_ar: item.category_ar },
+])).values()];
+
+function categoryKey(item: { category_id?: string; category_en?: string; category?: string }) {
+  return String(item.category_id ?? item.category_en ?? item.category ?? 'menu');
+}
 ---
 
 <section class="speed-section" id="speed-engine" aria-label="Quick order menu" data-i18n-aria="quickRegion">
@@ -11,28 +19,40 @@ const categories = [...new Set(Menu.map((item) => item.category))];
       <p class="eyebrow" data-i18n="quickEyebrow">Quick list · counter ready</p>
       <h2><span data-i18n="quickTitle1">Pick. Pay.</span> <em data-i18n="quickTitle2">Enjoy.</em></h2>
     </div>
-    <label class="search-field">
-      <span class="sr-only" data-i18n="search">Search the menu</span>
-      <span aria-hidden="true">⌕</span>
-      <input id="menu-search" type="search" data-i18n-placeholder="search" placeholder="Search the menu" autocomplete="off" />
-    </label>
+    <div class="quick-tools">
+      <label class="sort-field" for="menu-sort">
+        <span data-i18n="sortMenu">Sort menu</span>
+        <select id="menu-sort">
+          <option value="popular" data-i18n="sortPopular">Most popular</option>
+          <option value="alphabetical" data-i18n="sortAlphabetical">A to Z</option>
+          <option value="price-low" data-i18n="sortPriceLow">Price: low to high</option>
+        </select>
+      </label>
+      <label class="search-field">
+        <span class="sr-only" data-i18n="search">Search the menu</span>
+        <span aria-hidden="true">⌕</span>
+        <input id="menu-search" type="search" data-i18n-placeholder="search" placeholder="Search the menu" autocomplete="off" />
+      </label>
+    </div>
   </div>
   <div class="category-tabs" id="category-tabs" aria-label="Filter by category" data-i18n-aria="filterCategory">
     <button class="category-tab is-selected" type="button" data-category="all" aria-pressed="true" data-i18n="everything">Everything</button>
     {categories.map((category) => (
-      <button class="category-tab" type="button" data-category={category} aria-pressed="false">{categoryName(category, 'en')}</button>
+      <button class="category-tab" type="button" data-category={category.id} aria-pressed="false">{categoryName(category, 'en')}</button>
     ))}
   </div>
   <div class="quick-list" id="quick-list">
     {Menu.filter((item) => item.status !== 'Hidden').map((item) => (
-      <article class="quick-item" data-id={item.id} data-category={item.category} data-name={item.name_en.toLowerCase()}>
+      <article class="quick-item" data-id={item.id} data-category={categoryKey(item)} data-name={item.name_en.toLowerCase()}>
         <div class="quick-item__doodle" set:html={getDoodleMarkup(doodleForMenuItem(item))}></div>
         <div class="quick-item__copy">
-          <strong>{item.name_en}</strong>
-          <small>{categoryName(item, 'en')}</small>
+          <button class="quick-item__details" type="button" data-open-product={item.id}>
+            <strong>{item.name_en}</strong>
+            <small>{categoryName(item, 'en')}</small>
+          </button>
         </div>
         <div class="quick-item__actions">
-          <strong class="quick-item__price">{item.price} <small>EGP</small></strong>
+          <strong class="quick-item__price">{formatPrice(item.price, 'en')}</strong>
           {item.latte_art && (
             <button
               class="latte-art-trigger"
@@ -55,37 +75,105 @@ const categories = [...new Set(Menu.map((item) => item.category))];
   import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
   import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
   import { asmr } from '../scripts/asmr-engine.js';
-  import { getLanguage, LANGUAGE_UPDATED_EVENT, applyLanguage, itemName, categoryName, formatPrice, t } from '../scripts/language.js';
+  import {
+    getLanguage,
+    LANGUAGE_UPDATED_EVENT,
+    applyLanguage,
+    itemName,
+    categoryName,
+    formatPrice,
+    t,
+  } from '../scripts/language.js';
 
   type MenuItem = {
     id: string;
     category: string;
+    category_id?: string;
+    category_en?: string;
+    category_ar?: string;
     name_en: string;
     name_ar: string;
-    description: string;
-    description_ar?: string;
-    category_ar?: string;
-    badge_ar?: string;
+    description?: string;
     price: number;
     status: string;
     emoji?: string;
     latte_art?: boolean;
+    is_best_seller?: boolean;
+    orders_count?: number;
+    sales_rank?: number;
+  };
+
+  type Category = {
+    id: string;
+    category_en: string;
+    category_ar?: string;
   };
 
   const fallback: MenuItem[] = Menu;
   const list = document.querySelector<HTMLElement>('#quick-list');
+  const tabs = document.querySelector<HTMLElement>('#category-tabs');
   const search = document.querySelector<HTMLInputElement>('#menu-search');
+  const sort = document.querySelector<HTMLSelectElement>('#menu-sort');
   const emptyMessage = document.querySelector<HTMLElement>('#empty-search');
   let selectedCategory = 'all';
   let searchTerm = '';
 
+  function categoryKey(item: MenuItem) {
+    return String(item.category_id ?? item.category_en ?? item.category ?? 'menu');
+  }
+
+  function renderCategoryTabs(categories: Category[]) {
+    if (!tabs) return;
+    const allButton = document.createElement('button');
+    allButton.className = 'category-tab';
+    allButton.type = 'button';
+    allButton.dataset.category = 'all';
+    allButton.textContent = t('everything');
+    const options = categories.map((category) => {
+      const button = document.createElement('button');
+      button.className = 'category-tab';
+      button.type = 'button';
+      button.dataset.category = category.id || category.category_en;
+      button.textContent = categoryName(category);
+      return button;
+    });
+    const buttons = [allButton, ...options];
+    if (!buttons.some((button) => button.dataset.category === selectedCategory)) {
+      selectedCategory = 'all';
+    }
+    for (const button of buttons) {
+      const selected = button.dataset.category === selectedCategory;
+      button.classList.toggle('is-selected', selected);
+      button.setAttribute('aria-pressed', String(selected));
+    }
+    tabs.replaceChildren(...buttons);
+  }
+
+  function sortItems(items: MenuItem[]) {
+    const sorted = [...items];
+    if (sort?.value === 'alphabetical') {
+      const locale = getLanguage() === 'ar' ? 'ar-EG' : 'en-EG';
+      sorted.sort((a, b) => itemName(a).localeCompare(itemName(b), locale));
+    } else if (sort?.value === 'price-low') {
+      sorted.sort((a, b) => a.price - b.price || itemName(a).localeCompare(itemName(b)));
+    } else {
+      sorted.sort((a, b) =>
+        Number(b.is_best_seller) - Number(a.is_best_seller) ||
+        (b.sales_rank ?? 0) - (a.sales_rank ?? 0) ||
+        (b.orders_count ?? 0) - (a.orders_count ?? 0),
+      );
+    }
+    return sorted;
+  }
+
   function renderItems(items: MenuItem[]) {
     if (!list) return;
-    list.replaceChildren(...items.filter((item) => item.status !== 'Hidden').map((item) => {
+    const visibleItems = sortItems(items.filter((item) => item.status !== 'Hidden'));
+    list.replaceChildren(...visibleItems.map((item) => {
       const row = document.createElement('article');
       row.className = `quick-item${item.status === 'Sold Out' ? ' is-sold-out' : ''}`;
       row.dataset.id = item.id;
-      row.dataset.category = item.category;
+      row.dataset.category = categoryKey(item);
       const localizedName = itemName(item);
       row.dataset.name = localizedName.toLocaleLowerCase(getLanguage() === 'ar' ? 'ar-EG' : 'en-EG');
       const doodle = document.createElement('div');
@@ -93,11 +181,17 @@ const categories = [...new Set(Menu.map((item) => item.category))];
       doodle.innerHTML = getDoodleMarkup(doodleForMenuItem(item));
       const copy = document.createElement('div');
       copy.className = 'quick-item__copy';
+      const details = document.createElement('button');
+      details.className = 'quick-item__details';
+      details.type = 'button';
+      details.dataset.openProduct = item.id;
+      details.setAttribute('aria-label', `${t('productDialog')}: ${localizedName}`);
       const title = document.createElement('strong');
       title.textContent = localizedName;
       const category = document.createElement('small');
       category.textContent = categoryName(item);
-      copy.append(title, category);
+      details.append(title, category);
+      copy.append(details);
       const price = document.createElement('strong');
       price.className = 'quick-item__price';
       price.textContent = formatPrice(item.price);
@@ -146,28 +240,25 @@ const categories = [...new Set(Menu.map((item) => item.category))];
     emptyMessage?.classList.toggle('hidden', visibleCount > 0);
   }
 
-  function localizeCategoryTabs() {
-    document.querySelectorAll<HTMLButtonElement>('.category-tab').forEach((tab) => {
-      const category = tab.dataset.category;
-      tab.textContent = category === 'all' ? t('everything') : categoryName(category ?? 'Menu');
-    });
+  function renderAll(items = menuStore.getMenu()) {
+    renderCategoryTabs(menuStore.getCategories());
+    renderItems(items);
   }
 
   search?.addEventListener('input', () => {
     searchTerm = search.value.trim().toLocaleLowerCase();
     filterItems();
   });
+  sort?.addEventListener('change', () => renderItems(menuStore.getMenu()));
 
-  document.querySelector('#category-tabs')?.addEventListener('click', async (event) => {
+  tabs?.addEventListener('click', async (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
     const button = target.closest<HTMLButtonElement>('[data-category]');
-    if (!button) return;
-    const category = button.dataset.category;
-    if (!category) return;
-    selectedCategory = category;
-    if (category !== 'all') await asmr.playCategory(category);
-    document.querySelectorAll<HTMLButtonElement>('.category-tab').forEach((tab) => {
+    if (!button?.dataset.category) return;
+    selectedCategory = button.dataset.category;
+    if (selectedCategory !== 'all') await asmr.playCategory(selectedCategory);
+    tabs.querySelectorAll<HTMLButtonElement>('.category-tab').forEach((tab) => {
       const selected = tab === button;
       tab.classList.toggle('is-selected', selected);
       tab.setAttribute('aria-pressed', String(selected));
@@ -181,16 +272,20 @@ const categories = [...new Set(Menu.map((item) => item.category))];
     const latteArtButton = target.closest<HTMLButtonElement>('[data-latte-art]');
     if (latteArtButton) {
       const item = menuStore.getMenu().find((entry) => entry.id === latteArtButton.dataset.latteArt);
-      if (item) {
-        window.dispatchEvent(new CustomEvent('kleiv8:latte-art-open', { detail: { item } }));
-      }
+      if (item) window.dispatchEvent(new CustomEvent('kleiv8:latte-art-open', { detail: { item } }));
+      return;
+    }
+    const productButton = target.closest<HTMLButtonElement>('[data-open-product]');
+    if (productButton) {
+      const item = menuStore.getMenu().find((entry) => entry.id === productButton.dataset.openProduct);
+      if (item) window.dispatchEvent(new CustomEvent('kleiv8:product-open', { detail: { item } }));
       return;
     }
     const button = target.closest<HTMLButtonElement>('[data-add-item]');
     if (!button || button.disabled) return;
     const item = menuStore.getMenu().find((entry) => entry.id === button.dataset.addItem);
-    if (!item) return;
-    menuStore.addToCart(item);
+    if (!item || !menuStore.addToCart(item)) return;
+    await asmr.playClick('add');
     button.textContent = t('added');
     button.setAttribute('aria-label', `${t('added')} ${itemName(item)}`);
     window.setTimeout(() => {
@@ -201,15 +296,13 @@ const categories = [...new Set(Menu.map((item) => item.category))];
     }, 700);
   });
 
-  menuStore.subscribe(MENU_UPDATED_EVENT, (event: CustomEvent<MenuItem[]>) => renderItems(event.detail));
+  menuStore.subscribe(MENU_UPDATED_EVENT, (event: CustomEvent<MenuItem[]>) => renderAll(event.detail));
   window.addEventListener(LANGUAGE_UPDATED_EVENT, () => {
     applyLanguage(getLanguage());
     if (search) search.value = '';
     searchTerm = '';
-    localizeCategoryTabs();
-    renderItems(menuStore.getMenu());
+    renderAll();
   });
   menuStore.init(fallback);
-  localizeCategoryTabs();
-  renderItems(menuStore.getMenu());
+  renderAll(menuStore.getMenu());
 </script>

@@ -21,6 +21,167 @@
 
 const CACHE_KEY = 'kleiv_cms_payload_v5';
 const CACHE_TTL_SECONDS = 900; // 15 minutes cache (auto-cleared on any sheet edit)
+const ORDER_LOG_CACHE_TTL_SECONDS = 21600;
+
+function readSettings_(ss) {
+  const settings = {};
+  const settingsSheet = ss.getSheetByName('settings');
+  if (!settingsSheet) return settings;
+
+  const values = settingsSheet.getDataRange().getValues();
+  for (let i = 1; i < values.length; i++) {
+    const key = String(values[i][0] || '').trim();
+    const value = values[i][1];
+    if (key) settings[key] = value !== undefined && value !== null ? String(value).trim() : '';
+  }
+  return settings;
+}
+
+function parseAllowedAddons_(value) {
+  if (Array.isArray(value)) return value.map(String).map(item => item.trim()).filter(Boolean);
+  const raw = String(value || '').trim();
+  if (!raw || raw.toLowerCase() === 'none') return [];
+  if (raw.charAt(0) === '[') {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.map(String).map(item => item.trim()).filter(Boolean);
+    } catch (err) {
+      console.warn('Unable to parse allowed add-ons for an order.', err);
+    }
+  }
+  return raw.split(/[,;|]/).map(item => item.trim()).filter(Boolean);
+}
+
+function roundMoney_(value) {
+  return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+}
+
+function isDisabled_(value) {
+  return value === false || value === 0 ||
+    ['false', '0', 'no', 'inactive'].indexOf(String(value == null ? '' : value).trim().toLowerCase()) !== -1;
+}
+
+function readOrderCatalog_(ss) {
+  const sheet = ss.getSheetByName('db') || ss.getSheetByName('menu');
+  if (!sheet) throw new Error('The menu data sheet was not found.');
+
+  const values = sheet.getDataRange().getValues();
+  if (values.length < 2) throw new Error('The menu data sheet is empty.');
+  const headers = values[0].map(header => String(header).trim());
+  const products = {};
+  const addons = {};
+
+  values.slice(1).forEach(row => {
+    const record = {};
+    headers.forEach((header, index) => { record[header] = row[index]; });
+    const id = String(record['معرّف الصنف'] || record['id'] || '').trim();
+    const nameEn = String(record['Item Name (EN)'] || record['name_en'] || record['name'] || '').trim();
+    const categoryEn = String(record['Category (EN)'] || record['category'] || '').trim();
+    const price = Number(record['السعر (ج.م)'] || record['price'] || 0);
+    const status = String(record['Availability (EN)'] || record['status'] || 'Available').trim().toLowerCase();
+    const statusAr = String(record['حالة التوفر (بالعربية)'] || '').trim();
+    const hidden = status === 'hidden' || status === 'inactive' || statusAr === 'مخفي';
+    const available = !hidden && (
+      status === '' ||
+      status === 'available' ||
+      status === 'true' ||
+      status === '1' ||
+      statusAr === 'متوفر'
+    );
+    if (!id || !Number.isFinite(price) || price <= 0 || hidden) return;
+
+    const product = {
+      id,
+      name: nameEn || String(record['اسم الصنف (بالعربية)'] || '').trim() || id,
+      category: categoryEn || 'Menu',
+      price: roundMoney_(price),
+      available,
+      allowedAddons: parseAllowedAddons_(record['allowed_addons'] || record['allowed_addons_list'])
+    };
+    products[id] = product;
+    if (categoryEn.toLowerCase() === 'extra' && available) addons[id] = product;
+  });
+  return { products, addons };
+}
+
+function parseConfiguredCoupons_(value) {
+  if (typeof value === 'string' && value.trim()) {
+    try {
+      return parseConfiguredCoupons_(JSON.parse(value));
+    } catch (err) {
+      console.warn('Unable to parse configured coupons.', err);
+      return [];
+    }
+  }
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === 'object') {
+    return Object.keys(value).map(code => {
+      const details = value[code];
+      return Object.assign(
+        { code: code },
+        details && typeof details === 'object' ? details : { discount_percent: details }
+      );
+    });
+  }
+  return [];
+}
+
+function calculateOrderDiscount_(code, subtotal, settings) {
+  if (!code) return { ok: true, amount: 0 };
+  const normalizedCode = String(code).trim().toUpperCase();
+  const configuredCoupons = parseConfiguredCoupons_(settings.coupons || settings.vouchers || []);
+  let coupon = configuredCoupons.find(item =>
+    item && String(item.code || item.coupon_code || '').trim().toUpperCase() === normalizedCode
+  );
+  if (!coupon) {
+    const activeCode = String(
+      settings.active_voucher_code ||
+      settings.active_coupon_code ||
+      settings.coupon_code ||
+      ''
+    ).trim().toUpperCase();
+    if (activeCode !== normalizedCode) return { ok: false, error: 'The coupon is not active.' };
+    const fallbackPercent = { 'KLEIV-SCOOT15': 15, 'SUEZ10': 10 };
+    coupon = {
+      code: activeCode,
+      active: settings.active_voucher_enabled,
+      discount_percent: settings.active_voucher_discount_percent ||
+        settings.active_voucher_percent ||
+        settings.discount_percent ||
+        fallbackPercent[activeCode] ||
+        0,
+      discount_amount: settings.active_voucher_discount_amount || settings.discount_amount || 0,
+      minimum_order: settings.active_voucher_minimum_order || 0
+    };
+  }
+
+  if (isDisabled_(coupon.active) || isDisabled_(coupon.enabled)) {
+    return { ok: false, error: 'The coupon is not active.' };
+  }
+  const startsAt = Date.parse(coupon.starts_at || coupon.valid_from || '');
+  const endsAt = Date.parse(coupon.ends_at || coupon.valid_until || '');
+  const now = Date.now();
+  if ((Number.isFinite(startsAt) && now < startsAt) || (Number.isFinite(endsAt) && now > endsAt)) {
+    return { ok: false, error: 'The coupon has expired.' };
+  }
+
+  const minimumOrder = Math.max(0, Number(coupon.minimum_order || coupon.min_order || 0) || 0);
+  if (subtotal < minimumOrder) return { ok: false, error: 'The minimum order was not met.' };
+  const percent = Math.max(0, Math.min(100, Number(
+    coupon.discount_percent || coupon.discountPercentage || coupon.percent || 0
+  ) || 0));
+  const fixedAmount = Math.max(0, Number(coupon.discount_amount || coupon.amount || 0) || 0);
+  if (!percent && !fixedAmount) return { ok: false, error: 'The coupon has no valid discount.' };
+  return {
+    ok: true,
+    amount: Math.min(subtotal, roundMoney_(fixedAmount || subtotal * percent / 100))
+  };
+}
+
+function jsonResponse_(payload) {
+  return ContentService.createTextOutput(JSON.stringify(payload))
+    .setMimeType(ContentService.MimeType.JSON);
+}
 
 function doGet(e) {
   try {
@@ -40,18 +201,7 @@ function doGet(e) {
     // ------------------------------------------------------------------------
     // 1. قراءة تبويب الإعدادات العامة (settings) + حساب حالة الفتح والإغلاق بتوقيت مصر
     // ------------------------------------------------------------------------
-    const settings = {};
-    const settingsSheet = ss.getSheetByName('settings');
-    if (settingsSheet) {
-      const sValues = settingsSheet.getDataRange().getValues();
-      for (let i = 1; i < sValues.length; i++) {
-        const key = String(sValues[i][0] || '').trim();
-        const val = sValues[i][1];
-        if (key) {
-          settings[key] = val !== undefined && val !== null ? String(val).trim() : '';
-        }
-      }
-    }
+    const settings = readSettings_(ss);
 
     // قراءة الروابط الاحتياطية من تبويب (0) إن وجدت
     const infoSheet = ss.getSheetByName('0');
@@ -223,12 +373,16 @@ function doGet(e) {
         return; // تخطي الأصناف المخفية
       }
 
-      const isAvail = availLower === 'available' || availAr === 'متوفر' || availLower === '';
+      const isAvail = ['available', 'true', '1', 'yes', ''].indexOf(availLower) !== -1 ||
+        availAr === 'متوفر';
       const status = isAvail ? 'Available' : 'Sold Out';
 
       const catDefaults = categoryDefaultsMap[categoryEn.toLowerCase()] || {};
       const mood = String(obj['mood'] || catDefaults.default_mood || 'chill').trim().toLowerCase();
-      const badge = String(obj['badge'] || '').trim();
+      const badge = String(obj['badge_en'] || obj['badge'] || '').trim();
+      const isBestSeller = String(obj['is_best_seller'] || obj['best_seller'] || '').trim().toLowerCase() === 'true' ||
+        badge.toLowerCase() === 'best seller' ||
+        /\bbest seller\b/i.test(servingEn);
       const doodleKey = String(obj['doodle_key'] || catDefaults.default_doodle_key || 'cup').trim();
       const caffeine = String(obj['caffeine_level'] || 'None').trim();
 
@@ -237,10 +391,8 @@ function doGet(e) {
       const totalOrdersCount = baseOrdersCount + (loggedSalesByItem[id] || 0);
 
       // الإضافات المسموحة للمنتج (مثال: extra_shot,flavor_syrup,extra_sauce,soft_icecream)
-      const allowedAddonsRaw = String(obj['allowed_addons'] || 'none').trim();
-      const allowedAddonsList = allowedAddonsRaw && allowedAddonsRaw.toLowerCase() !== 'none'
-        ? allowedAddonsRaw.split(',').map(a => a.trim()).filter(Boolean)
-        : [];
+      const allowedAddonsRaw = String(obj['allowed_addons'] || obj['allowed_addons_list'] || 'none').trim();
+      const allowedAddonsList = parseAllowedAddons_(obj['allowed_addons'] || obj['allowed_addons_list']);
 
       // درجات المود الرقمية لتغذية سلايدر المزاج في الواجهة
       const moodScores = {
@@ -272,11 +424,14 @@ function doGet(e) {
           status_ar: isAvail ? 'متوفر' : 'غير متوفر',
           mood: mood,
           mood_scores: moodScores,
-          badge: badge,
+          badge: badge || (isBestSeller ? 'BEST SELLER' : ''),
+          badge_en: badge || (isBestSeller ? 'Best Seller' : ''),
+          badge_ar: String(obj['badge_ar'] || (isBestSeller ? 'الأكثر طلباً' : '')).trim(),
           doodle_key: doodleKey,
           caffeine_level: caffeine,
           latte_art: isHotCoffee,
           orders_count: totalOrdersCount,
+          is_best_seller: isBestSeller,
           allowed_addons: allowedAddonsRaw,
           allowed_addons_list: allowedAddonsList
         };
@@ -292,10 +447,16 @@ function doGet(e) {
     // ترتيب الأصناف تنازلياً حسب عدد الطلبات (الأكثر مبيعاً في الصدارة)
     data.sort((a, b) => b.orders_count - a.orders_count);
 
-    // تمييز أعلى 10 أصناف مبيعاً بعلامة is_best_seller
-    data.forEach((item, index) => {
-      item.sales_rank = index + 1;
-      item.is_best_seller = index < 10 || item.badge === 'BEST SELLER';
+    // لا يُصنّف الصنف كالأكثر طلباً إلا بوجود طلبات مسجلة أو علامة صريحة في المصدر.
+    let salesRank = 0;
+    data.forEach(item => {
+      if (item.orders_count > 0) {
+        salesRank += 1;
+        item.sales_rank = salesRank;
+        item.is_best_seller = item.is_best_seller || salesRank <= 10;
+      } else {
+        item.sales_rank = 0;
+      }
     });
 
     // ------------------------------------------------------------------------
@@ -400,48 +561,145 @@ function doGet(e) {
  * استقبال الطلبات الجديدة من الواجهة وتسجيلها في تبويب sales_log وتحديث عداد المبيعات
  */
 function doPost(e) {
+  const lock = LockService.getScriptLock();
+  let locked = false;
   try {
-    const body = JSON.parse(e.postData.contents || '{}');
+    const rawBody = e && e.postData && e.postData.contents;
+    if (!rawBody || rawBody.length > 20000) throw new Error('The order payload is missing or too large.');
+    const body = JSON.parse(rawBody);
+    if (!body || body.action !== 'submit_order') throw new Error('Unsupported request.');
+
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const salesSheet = ss.getSheetByName('sales_log');
-    const dbSheet = ss.getSheetByName('db');
+    const settings = readSettings_(ss);
+    if (['true', '1', 'yes'].indexOf(String(settings.order_logging_enabled || '').trim().toLowerCase()) === -1) {
+      throw new Error('Order logging is disabled.');
+    }
+    if (String(body.currency || '').toUpperCase() !== 'EGP') throw new Error('Orders must use EGP.');
 
-    const orderId = String(body.order_id || ('ORD-' + Date.now()));
-    const timestamp = Utilities.formatDate(new Date(), 'Africa/Cairo', 'yyyy-MM-dd HH:mm:ss');
-    const items = Array.isArray(body.items) ? body.items : [];
-
-    if (salesSheet && items.length > 0) {
-      items.forEach(item => {
-        const qty = Number(item.quantity || item.qty || 1);
-        const unitPrice = Number(item.unit_price || item.price || 0);
-        salesSheet.appendRow([
-          orderId,
-          timestamp,
-          String(item.id || item.itemId || ''),
-          String(item.name_en || item.name_ar || ''),
-          String(item.category || 'Menu'),
-          qty,
-          unitPrice,
-          qty * unitPrice
-        ]);
-      });
+    const orderId = String(body.order_id || ('ORD-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8))).trim();
+    if (!/^[A-Za-z0-9._:-]{8,100}$/.test(orderId)) throw new Error('The order ID is invalid.');
+    if (!Array.isArray(body.items) || body.items.length === 0 || body.items.length > 30) {
+      throw new Error('The order must contain between 1 and 30 items.');
     }
 
-    // تفريغ الكاش فوراً ليظهر الترتيب الجديد للأكثر مبيعاً في الموقع
-    CacheService.getScriptCache().remove(CACHE_KEY);
+    lock.waitLock(10000);
+    locked = true;
+    const cache = CacheService.getScriptCache();
+    const orderCacheKey = 'kleiv_order_' + orderId;
+    if (cache.get(orderCacheKey)) {
+      return jsonResponse_({ success: true, order_id: orderId, duplicate: true });
+    }
 
-    return ContentService.createTextOutput(JSON.stringify({
+    const catalog = readOrderCatalog_(ss);
+    const timestamp = Utilities.formatDate(new Date(), 'Africa/Cairo', 'yyyy-MM-dd HH:mm:ss');
+    const rows = [];
+    let subtotal = 0;
+    body.items.forEach(item => {
+      if (!item || typeof item !== 'object') throw new Error('An order item is invalid.');
+      const id = String(item.id || '').trim();
+      const product = catalog.products[id];
+      const quantity = Number(item.quantity);
+      if (!product || !product.available) throw new Error('An order item is unavailable.');
+      if (!Number.isSafeInteger(quantity) || quantity < 1) {
+        throw new Error('An item quantity is invalid.');
+      }
+
+      const basePrice = roundMoney_(product.price);
+      if (!Number.isFinite(Number(item.base_price)) || Math.abs(roundMoney_(item.base_price) - basePrice) > 0.01) {
+        throw new Error('An item base price has changed.');
+      }
+      const selectedAddons = Array.isArray(item.add_ons) ? item.add_ons : [];
+      if (selectedAddons.length > 12) throw new Error('An item has too many add-ons.');
+      const allowedAddons = new Set(product.allowedAddons);
+      const seenAddons = new Set();
+      let addonTotal = 0;
+      selectedAddons.forEach(selection => {
+        const addonId = String(
+          selection && typeof selection === 'object' ? selection.id || selection.addon_id || '' : selection || ''
+        ).trim();
+        const addon = catalog.addons[addonId];
+        if (!addon || !allowedAddons.has(addonId) || seenAddons.has(addonId)) {
+          throw new Error('An item contains an unavailable add-on.');
+        }
+        seenAddons.add(addonId);
+        addonTotal += addon.price;
+      });
+
+      const unitPrice = roundMoney_(basePrice + addonTotal);
+      const reportedUnitPrice = Number(item.unit_price);
+      if (!Number.isFinite(reportedUnitPrice) || Math.abs(roundMoney_(reportedUnitPrice) - unitPrice) > 0.01) {
+        throw new Error('An item total has changed.');
+      }
+      const itemNote = String(item.note || '');
+      if (itemNote.length > 180) throw new Error('An item note is too long.');
+      const lineTotal = roundMoney_(unitPrice * quantity);
+      if (!Number.isSafeInteger(lineTotal * 100)) throw new Error('An item total is too large.');
+      subtotal = roundMoney_(subtotal + lineTotal);
+      if (!Number.isSafeInteger(subtotal * 100)) throw new Error('The order total is too large.');
+      rows.push([
+        orderId,
+        timestamp,
+        id,
+        product.name,
+        product.category,
+        quantity,
+        unitPrice,
+        lineTotal
+      ]);
+    });
+
+    const couponCode = String(body.coupon_code || '').trim().toUpperCase();
+    const coupon = calculateOrderDiscount_(couponCode, subtotal, settings);
+    if (!coupon.ok) throw new Error(coupon.error);
+    const discount = roundMoney_(coupon.amount);
+    const total = roundMoney_(Math.max(0, subtotal - discount));
+    if (
+      !Number.isFinite(Number(body.subtotal)) ||
+      !Number.isFinite(Number(body.discount)) ||
+      !Number.isFinite(Number(body.total)) ||
+      Math.abs(roundMoney_(body.subtotal) - subtotal) > 0.01 ||
+      Math.abs(roundMoney_(body.discount) - discount) > 0.01 ||
+      Math.abs(roundMoney_(body.total) - total) > 0.01
+    ) {
+      throw new Error('The order totals could not be verified.');
+    }
+
+    let salesSheet = ss.getSheetByName('sales_log');
+    if (!salesSheet) salesSheet = ss.insertSheet('sales_log');
+    const headers = ['order_id', 'timestamp', 'item_id', 'item_name', 'category', 'quantity', 'unit_price', 'total_amount'];
+    if (salesSheet.getLastRow() === 0) {
+      salesSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    } else {
+      const currentHeaders = salesSheet.getRange(1, 1, 1, headers.length).getDisplayValues()[0]
+        .map(header => String(header).trim().toLowerCase());
+      if (headers.some((header, index) => currentHeaders[index] !== header)) {
+        throw new Error('The sales_log sheet has incompatible column headers.');
+      }
+    }
+
+    const firstRow = salesSheet.getLastRow() + 1;
+    salesSheet.getRange(firstRow, 1, rows.length, headers.length).setValues(rows);
+    cache.put(orderCacheKey, '1', ORDER_LOG_CACHE_TTL_SECONDS);
+    cache.remove(CACHE_KEY);
+
+    return jsonResponse_({
       success: true,
       order_id: orderId,
-      logged_items: items.length,
+      logged_items: rows.length,
+      subtotal: subtotal,
+      discount: discount,
+      total: total,
       timestamp: timestamp
-    })).setMimeType(ContentService.MimeType.JSON);
+    });
 
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({
+    console.error('Unable to record the cafe order.', err);
+    return jsonResponse_({
       success: false,
-      error: err.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
+      error: err && err.message ? err.message : 'Unable to record the order.'
+    });
+  } finally {
+    if (locked) lock.releaseLock();
   }
 }
 

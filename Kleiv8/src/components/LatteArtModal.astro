@@ -1,3 +1,7 @@
+---
+import latteArt from '../../svg/latte-art.svg?raw';
+---
+
 <dialog class="latte-modal" id="latte-modal" aria-labelledby="latte-modal-title">
   <div class="latte-modal__panel">
     <button class="latte-modal__close" type="button" data-close-latte aria-label="Close latte art" data-i18n-aria="latteClose">×</button>
@@ -6,13 +10,7 @@
     <div class="latte-cup" role="img" aria-label="Interactive espresso cup with latte art" data-i18n-aria="latteCupDescription">
       <div class="espresso-surface" id="espresso-surface">
         <div class="crema-ring" aria-hidden="true"></div>
-        <svg class="milk-pour-svg" viewBox="0 0 160 160" aria-hidden="true">
-          <path
-            class="latte-art-path"
-            d="M 40,80 C 15,50 5,65 5,80 C 5,95 15,110 40,80 C 65,50 80,80 80,80 C 80,80 95,110 120,80 C 145,50 155,65 155,80 C 155,95 145,110 120,80 C 95,50 80,80 80,80 Z"
-          />
-          <circle class="milk-droplet" cx="80" cy="80" r="14" />
-        </svg>
+        <div set:html={latteArt}></div>
       </div>
     </div>
     <p class="latte-caption"><span id="latte-drink-name" data-i18n="hotCoffee">Your hot coffee</span> · <span data-i18n="latteCaption">Crafted at 9 Bars · Velvety Microfoam</span></p>

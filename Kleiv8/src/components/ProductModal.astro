@@ -1,0 +1,232 @@
+<dialog class="product-modal" id="product-modal" aria-labelledby="product-modal-title">
+  <div class="product-modal__panel">
+    <button class="product-modal__close" type="button" data-product-close aria-label="Close product details" data-i18n-aria="closeProduct">×</button>
+    <div class="product-modal__visual" id="product-modal-visual" aria-hidden="true"></div>
+    <p class="eyebrow product-modal__category" id="product-modal-category"></p>
+    <h2 id="product-modal-title" data-i18n="productDialog">Product details</h2>
+    <p class="product-modal__popularity" id="product-modal-popularity" hidden></p>
+    <p class="product-modal__description" id="product-modal-description" data-i18n="productDescription">About this item</p>
+    <p class="product-modal__ingredients" id="product-modal-ingredients" hidden></p>
+    <p class="product-modal__serving" id="product-modal-serving" hidden></p>
+    <fieldset class="product-modal__addons" id="product-modal-addons" hidden>
+      <legend data-i18n="addOns">Add-ons</legend>
+      <div class="product-modal__addon-list" id="product-modal-addon-list"></div>
+    </fieldset>
+    <label class="product-modal__note" for="product-modal-note">
+      <span data-i18n="productNote">A note for this item</span>
+      <textarea id="product-modal-note" rows="2" maxlength="180" data-i18n-placeholder="productNotePlaceholder" placeholder="For example: less ice…"></textarea>
+    </label>
+    <p class="product-modal__feedback" id="product-modal-feedback" role="status" aria-live="polite" hidden></p>
+    <div class="product-modal__footer">
+      <strong id="product-modal-price"></strong>
+      <button class="product-modal__submit" id="product-modal-submit" type="button" data-i18n="productAddToCart">Add to order</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  import Menu from '../../public/data/default-menu.json';
+  import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
+  import { CART_UPDATED_EVENT, menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
+  import {
+    categoryName,
+    formatPrice,
+    getLanguage,
+    isTextSafeForLanguage,
+    formatNumber,
+    itemDescription,
+    itemIngredients,
+    itemName,
+    itemServingNotes,
+    LANGUAGE_UPDATED_EVENT,
+    t,
+  } from '../scripts/language.js';
+
+  type MenuItem = {
+    id: string;
+    name_en: string;
+    name_ar?: string;
+    category: string;
+    category_en?: string;
+    category_ar?: string;
+    description_en?: string;
+    description_ar?: string;
+    ingredients_en?: string;
+    ingredients_ar?: string;
+    serving_notes_en?: string;
+    serving_notes_ar?: string;
+    orders_count?: number;
+    price: number;
+    status: string;
+    lineId?: string;
+    allowed_addons_list?: string[];
+    selectedAddons?: { id: string }[];
+    note?: string;
+  };
+
+  const dialog = document.querySelector<HTMLDialogElement>('#product-modal');
+  const visual = document.querySelector<HTMLElement>('#product-modal-visual');
+  const category = document.querySelector<HTMLElement>('#product-modal-category');
+  const title = document.querySelector<HTMLElement>('#product-modal-title');
+  const popularity = document.querySelector<HTMLElement>('#product-modal-popularity');
+  const description = document.querySelector<HTMLElement>('#product-modal-description');
+  const ingredients = document.querySelector<HTMLElement>('#product-modal-ingredients');
+  const servingNotes = document.querySelector<HTMLElement>('#product-modal-serving');
+  const addonsGroup = document.querySelector<HTMLFieldSetElement>('#product-modal-addons');
+  const addonList = document.querySelector<HTMLElement>('#product-modal-addon-list');
+  const noteInput = document.querySelector<HTMLTextAreaElement>('#product-modal-note');
+  const price = document.querySelector<HTMLElement>('#product-modal-price');
+  const submitButton = document.querySelector<HTMLButtonElement>('#product-modal-submit');
+  const feedback = document.querySelector<HTMLElement>('#product-modal-feedback');
+  let activeItem: MenuItem | null = null;
+  let activeLineId = '';
+  let feedbackKey = '';
+
+  function showFeedback(key: string) {
+    feedbackKey = key;
+    if (!feedback) return;
+    feedback.textContent = key ? t(key) : '';
+    feedback.hidden = !key;
+  }
+
+  function selectedAddonIds() {
+    return [...(addonList?.querySelectorAll<HTMLInputElement>('input[data-addon-id]:checked') ?? [])]
+      .map((input) => input.dataset.addonId)
+      .filter((id): id is string => Boolean(id));
+  }
+
+  function updatePrice() {
+    if (!activeItem || !price) return;
+    const selected = new Set(selectedAddonIds());
+    const extras = menuStore.getAllowedAddons(activeItem)
+      .filter((addon) => selected.has(addon.id))
+      .reduce((sum, addon) => sum + addon.price, 0);
+    price.textContent = formatPrice(activeItem.price + extras);
+  }
+
+  function renderAddons(item: MenuItem, selected: Set<string>) {
+    if (!addonsGroup || !addonList) return;
+    const addons = menuStore.getAllowedAddons(item);
+    addonsGroup.hidden = addons.length === 0;
+    addonList.replaceChildren(...addons.map((addon) => {
+      const label = document.createElement('label');
+      label.className = 'product-modal__addon';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.dataset.addonId = addon.id;
+      input.checked = selected.has(addon.id);
+      const copy = document.createElement('span');
+      copy.className = 'product-modal__addon-copy';
+      const name = document.createElement('strong');
+      name.textContent = itemName(addon);
+      const amount = document.createElement('small');
+      amount.textContent = `+ ${formatPrice(addon.price)}`;
+      copy.append(name, amount);
+      label.append(input, copy);
+      return label;
+    }));
+  }
+
+  function openProduct(item: MenuItem, lineId = '', cartLine?: MenuItem) {
+    if (!dialog || !item) return;
+    const currentItem = menuStore.getMenu().find((entry) => entry.id === item.id) ?? item;
+    activeItem = currentItem;
+    activeLineId = lineId;
+    const selected = new Set((cartLine?.selectedAddons ?? []).map((addon) => addon.id));
+    if (visual) visual.innerHTML = getDoodleMarkup(doodleForMenuItem(currentItem));
+    if (category) category.textContent = categoryName(currentItem);
+    if (title) title.textContent = itemName(currentItem);
+    if (description) description.textContent = itemDescription(currentItem);
+    const orderCount = Math.max(0, Number(currentItem.orders_count ?? 0) || 0);
+    if (popularity) {
+      popularity.textContent = orderCount ? t('orderCount').replace('{count}', formatNumber(orderCount)) : '';
+      popularity.hidden = orderCount === 0;
+    }
+    const ingredientText = itemIngredients(currentItem);
+    if (ingredients) {
+      ingredients.textContent = ingredientText ? `${t('ingredientsLabel')}: ${ingredientText}` : '';
+      ingredients.hidden = !ingredientText;
+    }
+    const serving = itemServingNotes(currentItem);
+    if (servingNotes) {
+      servingNotes.textContent = serving;
+      servingNotes.hidden = !serving;
+    }
+    if (noteInput) noteInput.value = cartLine?.note ?? '';
+    renderAddons(currentItem, selected);
+    updatePrice();
+    showFeedback('');
+    if (submitButton) {
+      const unavailable = currentItem.status === 'Sold Out' || currentItem.status === 'Hidden';
+      submitButton.disabled = unavailable;
+      submitButton.textContent = t(
+        unavailable ? 'productUnavailable' : activeLineId ? 'productSaveChanges' : 'productAddToCart',
+      );
+    }
+    if (!dialog.open) dialog.showModal();
+  }
+
+  function closeProduct() {
+    if (!dialog?.open) return;
+    dialog.close();
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-product-close]').forEach((button) => {
+    button.addEventListener('click', closeProduct);
+  });
+  dialog?.addEventListener('click', (event) => {
+    if (event.target === dialog) closeProduct();
+  });
+  addonList?.addEventListener('change', updatePrice);
+  submitButton?.addEventListener('click', () => {
+    if (!activeItem) return;
+    const note = noteInput?.value.trim() ?? '';
+    if (!isTextSafeForLanguage(note, getLanguage())) {
+      showFeedback('productNoteLanguageError');
+      return;
+    }
+    const saved = activeLineId
+      ? menuStore.updateCartLineAddons(activeLineId, selectedAddonIds(), note)
+      : menuStore.addToCart(activeItem, selectedAddonIds(), note);
+    if (!saved) {
+      showFeedback(activeItem.status === 'Sold Out' ? 'productUnavailable' : 'invalidCart');
+      return;
+    }
+    closeProduct();
+  });
+
+  window.addEventListener('kleiv8:product-open', (event) => {
+    const productEvent = event as CustomEvent<{ item?: MenuItem }>;
+    if (productEvent.detail?.item) openProduct(productEvent.detail.item);
+  });
+  window.addEventListener('kleiv8:product-edit', (event) => {
+    const productEvent = event as CustomEvent<{ lineId?: string; item?: MenuItem }>;
+    const item = productEvent.detail?.item;
+    if (item) openProduct(item, productEvent.detail.lineId ?? item.lineId ?? '', item);
+  });
+  window.addEventListener(LANGUAGE_UPDATED_EVENT, () => {
+    if (dialog?.open && activeItem) {
+      const line = activeLineId
+        ? menuStore.getCart().find((item) => item.lineId === activeLineId)
+        : undefined;
+      openProduct(activeItem, activeLineId, line);
+    }
+    if (feedbackKey) showFeedback(feedbackKey);
+  });
+  menuStore.subscribe(MENU_UPDATED_EVENT, () => {
+    if (dialog?.open && activeItem) {
+      const freshItem = menuStore.getMenu().find((item) => item.id === activeItem?.id);
+      const line = activeLineId
+        ? menuStore.getCart().find((item) => item.lineId === activeLineId)
+        : undefined;
+      if (freshItem) openProduct(freshItem, activeLineId, line);
+    }
+  });
+  menuStore.subscribe(CART_UPDATED_EVENT, () => {
+    if (dialog?.open && activeLineId) {
+      const line = menuStore.getCart().find((item) => item.lineId === activeLineId);
+      if (!line) closeProduct();
+    }
+  });
+  menuStore.init(Menu);
+</script>

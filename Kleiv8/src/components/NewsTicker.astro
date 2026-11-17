@@ -1,0 +1,124 @@
+<aside class="news-ticker" id="news-ticker" aria-label="Cafe updates" data-i18n-aria="newsRegion" hidden>
+  <span class="news-ticker__label" data-i18n="newsLabel">A note from KLEIV</span>
+  <span class="news-ticker__text" id="news-ticker-text"></span>
+  <a class="news-ticker__link" id="news-ticker-link" target="_blank" rel="noopener noreferrer" hidden>
+    <span data-i18n="blogReadMore">Read more</span><span aria-hidden="true">↗</span>
+  </a>
+</aside>
+
+<script>
+  import Menu from '../../public/data/default-menu.json';
+  import {
+    CMS_UPDATED_EVENT,
+    menuStore,
+  } from '../scripts/menu-store.js';
+  import {
+    getLanguage,
+    isTextSafeForLanguage,
+    LANGUAGE_UPDATED_EVENT,
+    t,
+  } from '../scripts/language.js';
+
+  type NewsItem = {
+    id?: string;
+    text_en?: string;
+    text_ar?: string;
+    title_en?: string;
+    title_ar?: string;
+    headline_en?: string;
+    headline_ar?: string;
+    message_en?: string;
+    message_ar?: string;
+    content_en?: string;
+    content_ar?: string;
+    cta_text_en?: string;
+    cta_text_ar?: string;
+    cta_text?: string;
+    cta_link?: string;
+    url?: string;
+    link_url?: string;
+    active?: boolean;
+    is_active?: boolean;
+  };
+
+  const ticker = document.querySelector<HTMLElement>('#news-ticker');
+  const tickerText = document.querySelector<HTMLElement>('#news-ticker-text');
+  const tickerLink = document.querySelector<HTMLAnchorElement>('#news-ticker-link');
+  let items: NewsItem[] = [];
+  let activeIndex = 0;
+  let timer = 0;
+
+  function localizedText(item: NewsItem) {
+    const lang = getLanguage();
+    const text = lang === 'ar'
+      ? item.text_ar ?? item.title_ar ?? item.headline_ar ?? item.message_ar ?? item.content_ar ?? ''
+      : item.text_en ?? item.title_en ?? item.headline_en ?? item.message_en ?? item.content_en ?? '';
+    const safeText = String(text).trim();
+    return isTextSafeForLanguage(safeText, lang) ? safeText : '';
+  }
+
+  function safeLink(value: string) {
+    if (!value) return '';
+    try {
+      const url = new URL(value, window.location.origin);
+      return url.protocol === 'https:' || url.origin === window.location.origin ? url.href : '';
+    } catch (error) {
+      console.warn('Ignoring an invalid cafe announcement link.', error);
+      return '';
+    }
+  }
+
+  function renderItem() {
+    if (!ticker || !tickerText || !items.length) return;
+    const item = items[activeIndex % items.length];
+    const text = localizedText(item);
+    if (!text) {
+      ticker.hidden = true;
+      return;
+    }
+    tickerText.textContent = text;
+    const link = safeLink(String(item.cta_link ?? item.link_url ?? item.url ?? '').trim());
+    if (tickerLink) {
+      tickerLink.hidden = !link;
+      if (link) {
+        tickerLink.href = link;
+        tickerLink.setAttribute('aria-label', `${t('blogReadMore')}: ${text}`);
+        const label = getLanguage() === 'ar'
+          ? item.cta_text_ar ?? item.cta_text
+          : item.cta_text_en ?? item.cta_text;
+        const safeLabel = String(label ?? '').trim();
+        const labelElement = tickerLink.querySelector<HTMLElement>('[data-i18n]');
+        if (labelElement) {
+          labelElement.textContent = isTextSafeForLanguage(safeLabel, getLanguage())
+            ? safeLabel
+            : t('blogReadMore');
+        }
+      } else {
+        tickerLink.removeAttribute('href');
+      }
+    }
+    ticker.hidden = false;
+  }
+
+  function renderNews(nextItems = menuStore.getNewsTicker()) {
+    items = nextItems.filter((item) => item.active !== false && item.is_active !== false);
+    activeIndex = 0;
+    window.clearInterval(timer);
+    if (!items.some(localizedText)) {
+      if (ticker) ticker.hidden = true;
+      return;
+    }
+    renderItem();
+    if (items.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      timer = window.setInterval(() => {
+        activeIndex = (activeIndex + 1) % items.length;
+        renderItem();
+      }, 6500);
+    }
+  }
+
+  window.addEventListener(LANGUAGE_UPDATED_EVENT, () => renderNews());
+  menuStore.subscribe(CMS_UPDATED_EVENT, () => renderNews());
+  menuStore.init(Menu);
+  renderNews();
+</script>

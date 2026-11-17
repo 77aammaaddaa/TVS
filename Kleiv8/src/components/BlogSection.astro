@@ -1,0 +1,136 @@
+<section class="blog-section" id="kleiv-blog" aria-labelledby="blog-title" hidden>
+  <header class="blog-section__header">
+    <p class="eyebrow" data-i18n="blogEyebrow">Notes from KLEIV</p>
+    <h2 id="blog-title"><span data-i18n="blogTitle">Little stories,</span> <em data-i18n="blogTitleEm">good coffee.</em></h2>
+  </header>
+  <div class="blog-grid" id="blog-grid"></div>
+</section>
+
+<script>
+  import Menu from '../../public/data/default-menu.json';
+  import { CMS_UPDATED_EVENT, menuStore } from '../scripts/menu-store.js';
+  import {
+    getLanguage,
+    isTextSafeForLanguage,
+    LANGUAGE_UPDATED_EVENT,
+    t,
+  } from '../scripts/language.js';
+
+  type BlogPost = {
+    id?: string;
+    title_en?: string;
+    title_ar?: string;
+    name_en?: string;
+    name_ar?: string;
+    excerpt_en?: string;
+    excerpt_ar?: string;
+    summary_en?: string;
+    summary_ar?: string;
+    content_en?: string;
+    content_ar?: string;
+    body_en?: string;
+    body_ar?: string;
+    published_at?: string;
+    published_date?: string;
+    image_url?: string;
+    url?: string;
+  };
+
+  const section = document.querySelector<HTMLElement>('#kleiv-blog');
+  const grid = document.querySelector<HTMLElement>('#blog-grid');
+
+  function localizedValue(post: BlogPost, keys: string[]) {
+    const lang = getLanguage();
+    const suffix = lang === 'ar' ? '_ar' : '_en';
+    const value = keys
+      .map((key) => post[`${key}${suffix}` as keyof BlogPost])
+      .find((entry) => typeof entry === 'string' && entry.trim());
+    const text = typeof value === 'string' ? value.trim() : '';
+    return isTextSafeForLanguage(text, lang) ? text : '';
+  }
+
+  function safeLink(value: string) {
+    if (!value) return '';
+    try {
+      const url = new URL(value, window.location.origin);
+      return url.protocol === 'https:' || url.origin === window.location.origin ? url.href : '';
+    } catch (error) {
+      console.warn('Ignoring an invalid cafe blog link.', error);
+      return '';
+    }
+  }
+
+  function renderBlog(posts = menuStore.getBlogPosts()) {
+    if (!section || !grid) return;
+    const cards = posts.flatMap((post) => {
+      const title = localizedValue(post, ['title', 'name']);
+      const excerpt = localizedValue(post, ['excerpt', 'summary']);
+      const content = localizedValue(post, ['content', 'body']);
+      if (!title) return [];
+
+      const article = document.createElement('article');
+      article.className = 'blog-card';
+      const imageUrl = safeLink(String(post.image_url ?? '').trim());
+      if (imageUrl) {
+        const image = document.createElement('img');
+        image.src = imageUrl;
+        image.alt = '';
+        image.loading = 'lazy';
+        image.decoding = 'async';
+        image.className = 'blog-card__image';
+        article.append(image);
+      }
+
+      const copy = document.createElement('div');
+      copy.className = 'blog-card__copy';
+      const dateValue = String(post.published_at ?? post.published_date ?? '').trim();
+      const timestamp = Date.parse(dateValue);
+      if (dateValue && Number.isFinite(timestamp)) {
+        const date = document.createElement('time');
+        date.className = 'blog-card__date';
+        date.dateTime = new Date(timestamp).toISOString();
+        date.textContent = new Intl.DateTimeFormat(getLanguage() === 'ar' ? 'ar-EG' : 'en-EG', {
+          dateStyle: 'medium',
+        }).format(timestamp);
+        copy.append(date);
+      }
+      const heading = document.createElement('h3');
+      heading.textContent = title;
+      copy.append(heading);
+      if (excerpt) {
+        const summary = document.createElement('p');
+        summary.textContent = excerpt;
+        copy.append(summary);
+      }
+      if (content) {
+        const details = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = t('blogReadMore');
+        const body = document.createElement('p');
+        body.textContent = content;
+        details.append(summary, body);
+        copy.append(details);
+      }
+
+      const link = safeLink(String(post.url ?? '').trim());
+      if (link) {
+        const anchor = document.createElement('a');
+        anchor.href = link;
+        anchor.target = '_blank';
+        anchor.rel = 'noopener noreferrer';
+        anchor.textContent = t('blogReadMore');
+        copy.append(anchor);
+      }
+      article.append(copy);
+      return [article];
+    });
+
+    grid.replaceChildren(...cards);
+    section.hidden = cards.length === 0;
+  }
+
+  window.addEventListener(LANGUAGE_UPDATED_EVENT, () => renderBlog());
+  menuStore.subscribe(CMS_UPDATED_EVENT, () => renderBlog());
+  menuStore.init(Menu);
+  renderBlog();
+</script>

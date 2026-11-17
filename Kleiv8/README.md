@@ -1,45 +1,54 @@
-# Kleiv 8 Digital Menu
+# KLEIV 8 Digital Menu
 
-A static, bilingual-first coffee menu for Kleiv 8 in Suez. Built with Astro and Tailwind CSS; client interactions use native ES modules and browser APIs only.
+A bilingual digital menu for KLEIV in Suez, built with Astro and Tailwind CSS. The site uses static output for Cloudflare Pages; browser interactions are plain JavaScript ES modules.
 
-The Arabic and English interface, story cards, accessibility labels, page metadata, prices, and WhatsApp checkout follow the selected language. Menu items use separate English and Arabic fields; missing or mixed-script content is never substituted from the other language.
+## Features
+
+- Arabic and English interface with RTL/LTR layout, localized menu content, and EGP prices.
+- A bundled catalogue of 82 menu items for instant loading and offline fallback.
+- Vibe reel, quick cashier list, category and mood filters, product details, optional add-ons, and a persistent cart.
+- Optional browser-generated ASMR ambience and sound effects. Audio starts muted; there are no songs or audio recordings.
+- WhatsApp checkout to `+201023328432`. The message includes item quantities, selected add-ons, notes, any configured discount, and the total. Customers pay at the cashier; the site does not process payments.
+- CMS-driven cafe status, announcements, blog posts, category data, coupons, and order counts when those fields are configured in Google Sheets.
+
+## Illustration assets
+
+Brand, menu, splash, story, and latte-art illustrations are sourced from the project `svg/` folder. Shared image references use `src/config/vector-assets.js`; animated artwork embeds SVGs from the same folder.
 
 ## Run locally
+
+Use Node.js 22.22 or newer:
 
 ```sh
 npm install
 npm run dev
 ```
 
-Use Node.js 22.22 or newer. Create the static production site with `npm run build`; preview it with `npm run preview`. The generated site is in `dist/` and can be deployed to Cloudflare Pages with build command `npm run build` and output directory `dist`.
+Run the Astro diagnostics and production build with:
 
-## Menu data and optional synchronization
+```sh
+npm run check
+npm run build
+npm run preview
+```
 
-The site ships with sample EGP menu entries in `public/data/default-menu.json`. These are demonstration values and should be replaced with the shop's approved products and prices before launch.
+The static output is written to `dist/`.
 
-The browser renders the fallback menu in the generated HTML, then initializes a localStorage-backed store and performs stale-while-revalidate against the Google Apps Script endpoint hard-coded in `src/config/site.js`. The endpoint may return an array or `{ "success": true, "data": [...] }`. `Hidden` products are excluded and invalid rows are ignored. If synchronization fails, the local fallback menu remains available.
+## Menu data and synchronization
 
-## Counter ordering
+`public/data/default-menu.json` contains the current 82-item catalogue and is rendered as the initial menu. `src/scripts/menu-store.js` reads cached CMS data from local storage immediately, then revalidates in the background against the Google Apps Script URL in `src/config/site.js`. Network errors and empty menu responses do not replace the usable local menu.
 
-The cart is stored locally on the customer's device. Checkout opens a prefilled WhatsApp message addressed to `+20 102 332 8432`, including item names, quantities, notes, and a total in EGP. Customers order through WhatsApp and pay at the cashier; this site does not process payments.
+The CMS endpoint can return either an item array or a payload with `success: true` and a `data` array. The optional payload fields include `settings`, `categories`, `news_ticker`, `blog`, and `addons_catalog`. Add-ons appear for a product only when its `allowed_addons`/`allowed_addons_list` explicitly names them; sales rankings are based on recorded order counts or an explicit best-seller flag.
 
-## Audio and modes
+The repository includes the Apps Script source at `Kleiv8/Kleiv/code.gs`. Changes to that file do not update a deployed Apps Script web app: deploy a new version before relying on its updated response or order handling. Keep the `order_logging_enabled` setting off unless you intentionally want public menu submissions recorded in `sales_log`. Such submissions represent requests sent to WhatsApp, not confirmed purchases or payments.
 
-The welcome animation draws the infinity mark for 1.2 seconds and can be dismissed by tapping or choosing **Enter menu**. The site has no music or audio recordings. Optional, locally synthesized ASMR effects and a very soft rain-like ambience start muted; the first-visit prompt lets customers enable them or keep browsing silently. The **ASMR Ambient** header control can change that choice later, and the preference is saved on the device. The rain loop and effects are generated with the browser's Web Audio API only after a user gesture; they are sound-design approximations, not recordings of real rain or café sounds.
+## Ordering and sound
 
-## Interactive brand stories
-
-Five illustrated characters open short stories in the selected language with menu recommendations. Recommendations and EGP totals follow the current menu, and available products can be added directly to the cart; unavailable items cannot be ordered from a story.
-
-Hot-coffee items marked `latte_art` open an interactive top-down cup modal with an animated infinity pour and touch/mouse ripples. Vibe mode shows a horizontal looping menu reel; Speed mode shows a searchable, category-filtered list. The mood slider highlights products tagged for chill, focus, or refresh.
-
-## Brand visuals
-
-The supplied transparent illustrations are stored in `public/images/kleiv/`. `src/config/visual-assets.js` is the shared manifest for the hero, menu reel, and callout; `src/config/story-doodles.js` maps the story characters to the same artwork. The infinity mark is reused by the splash screen, header, stories, and footer through `BrandMark.astro`. Compact speed-list and cart thumbnails remain small inline SVGs for legibility.
+Orders are sent to the cafe cashier through WhatsApp and are priced in Egyptian pounds (EGP). The Web Audio API is used only after a customer enables sound; the default is silent. Generated rain-like ambience and category sounds are approximations, not recordings of real cafe activity.
 
 ## Cloudflare Pages
 
 - Framework preset: Astro
 - Build command: `npm run build`
-- Build output directory: `dist`
+- Output directory: `dist`
 - Node.js: 22.22 or newer

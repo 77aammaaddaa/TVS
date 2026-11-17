@@ -291,6 +291,35 @@ function parseDiscountPercent(code) {
   return knownCodes[code] ?? 0;
 }
 
+function getCouponRows(value) {
+  if (typeof value === 'string' && value.trim()) {
+    try {
+      return getCouponRows(JSON.parse(value));
+    } catch (error) {
+      console.warn('Unable to parse configured cafe coupons.', error);
+      return [];
+    }
+  }
+  if (Array.isArray(value)) return value;
+  if (isRecord(value)) {
+    return Object.entries(value).map(([code, details]) => ({
+      code,
+      ...(isRecord(details) ? details : { discount_percent: details }),
+    }));
+  }
+  return [];
+}
+
+function isDisabled(value) {
+  return value === false || ['false', '0', 'no', 'inactive'].includes(
+    String(value ?? '').trim().toLowerCase(),
+  );
+}
+
+/**
+ * @typedef {{ ok: false; reason: string } | { ok: true; code: string; percent: number; discountAmount: number; total: number }} CouponResult
+ */
+
 class MenuStore extends EventTarget {
   #menu = [];
   #categories = [];
@@ -334,6 +363,7 @@ class MenuStore extends EventTarget {
       }
 
       this.#cart = this.#readCart();
+      this.#refreshCartLines();
       this.#initialized = true;
       this.#publish();
     }
@@ -393,19 +423,13 @@ class MenuStore extends EventTarget {
     return value === true || String(value).toLowerCase() === 'true';
   }
 
+  /** @returns {CouponResult} */
   applyCoupon(code, subtotal = 0) {
     const normalizedCode = String(code ?? '').trim().toUpperCase();
     if (!normalizedCode) return { ok: false, reason: 'empty-coupon' };
 
     const configuredCoupons = this.#settings.coupons ?? this.#settings.vouchers ?? [];
-    const couponRows = Array.isArray(configuredCoupons)
-      ? configuredCoupons
-      : isRecord(configuredCoupons)
-        ? Object.entries(configuredCoupons).map(([couponCode, value]) => ({
-          code: couponCode,
-          ...(isRecord(value) ? value : { discount_percent: value }),
-        }))
-        : [];
+    const couponRows = getCouponRows(configuredCoupons);
     let coupon = couponRows.find((item) =>
       isRecord(item) && String(item.code ?? item.coupon_code ?? '').trim().toUpperCase() === normalizedCode
     );
@@ -431,7 +455,7 @@ class MenuStore extends EventTarget {
       };
     }
 
-    if (coupon.active === false || coupon.enabled === false) {
+    if (isDisabled(coupon.active) || isDisabled(coupon.enabled)) {
       return { ok: false, reason: 'inactive-coupon' };
     }
     const now = Date.now();
@@ -518,6 +542,7 @@ class MenuStore extends EventTarget {
         serving_notes_en: item.serving_notes_en,
         serving_notes_ar: item.serving_notes_ar,
         allowed_addons_list: item.allowed_addons_list,
+        status: item.status,
         basePrice,
         selectedAddons: addons,
         note: normalizedNote,
@@ -551,6 +576,8 @@ class MenuStore extends EventTarget {
       current.selectedAddons = addons;
       current.note = normalizedNote;
       current.price = current.basePrice + addons.reduce((sum, addon) => sum + addon.price, 0);
+      current.status = item.status;
+      current.cartValidation = '';
     }
     this.#saveCart();
     return true;
@@ -605,6 +632,47 @@ class MenuStore extends EventTarget {
     return normalized;
   }
 
+  #refreshCartLines() {
+    const menuById = new Map(this.#menu.map((item) => [item.id, item]));
+    this.#cart = this.#cart.map((line) => {
+      const item = menuById.get(line.id);
+      if (!item) {
+        return { ...line, status: 'Hidden', cartValidation: 'item-unavailable' };
+      }
+
+      const addons = this.#resolveSelectedAddons(
+        item,
+        (line.selectedAddons ?? []).map((addon) => addon.id),
+      );
+      if (!addons) {
+        return { ...line, status: item.status, cartValidation: 'addon-unavailable' };
+      }
+
+      const basePrice = Number(item.price);
+      return {
+        ...line,
+        name_en: item.name_en,
+        name_ar: item.name_ar,
+        category: item.category,
+        category_en: item.category_en,
+        category_ar: item.category_ar,
+        description_en: item.description_en,
+        description_ar: item.description_ar,
+        serving_notes_en: item.serving_notes_en,
+        serving_notes_ar: item.serving_notes_ar,
+        allowed_addons_list: item.allowed_addons_list,
+        status: item.status,
+        cartValidation: item.status === 'Available' ? '' : 'item-unavailable',
+        basePrice,
+        selectedAddons: addons,
+        price: basePrice + addons.reduce((sum, addon) => sum + addon.price, 0),
+        emoji: item.emoji,
+        image_url: item.image_url,
+      };
+    });
+    writeStorage(CART_STORAGE_KEY, { version: 2, items: this.#cart });
+  }
+
   #loadPayload(payload, source, persist = true, notify = true) {
     const incomingMenu = normalizeMenu(payload);
     if (incomingMenu.length) {
@@ -623,6 +691,7 @@ class MenuStore extends EventTarget {
     if (Array.isArray(addonCatalog) || incomingMenu.length) {
       this.#addonsCatalog = normalizeAddonCatalog(addonCatalog, this.#menu);
     }
+    if (incomingMenu.length || Array.isArray(addonCatalog)) this.#refreshCartLines();
     this.#updatedAt = String(payload?.updated_at ?? payload?.updatedAt ?? this.#updatedAt ?? '').trim();
 
     if (persist) this.#persist();

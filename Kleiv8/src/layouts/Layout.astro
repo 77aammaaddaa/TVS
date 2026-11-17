@@ -1,9 +1,11 @@
 ---
 import '../styles/global.css';
 import Splash from '../components/Splash.astro';
+import NewsTicker from '../components/NewsTicker.astro';
 import Header from '../components/Header.astro';
 import AsmrPrompt from '../components/AsmrPrompt.astro';
 import LatteArtModal from '../components/LatteArtModal.astro';
+import ProductModal from '../components/ProductModal.astro';
 import CartDrawer from '../components/CartDrawer.astro';
 import { VISUAL_ASSETS } from '../config/visual-assets.js';
 
@@ -33,8 +35,8 @@ const {
     <link href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,400;0,600;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#213a23" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="shortcut icon" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={VISUAL_ASSETS.infinity.src} />
+    <link rel="shortcut icon" href={VISUAL_ASSETS.infinity.src} />
     <meta
       name="description"
       content={description}
@@ -54,7 +56,6 @@ const {
       data-i18n-content-ar={descriptionAr}
     />
     <meta property="og:type" content="website" />
-    <link rel="preload" as="image" href={VISUAL_ASSETS.infinity.src} />
     <title data-i18n-title-en={title} data-i18n-title-ar={titleAr}>{title}</title>
     <script is:inline>
       (() => {
@@ -71,8 +72,10 @@ const {
   <body data-mode="vibe">
     <a class="skip-link" href="#main-content" data-i18n="skipToMenu">Skip to menu</a>
     <Splash />
+    <NewsTicker />
     <Header />
     <slot />
+    <ProductModal />
     <LatteArtModal />
     <AsmrPrompt />
     <CartDrawer />

@@ -61,11 +61,20 @@ class AsmrEngine {
 
   async playCategory(category) {
     const value = String(category).trim().toLowerCase();
-    if (value === 'coffee' || value.includes('hot coffee')) return this.playSteamWand();
-    if (value.includes('cold') || value.includes('soda')) return this.playSodaCan();
-    if (value.includes('bakery') || value.includes('pastry')) return this.playBakeryCrunch();
-    if (value.includes('dessert') || value.includes('cake')) return this.playFudgeSpoon();
-    if (value.includes('matcha')) return this.playMatchaWhisk();
+    if (value === 'coffee' || value.includes('hot coffee') || value.includes('قهوة ساخنة')) return this.playSteamWand();
+    if (value.includes('matcha') || value.includes('ماتشا')) return this.playMatchaWhisk();
+    if (value.includes('ice coffee') || value.includes('iced coffee') || value.includes('قهوة باردة')) return this.playLatteRipple();
+    if (
+      value.includes('cold') ||
+      value.includes('soda') ||
+      value.includes('soft drink') ||
+      value.includes('fresh juice') ||
+      value.includes('مشروبات باردة') ||
+      value.includes('عصائر')
+    ) return this.playSodaCan();
+    if (value.includes('bakery') || value.includes('bagel') || value.includes('pastry') || value.includes('مخبوز')) return this.playBakeryCrunch();
+    if (value.includes('dessert') || value.includes('cake') || value.includes('حلويات')) return this.playFudgeSpoon();
+    if (value.includes('frappe') || value.includes('shake')) return this.playLatteRipple();
     return false;
   }
 

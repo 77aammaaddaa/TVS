@@ -1,20 +1,21 @@
 ---
 import { STORY_DOODLES } from '../config/story-doodles.js';
+import { getKleivSvgMarkup } from '../scripts/kleiv-svg.js';
+import BrandMark from './BrandMark.astro';
 ---
 
 <section class="story-doodles-section" id="story-doodles" aria-labelledby="story-doodles-title">
   <header class="story-header">
     <p class="eyebrow" data-i18n="storyEyebrow">Interactive moments</p>
     <h2 id="story-doodles-title"><span data-i18n="storyTitle1">Every little detail has a</span> <em data-i18n="storyTitle2">story.</em></h2>
-    <p data-i18n="storyDescription">Tap a character to find a little moment that feels like you.</p>
+    <p data-i18n="storyDescription">Scroll through five KLEIV moments and find a little pick for yours.</p>
   </header>
 
-  <div class="doodles-canvas" role="group" aria-label="KLEIV story characters" data-i18n-aria="storyRegion">
-    {STORY_DOODLES.map((story) => (
-      <button
-        class="story-trigger"
-        type="button"
-        data-story-trigger={story.id}
+  <div class="story-chapters" id="story-chapters">
+    {STORY_DOODLES.map((story, index) => (
+      <article
+        class:list={['story-chapter', index % 2 === 1 && 'story-chapter--reverse']}
+        data-story-chapter={story.id}
         data-story-label-en={story.label_en}
         data-story-label-ar={story.label_ar}
         data-story-badge-en={story.badge_en}
@@ -24,52 +25,34 @@ import { STORY_DOODLES } from '../config/story-doodles.js';
         data-story-copy-en={story.copy_en}
         data-story-copy-ar={story.copy_ar}
         data-recommendation-ids={story.recommendationIds.join(',')}
-        aria-expanded="false"
-        aria-controls="story-panel"
-        aria-label={`Open story: ${story.label_en}`}
       >
-        <span class="story-figure" aria-hidden="true">
-          <img
-            class="story-figure__image"
-            src={story.illustration.src}
-            width={story.illustration.width}
-            height={story.illustration.height}
-            alt=""
-            loading="lazy"
-            decoding="async"
-          />
-        </span>
-        <span class="doodle-tag">{story.label_en}</span>
-      </button>
+        <div class="story-chapter__art" aria-hidden="true">
+          {story.svgKey === 'infinity_loop' ? (
+            <div class="story-figure story-figure--brand">
+              <BrandMark class="story-figure__brand" tone="cream" />
+            </div>
+          ) : (
+            <div class="story-figure" set:html={getKleivSvgMarkup(story.svgKey, { instance: story.id })}></div>
+          )}
+          <span class="story-chapter__number">{String(index + 1).padStart(2, '0')} / 05</span>
+        </div>
+        <div class="story-chapter__copy">
+          <p class="eyebrow story-chapter__badge">{story.badge_en}</p>
+          <h3 class="story-chapter__title">{story.title_en}</h3>
+          <p class="story-chapter__description">{story.copy_en}</p>
+          <div class="story-recommendations" data-story-recommendations aria-live="polite"></div>
+        </div>
+      </article>
     ))}
-  </div>
-
-  <div class="story-panel" id="story-panel" role="region" aria-labelledby="story-panel-title" hidden>
-    <div class="story-panel__copy">
-      <span class="bubble-badge" id="story-panel-badge"></span>
-      <h3 id="story-panel-title"></h3>
-      <p id="story-panel-copy"></p>
-    </div>
-    <div class="story-panel__actions" aria-live="polite">
-      <div class="story-recommendation">
-        <span class="story-recommendation__label" data-i18n="storyPick">A little pick for you</span>
-        <strong id="story-recommendation-names"></strong>
-        <small id="story-recommendation-price"></small>
-      </div>
-      <button class="bubble-cta" id="story-add-button" type="button" data-story-add>
-        <span data-i18n="storyAdd">Add to your bag</span>
-        <span aria-hidden="true">→</span>
-      </button>
-    </div>
-    <button class="story-panel__close" type="button" data-story-close aria-label="Close story" data-i18n-aria="storyClose">×</button>
   </div>
 </section>
 
 <script>
   import Menu from '../../public/data/default-menu.json';
   import { asmr } from '../scripts/asmr-engine.js';
-  import { CART_UPDATED_EVENT, MENU_UPDATED_EVENT, menuStore } from '../scripts/menu-store.js';
+  import { MENU_UPDATED_EVENT, menuStore } from '../scripts/menu-store.js';
   import {
+    categoryName,
     formatPrice,
     getLanguage,
     itemName,
@@ -77,475 +60,135 @@ import { STORY_DOODLES } from '../config/story-doodles.js';
     t,
   } from '../scripts/language.js';
 
-  type StoryMenuItem = {
+  type MenuItem = {
     id: string;
     name_en: string;
     name_ar?: string;
     price: number;
     status: string;
+    category_en?: string;
+    category_ar?: string;
   };
 
-  const root = document.querySelector<HTMLElement>('#story-doodles');
-  const panel = document.querySelector<HTMLElement>('#story-panel');
-  const badge = document.querySelector<HTMLElement>('#story-panel-badge');
-  const title = document.querySelector<HTMLElement>('#story-panel-title');
-  const copy = document.querySelector<HTMLElement>('#story-panel-copy');
-  const recommendationNames = document.querySelector<HTMLElement>('#story-recommendation-names');
-  const recommendationPrice = document.querySelector<HTMLElement>('#story-recommendation-price');
-  const addButton = document.querySelector<HTMLButtonElement>('#story-add-button');
-  let activeTrigger: HTMLButtonElement | null = null;
-  let recommendationAdded = false;
+  const root = document.querySelector<HTMLElement>('#story-chapters');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  function setAddButtonLabel(key: string) {
-    if (!addButton) return;
-    const label = addButton.querySelector<HTMLElement>('[data-i18n]');
-    if (label) label.textContent = t(key);
-    else addButton.textContent = t(key);
-  }
-
-  function storyText(trigger: HTMLButtonElement, field: 'label' | 'badge' | 'title' | 'copy') {
+  function localizedValue(chapter: HTMLElement, key: 'label' | 'badge' | 'title' | 'copy') {
     const suffix = getLanguage() === 'ar' ? 'Ar' : 'En';
-    const value = trigger.dataset[`story${field[0].toUpperCase()}${field.slice(1)}${suffix}`];
+    const value = chapter.dataset[`story${key[0].toUpperCase()}${key.slice(1)}${suffix}`];
     return value || t('unknownStory');
   }
 
-  function localizeStoryTriggers() {
-    root?.querySelectorAll<HTMLButtonElement>('[data-story-trigger]').forEach((trigger) => {
-      const label = storyText(trigger, 'label');
-      const tag = trigger.querySelector<HTMLElement>('.doodle-tag');
-      if (tag) tag.textContent = label;
-      trigger.setAttribute('aria-label', `${t('storyOpen')}: ${label}`);
-      trigger.title = label;
+  function localizeChapters() {
+    root?.querySelectorAll<HTMLElement>('[data-story-chapter]').forEach((chapter) => {
+      const badge = chapter.querySelector<HTMLElement>('.story-chapter__badge');
+      const title = chapter.querySelector<HTMLElement>('.story-chapter__title');
+      const copy = chapter.querySelector<HTMLElement>('.story-chapter__description');
+      if (badge) badge.textContent = localizedValue(chapter, 'badge');
+      if (title) title.textContent = localizedValue(chapter, 'title');
+      if (copy) copy.textContent = localizedValue(chapter, 'copy');
+      renderRecommendations(chapter, menuStore.getMenu());
     });
-
-    if (activeTrigger) {
-      if (badge) badge.textContent = storyText(activeTrigger, 'badge');
-      if (title) title.textContent = storyText(activeTrigger, 'title');
-      if (copy) copy.textContent = storyText(activeTrigger, 'copy');
-      updateRecommendation(menuStore.getMenu());
-    }
-
-    setAddButtonLabel(recommendationAdded ? 'storyAdded' : 'storyAdd');
   }
 
-  function availableRecommendations(menu: StoryMenuItem[]) {
-    const ids = addButton?.dataset.availableItemIds?.split(',').filter(Boolean) ?? [];
-    return ids
+  function renderRecommendations(chapter: HTMLElement, menu: MenuItem[]) {
+    const container = chapter.querySelector<HTMLElement>('[data-story-recommendations]');
+    if (!container) return;
+    const ids = chapter.dataset.recommendationIds?.split(',').filter(Boolean) ?? [];
+    const items = ids
       .map((id) => menu.find((item) => item.id === id))
-      .filter((item): item is StoryMenuItem => Boolean(item && item.status !== 'Sold Out' && item.status !== 'Hidden'));
-  }
+      .filter((item): item is MenuItem => Boolean(item && item.status !== 'Sold Out' && item.status !== 'Hidden'));
 
-  function updateRecommendation(menu: StoryMenuItem[]) {
-    if (!addButton || !recommendationNames || !recommendationPrice || !activeTrigger) return;
-
-    const requestedIds = activeTrigger.dataset.recommendationIds?.split(',').filter(Boolean) ?? [];
-    const items = requestedIds
-      .map((id) => menu.find((item) => item.id === id))
-      .filter((item): item is StoryMenuItem => Boolean(item && item.status !== 'Sold Out' && item.status !== 'Hidden'));
-    const total = items.reduce((sum, item) => sum + item.price, 0);
-    const names = items.map((item) => itemName(item)).join(' + ');
-
-    addButton.dataset.availableItemIds = items.map((item) => item.id).join(',');
-    addButton.disabled = items.length === 0 || recommendationAdded;
-    recommendationNames.textContent = items.length
-      ? names
-      : t('storyUnavailable');
-    recommendationPrice.textContent = items.length ? formatPrice(total) : '';
-    const ariaLabel = items.length
-      ? t('addRecommendation')
-        .replace('{items}', names)
-        .replace('{total}', formatPrice(total))
-      : t('storyUnavailableLabel');
-    addButton.setAttribute('aria-label', recommendationAdded ? t('storyAdded') : ariaLabel);
-  }
-
-  function updatePanelAnchor() {
-    if (!activeTrigger || !panel || panel.hidden) return;
-    const triggerBounds = activeTrigger.getBoundingClientRect();
-    const panelBounds = panel.getBoundingClientRect();
-    const anchor = triggerBounds.left + triggerBounds.width / 2 - panelBounds.left;
-    const clampedAnchor = Math.min(panelBounds.width - 18, Math.max(18, anchor));
-    panel.style.setProperty('--story-anchor-x', `${clampedAnchor}px`);
-  }
-
-  function closeStory(returnFocus = false) {
-    if (!root || !panel) return;
-    const triggerToFocus = activeTrigger;
-    panel.hidden = true;
-    panel.classList.remove('is-visible');
-    root.classList.remove('has-open-story');
-    activeTrigger?.setAttribute('aria-expanded', 'false');
-    activeTrigger = null;
-    recommendationAdded = false;
-    if (addButton) {
-      addButton.disabled = false;
-      setAddButtonLabel('storyAdd');
-      addButton.removeAttribute('aria-label');
-    }
-    if (returnFocus) triggerToFocus?.focus();
-  }
-
-  function openStory(trigger: HTMLButtonElement) {
-    if (!panel || !badge || !title || !copy) return;
-    if (activeTrigger === trigger && !panel.hidden) {
-      closeStory();
+    if (!items.length) {
+      const empty = document.createElement('p');
+      empty.className = 'story-recommendations__empty';
+      empty.textContent = t('storyUnavailable');
+      container.replaceChildren(empty);
       return;
     }
 
-    root?.querySelectorAll<HTMLButtonElement>('[data-story-trigger]').forEach((button) => {
-      button.setAttribute('aria-expanded', 'false');
-    });
-
-    activeTrigger = trigger;
-    recommendationAdded = false;
-    trigger.setAttribute('aria-expanded', 'true');
-    badge.textContent = storyText(trigger, 'badge');
-    title.textContent = storyText(trigger, 'title');
-    copy.textContent = storyText(trigger, 'copy');
-    panel.hidden = false;
-    panel.classList.remove('is-visible');
-    root?.classList.add('has-open-story');
-    updateRecommendation(menuStore.getMenu());
-    updatePanelAnchor();
-    requestAnimationFrame(() => {
-      if (!panel.hidden) panel.classList.add('is-visible');
-    });
+    container.replaceChildren(...items.map((item) => {
+      const card = document.createElement('article');
+      card.className = 'story-pick-card';
+      const details = document.createElement('button');
+      details.type = 'button';
+      details.className = 'story-pick-card__details';
+      details.dataset.openProduct = item.id;
+      const name = document.createElement('strong');
+      name.textContent = itemName(item);
+      const category = document.createElement('small');
+      category.textContent = `${categoryName(item)} · ${formatPrice(item.price)}`;
+      details.append(name, category);
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.className = 'story-pick-card__add';
+      add.dataset.addItem = item.id;
+      add.textContent = '+';
+      add.setAttribute('aria-label', t('addItemToBag').replace('{item}', itemName(item)));
+      card.append(details, add);
+      return card;
+    }));
   }
 
   root?.addEventListener('click', async (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
+    const addButton = target.closest<HTMLButtonElement>('[data-add-item]');
+    if (addButton) {
+      const item = menuStore.getMenu().find((entry) => entry.id === addButton.dataset.addItem);
+      if (!item || !menuStore.addToCart(item)) return;
+      await asmr.playClick('add');
+      addButton.classList.add('is-added');
+      addButton.textContent = t('added');
+      window.setTimeout(() => {
+        if (addButton.isConnected) {
+          addButton.classList.remove('is-added');
+          addButton.textContent = '+';
+        }
+      }, 700);
+      return;
+    }
+    const details = target.closest<HTMLButtonElement>('[data-open-product]');
+    if (details) {
+      const item = menuStore.getMenu().find((entry) => entry.id === details.dataset.openProduct);
+      if (item) window.dispatchEvent(new CustomEvent('kleiv8:product-open', { detail: { item } }));
+    }
+  });
 
-    if (target.closest('[data-story-close]')) {
-      closeStory(true);
+  function revealChapters() {
+    const chapters = [...(root?.querySelectorAll<HTMLElement>('[data-story-chapter]') ?? [])];
+    if (reducedMotion.matches || !('IntersectionObserver' in window)) {
+      chapters.forEach((chapter) => {
+        chapter.classList.add('is-in-view');
+        chapter.querySelector('.svg-hybrid-draw')?.classList.add('is-live');
+      });
       return;
     }
 
-    const trigger = target.closest<HTMLButtonElement>('[data-story-trigger]');
-    if (trigger) {
-      openStory(trigger);
-      await asmr.playClick('click');
-      return;
-    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const chapter = entry.target as HTMLElement;
+        chapter.classList.add('is-in-view');
+        chapter.querySelector('.svg-hybrid-draw')?.classList.add('is-live');
+        observer.unobserve(chapter);
+      });
+    }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+    chapters.forEach((chapter) => observer.observe(chapter));
+  }
 
-    if (!target.closest('[data-story-add]') || !addButton) return;
-    const items = availableRecommendations(menuStore.getMenu());
-    if (!items.length) {
-      updateRecommendation(menuStore.getMenu());
-      return;
-    }
-
-    items.forEach((item) => menuStore.addToCart(item));
-    await asmr.playClick('add');
-    recommendationAdded = true;
-    addButton.disabled = true;
-    setAddButtonLabel('storyAdded');
-    addButton.setAttribute('aria-label', t('storyAdded'));
-    window.setTimeout(() => {
-      if (panel && !panel.hidden && addButton.isConnected) closeStory(true);
-    }, 900);
+  window.addEventListener(LANGUAGE_UPDATED_EVENT, localizeChapters);
+  menuStore.subscribe(MENU_UPDATED_EVENT, (event: CustomEvent<MenuItem[]>) => {
+    root?.querySelectorAll<HTMLElement>('[data-story-chapter]').forEach((chapter) =>
+      renderRecommendations(chapter, event.detail)
+    );
   });
-
-  document.addEventListener('click', (event) => {
-    if (event.target instanceof Node && root && !root.contains(event.target)) closeStory();
-  });
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && panel && !panel.hidden) closeStory(true);
-  });
-
-  window.addEventListener('resize', updatePanelAnchor);
-  window.addEventListener(LANGUAGE_UPDATED_EVENT, localizeStoryTriggers);
-  menuStore.subscribe(MENU_UPDATED_EVENT, (event: CustomEvent<StoryMenuItem[]>) => {
-    updateRecommendation(event.detail);
-  });
-  menuStore.subscribe(CART_UPDATED_EVENT, () => {
-    if (activeTrigger) updateRecommendation(menuStore.getMenu());
-  });
-  localizeStoryTriggers();
+  if (reducedMotion.addEventListener) {
+    reducedMotion.addEventListener('change', (event) => {
+      if (event.matches) revealChapters();
+    });
+  }
+  localizeChapters();
+  revealChapters();
   menuStore.init(Menu);
 </script>
-
-<style>
-  .story-doodles-section {
-    margin: 42px 0 38px;
-    padding: 36px 0 8px;
-    border-top: 1px solid rgba(33, 58, 35, 0.1);
-  }
-
-  .story-header {
-    margin-bottom: 28px;
-    text-align: center;
-  }
-
-  .story-header h2 {
-    margin: 6px 0 8px;
-    color: var(--pine);
-    font: 400 clamp(26px, 3.5vw, 36px) Georgia, serif;
-  }
-
-  .story-header > p:last-child {
-    margin: 0;
-    color: var(--muted);
-    font-size: 12px;
-  }
-
-  .doodles-canvas {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .story-trigger {
-    display: flex;
-    min-width: 0;
-    min-height: 120px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 8px;
-    border: 0;
-    border-radius: 18px;
-    color: var(--pine);
-    background: transparent;
-    cursor: pointer;
-    transition: background 0.2s ease;
-  }
-
-  .story-trigger:hover,
-  .story-trigger[aria-expanded="true"] {
-    background: #f4f7f2;
-  }
-
-  .story-figure {
-    display: grid;
-    width: 76px;
-    height: 76px;
-    place-items: center;
-    overflow: hidden;
-    border: 1px solid rgba(212, 175, 117, 0.3);
-    border-radius: 24px;
-    background: linear-gradient(145deg, #29482c, #172d1a);
-    box-shadow: 0 10px 22px rgba(33, 58, 35, 0.14);
-    transition: transform 0.3s ease, border-color 0.3s, box-shadow 0.3s;
-  }
-
-  .story-figure__image {
-    display: block;
-    width: 100%;
-    height: 100%;
-    padding: 6px;
-    object-fit: contain;
-  }
-
-  .story-trigger:hover .story-figure,
-  .story-trigger:focus-visible .story-figure,
-  .story-trigger[aria-expanded="true"] .story-figure {
-    transform: translateY(-4px) scale(1.04);
-    border-color: var(--gold);
-    box-shadow: 0 14px 26px rgba(33, 58, 35, 0.22);
-  }
-
-  .doodle-tag {
-    color: var(--muted);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .story-panel {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr);
-    align-items: center;
-    gap: 24px;
-    width: min(760px, 100%);
-    margin: 18px auto 4px;
-    padding: 22px 24px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 20px;
-    color: white;
-    background: var(--pine);
-    box-shadow: 0 16px 36px rgba(18, 34, 20, 0.2);
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-    transition: opacity 0.22s ease, transform 0.22s ease;
-  }
-
-  .story-panel[hidden] {
-    display: none;
-  }
-
-  .story-panel.is-visible {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-
-  .story-panel::before {
-    position: absolute;
-    bottom: 100%;
-    left: var(--story-anchor-x, 50%);
-    width: 0;
-    height: 0;
-    border: 9px solid transparent;
-    border-bottom-color: var(--pine);
-    content: '';
-    transform: translateX(-50%);
-  }
-
-  .story-panel__copy {
-    padding-right: 12px;
-  }
-
-  .bubble-badge {
-    color: var(--gold);
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-
-  .story-panel h3 {
-    margin: 7px 0 6px;
-    color: white;
-    font: 400 22px Georgia, serif;
-  }
-
-  .story-panel__copy p {
-    margin: 0;
-    color: #c4d4c6;
-    font-size: 12px;
-    line-height: 1.55;
-  }
-
-  .story-panel__actions {
-    display: grid;
-    gap: 12px;
-  }
-
-  .story-recommendation {
-    display: grid;
-    gap: 4px;
-  }
-
-  .story-recommendation__label {
-    color: #9ab09c;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .story-recommendation strong {
-    color: white;
-    font-size: 12px;
-    line-height: 1.4;
-  }
-
-  .story-recommendation small {
-    color: var(--gold);
-    font-size: 11px;
-  }
-
-  .bubble-cta {
-    min-height: 40px;
-    padding: 0 14px;
-    border: 0;
-    border-radius: 99px;
-    color: var(--pine);
-    background: white;
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: 750;
-    transition: background 0.2s, transform 0.2s;
-  }
-
-  .bubble-cta:hover:not(:disabled) {
-    transform: translateY(-1px);
-    background: var(--gold);
-  }
-
-  .bubble-cta:disabled {
-    cursor: not-allowed;
-    opacity: 0.7;
-  }
-
-  .story-panel__close {
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    display: grid;
-    width: 30px;
-    height: 30px;
-    place-items: center;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    color: #c4d4c6;
-    background: transparent;
-    cursor: pointer;
-    font-size: 20px;
-  }
-
-  .story-panel__close:hover {
-    color: white;
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  @media (max-width: 760px) {
-    .doodles-canvas {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .story-panel {
-      grid-template-columns: minmax(0, 1fr) minmax(200px, 0.8fr);
-      gap: 18px;
-    }
-  }
-
-  @media (max-width: 520px) {
-    .story-doodles-section {
-      margin: 32px 0;
-      padding: 30px 0 4px;
-    }
-
-    .doodles-canvas {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 6px;
-    }
-
-    .story-trigger {
-      min-height: 108px;
-    }
-
-    .story-figure {
-      width: 68px;
-      height: 68px;
-      border-radius: 21px;
-    }
-
-    .story-panel {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 14px;
-      padding: 20px 18px;
-    }
-
-    .story-panel__copy {
-      padding-right: 20px;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .story-figure,
-    .story-panel,
-    .bubble-cta {
-      transition: none;
-    }
-
-    .story-panel.is-visible {
-      transform: none;
-    }
-  }
-</style>

@@ -2,7 +2,7 @@
 <aside class="cart-drawer" id="cart-drawer" aria-labelledby="cart-title" aria-hidden="true">
   <div class="cart-drawer__header">
     <div>
-      <p class="eyebrow" data-i18n="orderEyebrow">Order & pay at cashier</p>
+      <p class="eyebrow" data-i18n="orderEyebrow">Order and pay at the cashier</p>
       <h2 id="cart-title"><span data-i18n="cartTitle">Your little list</span><span id="cart-item-count"></span></h2>
     </div>
     <button class="icon-button" id="close-cart-btn" type="button" aria-label="Close order" data-i18n-aria="closeCart">×</button>
@@ -12,46 +12,97 @@
     <span><span data-i18n="baristaNote">A note for the barista</span> <small data-i18n="optional">(optional)</small></span>
     <textarea id="order-notes" rows="2" maxlength="180" data-i18n-placeholder="notePlaceholder" placeholder="Milk preference, less ice…"></textarea>
   </label>
+  <div class="coupon-field">
+    <label for="coupon-code" data-i18n="couponCode">Promo code</label>
+    <div class="coupon-field__controls">
+      <input id="coupon-code" type="text" maxlength="40" autocomplete="off" dir="ltr" data-i18n-placeholder="couponPlaceholder" placeholder="Enter a promo code" />
+      <button id="apply-coupon" type="button" data-i18n="applyCoupon">Apply</button>
+    </div>
+    <p class="coupon-feedback" id="coupon-feedback" role="status" aria-live="polite" hidden></p>
+  </div>
   <div class="cart-summary">
-    <p><span data-i18n="total">Total</span><strong id="cart-total">0 EGP</strong></p>
+    <p><span data-i18n="subtotal">Subtotal</span><strong id="cart-subtotal">0 EGP</strong></p>
+    <p class="cart-summary__discount" id="cart-discount-row" hidden><span data-i18n="discount">Discount</span><strong id="cart-discount">0 EGP</strong></p>
+    <p class="cart-summary__total"><span data-i18n="total">Total</span><strong id="cart-total">0 EGP</strong></p>
     <p class="cashier-note" data-i18n="cashierNote">Send your order, then pay at our counter.</p>
     <button class="checkout-button" id="checkout-btn" type="button">
-      <span data-i18n="sendCashier">Send to cashier on WhatsApp</span><span aria-hidden="true">↗</span>
+      <span data-i18n="sendCashier">Send your order to the cashier on WhatsApp</span><span aria-hidden="true">↗</span>
     </button>
     <p class="cart-feedback" id="cart-feedback" role="status" aria-live="polite" hidden></p>
   </div>
 </aside>
 
 <script>
+  import Menu from '../../public/data/default-menu.json';
   import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
   import { menuStore, CART_UPDATED_EVENT } from '../scripts/menu-store.js';
   import { checkoutViaWhatsApp } from '../scripts/order-handler.js';
-  import { getLanguage, LANGUAGE_UPDATED_EVENT, applyLanguage, formatNumber, formatPrice, itemName, t } from '../scripts/language.js';
+  import {
+    getLanguage,
+    LANGUAGE_UPDATED_EVENT,
+    applyLanguage,
+    formatNumber,
+    formatPrice,
+    itemName,
+    t,
+  } from '../scripts/language.js';
 
-  type CartItem = {
+  type Addon = {
     id: string;
     name_en: string;
     name_ar?: string;
     price: number;
-    emoji: string;
+  };
+
+  type CartItem = {
+    id: string;
+    lineId: string;
+    name_en: string;
+    name_ar?: string;
+    price: number;
+    basePrice: number;
+    emoji?: string;
+    note?: string;
+    selectedAddons?: Addon[];
     quantity: number;
+    status?: string;
+    cartValidation?: string;
   };
 
   const drawer = document.querySelector<HTMLElement>('#cart-drawer');
   const backdrop = document.querySelector<HTMLDivElement>('#cart-backdrop');
   const badge = document.querySelector<HTMLElement>('#cart-badge');
   const cartItems = document.querySelector<HTMLElement>('#cart-items');
+  const cartSubtotal = document.querySelector<HTMLElement>('#cart-subtotal');
+  const cartDiscount = document.querySelector<HTMLElement>('#cart-discount');
+  const cartDiscountRow = document.querySelector<HTMLElement>('#cart-discount-row');
   const cartTotal = document.querySelector<HTMLElement>('#cart-total');
   const countLabel = document.querySelector<HTMLElement>('#cart-item-count');
+  const checkoutButton = document.querySelector<HTMLButtonElement>('#checkout-btn');
   const notes = document.querySelector<HTMLTextAreaElement>('#order-notes');
+  const couponInput = document.querySelector<HTMLInputElement>('#coupon-code');
+  const couponFeedback = document.querySelector<HTMLElement>('#coupon-feedback');
   const feedback = document.querySelector<HTMLElement>('#cart-feedback');
   let feedbackKey = '';
+  let couponFeedbackKey = '';
+  let appliedCoupon = '';
 
   function showFeedback(key: string) {
     feedbackKey = key;
     if (!feedback) return;
     feedback.textContent = key ? t(key) : '';
     feedback.hidden = !key;
+  }
+
+  function showCouponFeedback(key: string) {
+    couponFeedbackKey = key;
+    if (!couponFeedback) return;
+    couponFeedback.textContent = key ? t(key) : '';
+    couponFeedback.hidden = !key;
+  }
+
+  function couponErrorKey(reason: string) {
+    return reason === 'minimum-order' ? 'couponMinimumOrder' : 'couponInvalid';
   }
 
   function setDrawerOpen(open: boolean) {
@@ -75,19 +126,38 @@
       quantity ? t('openCartCount').replace('{count}', formatNumber(quantity)) : t('openCart'),
     );
     if (countLabel) countLabel.textContent = quantity ? ` · ${formatNumber(quantity)}` : '';
-    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    if (cartTotal) cartTotal.textContent = formatPrice(total);
+
+    const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    let discount = 0;
+    if (appliedCoupon) {
+      const result = menuStore.applyCoupon(appliedCoupon, subtotal);
+      if (result.ok) {
+        discount = result.discountAmount;
+      } else {
+        appliedCoupon = '';
+        showCouponFeedback(couponErrorKey(result.reason));
+      }
+    }
+    if (cartSubtotal) cartSubtotal.textContent = formatPrice(subtotal);
+    if (cartDiscount) cartDiscount.textContent = `−${formatPrice(discount)}`;
+    if (cartDiscountRow) cartDiscountRow.hidden = discount <= 0;
+    if (cartTotal) cartTotal.textContent = formatPrice(Math.max(0, subtotal - discount));
+    if (checkoutButton) {
+      checkoutButton.disabled = cart.some((item) =>
+        item.status !== 'Available' || Boolean(item.cartValidation)
+      );
+    }
+
     if (!cartItems) return;
-
     if (cart.length === 0) {
-
       cartItems.innerHTML = `<div class="cart-empty"><span aria-hidden="true">☕</span><p>${t('emptyCart')}</p><small>${t('emptyCartHint')}</small></div>`;
-
       return;
     }
+
     cartItems.replaceChildren(...cart.map((item) => {
       const row = document.createElement('article');
       row.className = 'cart-line';
+      row.dataset.lineId = item.lineId;
       const doodle = document.createElement('div');
       doodle.className = 'cart-line__doodle';
       doodle.innerHTML = getDoodleMarkup(doodleForMenuItem(item));
@@ -98,12 +168,39 @@
       const amount = document.createElement('small');
       amount.textContent = `${formatPrice(item.price)} ${t('each')}`;
       copy.append(name, amount);
+      if (item.selectedAddons?.length) {
+        const addons = document.createElement('small');
+        addons.className = 'cart-line__option';
+        addons.textContent = item.selectedAddons.map((addon) => itemName(addon)).join(' · ');
+        copy.append(addons);
+      }
+      if (item.note) {
+        const note = document.createElement('small');
+        note.className = 'cart-line__option';
+        note.textContent = `${t('productNote')}: ${item.note}`;
+        copy.append(note);
+      }
+      if (item.status !== 'Available' || item.cartValidation) {
+        const warning = document.createElement('small');
+        warning.className = 'cart-line__warning';
+        warning.textContent = t('cartLineUnavailable');
+        copy.append(warning);
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'cart-line__actions';
+      const edit = document.createElement('button');
+      edit.type = 'button';
+      edit.className = 'cart-line__edit';
+      edit.dataset.editLine = item.lineId;
+      edit.textContent = t('editOptions');
+      edit.setAttribute('aria-label', `${t('editOptions')}: ${itemName(item)}`);
       const controls = document.createElement('div');
       controls.className = 'quantity-control';
       const decrement = document.createElement('button');
       decrement.type = 'button';
       decrement.dataset.change = '-1';
-      decrement.dataset.itemId = item.id;
+      decrement.dataset.lineId = item.lineId;
       decrement.setAttribute('aria-label', `${t('removeOne')} ${itemName(item)}`);
       decrement.textContent = '−';
       const value = document.createElement('span');
@@ -111,11 +208,18 @@
       const increment = document.createElement('button');
       increment.type = 'button';
       increment.dataset.change = '1';
-      increment.dataset.itemId = item.id;
+      increment.dataset.lineId = item.lineId;
       increment.setAttribute('aria-label', `${t('addOne')} ${itemName(item)}`);
       increment.textContent = '+';
       controls.append(decrement, value, increment);
-      row.append(doodle, copy, controls);
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'cart-line__remove';
+      remove.dataset.removeLine = item.lineId;
+      remove.setAttribute('aria-label', t('removeLine').replace('{item}', itemName(item)));
+      remove.textContent = '×';
+      actions.append(edit, controls, remove);
+      row.append(doodle, copy, actions);
       return row;
     }));
   }
@@ -129,29 +233,65 @@
     if (event.key === 'Escape' && drawer?.classList.contains('is-open')) setDrawerOpen(false);
   });
 
-  cartItems?.addEventListener('click', async (event) => {
+  cartItems?.addEventListener('click', (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
+    const removeButton = target.closest<HTMLButtonElement>('[data-remove-line]');
+    if (removeButton?.dataset.removeLine) {
+      menuStore.removeCartLine(removeButton.dataset.removeLine);
+      return;
+    }
+    const editButton = target.closest<HTMLButtonElement>('[data-edit-line]');
+    if (editButton?.dataset.editLine) {
+      const item = menuStore.getCart().find((entry) => entry.lineId === editButton.dataset.editLine);
+      if (item) window.dispatchEvent(new CustomEvent('kleiv8:product-edit', { detail: { lineId: item.lineId, item } }));
+      return;
+    }
     const button = target.closest<HTMLButtonElement>('[data-change]');
-    if (!button) return;
-    menuStore.updateQuantity(button.dataset.itemId, Number(button.dataset.change));
+    if (!button?.dataset.lineId) return;
+    menuStore.updateQuantity(button.dataset.lineId, Number(button.dataset.change));
   });
 
-  document.querySelector('#checkout-btn')?.addEventListener('click', () => {
-    const result = checkoutViaWhatsApp(menuStore.getCart(), notes?.value ?? '');
+  document.querySelector<HTMLButtonElement>('#apply-coupon')?.addEventListener('click', () => {
+    const subtotal = menuStore.getCart().reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const result = menuStore.applyCoupon(couponInput?.value ?? '', subtotal);
+    if (!result.ok) {
+      appliedCoupon = '';
+      showCouponFeedback(couponErrorKey(result.reason));
+      renderCart(menuStore.getCart());
+      return;
+    }
+    appliedCoupon = result.code;
+    showCouponFeedback('couponApplied');
+    renderCart(menuStore.getCart());
+  });
+  couponInput?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      document.querySelector<HTMLButtonElement>('#apply-coupon')?.click();
+    }
+  });
+
+  document.querySelector<HTMLButtonElement>('#checkout-btn')?.addEventListener('click', () => {
+    const result = checkoutViaWhatsApp(menuStore.getCart(), notes?.value ?? '', appliedCoupon);
     if (!result.ok) {
       if (result.reason === 'empty-cart') {
         showFeedback('emptyCheckout');
       } else if (result.reason === 'note-language-mismatch') {
         showFeedback('notesLanguageError');
-      } else if (result.reason === 'invalid-cart') {
+      } else if (result.reason === 'invalid-coupon') {
+        showCouponFeedback('couponInvalid');
+      } else {
         showFeedback('invalidCart');
       }
       return;
     }
-    showFeedback('');
     menuStore.clearCart();
     if (notes) notes.value = '';
+    if (couponInput) couponInput.value = '';
+    appliedCoupon = '';
+    showCouponFeedback('');
+    showFeedback('orderSent');
   });
 
   menuStore.subscribe(CART_UPDATED_EVENT, (event: CustomEvent<CartItem[]>) => renderCart(event.detail));
@@ -159,7 +299,8 @@
     applyLanguage(getLanguage());
     renderCart(menuStore.getCart());
     if (feedbackKey) showFeedback(feedbackKey);
+    if (couponFeedbackKey) showCouponFeedback(couponFeedbackKey);
   });
-  menuStore.init();
+  menuStore.init(Menu);
   renderCart(menuStore.getCart());
 </script>

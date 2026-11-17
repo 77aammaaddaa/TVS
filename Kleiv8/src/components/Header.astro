@@ -11,12 +11,19 @@ import BrandMark from './BrandMark.astro';
     </span>
   </a>
 
+  <div class="header-meta" id="header-meta" aria-label="Cafe and menu status" data-i18n-aria="statusRegion">
+    <span class="header-meta__pill header-meta__pill--store" id="store-status" hidden></span>
+    <span class="header-meta__pill" id="crowd-status" hidden></span>
+    <span class="header-meta__pill header-meta__pill--sync" id="menu-sync-status" role="status"></span>
+  </div>
+
   <nav class="header-actions" aria-label="Menu controls" data-i18n-aria="headerActions">
     <button class="language-toggle" id="language-toggle" type="button" aria-label="Change language" data-i18n-aria="languageToggle" title="Change language" data-i18n-title="languageToggle">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7" />
         <path d="M3.5 12h17M12 3c2.4 2.5 3.5 5.5 3.5 9s-1.1 6.5-3.5 9c-2.4-2.5-3.5-5.5-3.5-9S9.6 5.5 12 3Z" fill="none" stroke="currentColor" stroke-width="1.4" />
       </svg>
+      <span data-i18n="languageToggleLabel">Arabic</span>
     </button>
     <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" aria-label="Turn ambient sound on" data-i18n-aria="soundTurnOn" title="Enable optional ASMR and rain ambience" data-i18n-title="soundEnableTitle">
       <div class="sound-bars" aria-hidden="true">
@@ -36,14 +43,54 @@ import BrandMark from './BrandMark.astro';
 </header>
 
 <script>
+  import Menu from '../../public/data/default-menu.json';
   import { asmr, ASMR_STATE_EVENT } from '../scripts/asmr-engine.js';
-  import { getLanguage, setLanguage, LANGUAGE_UPDATED_EVENT, t } from '../scripts/language.js';
+  import {
+    getLanguage,
+    isTextSafeForLanguage,
+    setLanguage,
+    LANGUAGE_UPDATED_EVENT,
+    t,
+  } from '../scripts/language.js';
+  import {
+    CMS_UPDATED_EVENT,
+    menuStore,
+    SETTINGS_UPDATED_EVENT,
+  } from '../scripts/menu-store.js';
 
   const languageToggle = document.querySelector<HTMLButtonElement>('#language-toggle');
   const modeToggle = document.querySelector<HTMLButtonElement>('#mode-toggle');
   const modeLabel = document.querySelector<HTMLElement>('#mode-label');
   const soundButton = document.querySelector<HTMLButtonElement>('#sound-toggle');
   const soundLabel = soundButton?.querySelector<HTMLElement>('.sound-label');
+  const storeStatus = document.querySelector<HTMLElement>('#store-status');
+  const crowdStatus = document.querySelector<HTMLElement>('#crowd-status');
+  const menuSyncStatus = document.querySelector<HTMLElement>('#menu-sync-status');
+
+  function parseBoolean(value: unknown) {
+    if (typeof value === 'boolean') return value;
+    const normalized = String(value ?? '').trim().toLowerCase();
+    if (['true', '1', 'yes', 'open', 'مفتوح', 'متاح'].includes(normalized)) return true;
+    if (['false', '0', 'no', 'closed', 'مغلق', 'غير متاح'].includes(normalized)) return false;
+    return null;
+  }
+
+  function localizedSetting(settings: Record<string, unknown>, englishKeys: string[], arabicKeys: string[]) {
+    const lang = getLanguage();
+    const keys = lang === 'ar' ? arabicKeys : englishKeys;
+    const value = keys.map((key) => settings[key]).find((entry) => typeof entry === 'string' && entry.trim());
+    const text = typeof value === 'string' ? value.trim() : '';
+    return isTextSafeForLanguage(text, lang) ? text : '';
+  }
+
+  function crowdKey(value: unknown) {
+    const level = String(value ?? '').trim().toLowerCase();
+    if (['quiet', 'low', 'calm', 'هادئ'].includes(level)) return 'crowdQuiet';
+    if (['moderate', 'medium', 'normal', 'معتدل'].includes(level)) return 'crowdModerate';
+    if (['busy', 'high', 'مزدحم'].includes(level)) return 'crowdBusy';
+    if (['full', 'packed', 'ممتلئ'].includes(level)) return 'crowdFull';
+    return '';
+  }
 
   function updateLanguageControl() {
     if (!languageToggle) return;
@@ -69,9 +116,75 @@ import BrandMark from './BrandMark.astro';
     });
   }
 
+  function updateHeaderMeta() {
+    if (!storeStatus || !crowdStatus || !menuSyncStatus) return;
+    const settings = menuStore.getSettings() as Record<string, unknown>;
+    const explicitStoreStatus = localizedSetting(
+      settings,
+      ['store_status_en', 'cafe_status_en', 'open_status_en'],
+      ['store_status_ar', 'cafe_status_ar', 'open_status_ar'],
+    );
+    const openValue = parseBoolean(
+      settings.is_open ?? settings.is_open_now ?? settings.store_open ?? settings.open,
+    );
+    if (explicitStoreStatus) {
+      storeStatus.textContent = explicitStoreStatus;
+      storeStatus.hidden = false;
+    } else if (openValue !== null) {
+      storeStatus.textContent = t(openValue ? 'storeOpen' : 'storeClosed');
+      storeStatus.hidden = false;
+    } else {
+      storeStatus.hidden = true;
+    }
+
+    const crowd = settings.crowd && typeof settings.crowd === 'object'
+      ? settings.crowd as Record<string, unknown>
+      : {};
+    const crowdValue = crowd.level_en ?? crowd.level_ar ?? crowd.level ??
+      settings.crowd_level ?? settings.crowd_status;
+    const crowdText = localizedSetting(
+      settings,
+      ['crowd_status_en', 'crowd_level_en'],
+      ['crowd_status_ar', 'crowd_level_ar'],
+    );
+    const crowdLabel = crowdKey(crowdValue);
+    if (crowdText || crowdLabel) {
+      crowdStatus.textContent = crowdText || t(crowdLabel);
+      crowdStatus.hidden = false;
+    } else {
+      crowdStatus.hidden = true;
+    }
+
+    const status = menuStore.getDataStatus();
+    menuSyncStatus.textContent = !status.isOnline
+      ? t('syncOffline')
+      : status.menuSource === 'live'
+        ? t('syncLive')
+        : status.menuSource === 'cache'
+          ? t('syncSaved')
+          : t('syncFallback');
+    if (status.updatedAt) {
+      const timestamp = Date.parse(status.updatedAt);
+      menuSyncStatus.title = Number.isFinite(timestamp)
+        ? new Intl.DateTimeFormat(getLanguage() === 'ar' ? 'ar-EG' : 'en-EG', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }).format(timestamp)
+        : '';
+    } else {
+      menuSyncStatus.removeAttribute('title');
+    }
+  }
+
   updateLanguageControl();
   updateModeControl();
   updateSoundControl(asmr.enabled);
+  menuStore.subscribe(CMS_UPDATED_EVENT, updateHeaderMeta);
+  menuStore.subscribe(SETTINGS_UPDATED_EVENT, updateHeaderMeta);
+  window.addEventListener('online', updateHeaderMeta);
+  window.addEventListener('offline', updateHeaderMeta);
+  updateHeaderMeta();
+  menuStore.init(Menu);
   languageToggle?.addEventListener('click', async () => {
     const next = getLanguage() === 'ar' ? 'en' : 'ar';
     setLanguage(next);
@@ -81,6 +194,7 @@ import BrandMark from './BrandMark.astro';
     updateLanguageControl();
     updateModeControl();
     updateSoundControl(asmr.enabled);
+    updateHeaderMeta();
   });
   window.addEventListener(ASMR_STATE_EVENT, (event) => {
     const stateEvent = event as CustomEvent<{ enabled: boolean }>;

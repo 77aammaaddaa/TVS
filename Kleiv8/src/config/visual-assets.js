@@ -1,14 +1,15 @@
 import { doodleForMenuItem } from '../scripts/doodles.js';
+import { VECTOR_ASSETS } from './vector-assets.js';
 
 export const VISUAL_ASSETS = Object.freeze({
-  infinity: Object.freeze({ src: '/images/kleiv/infinity-mark.png', width: 655, height: 320 }),
-  meltingIce: Object.freeze({ src: '/images/kleiv/melting-ice.png', width: 440, height: 290 }),
-  slowMoment: Object.freeze({ src: '/images/kleiv/slow-moment.png', width: 475, height: 575 }),
-  croissantLounger: Object.freeze({ src: '/images/kleiv/croissant-lounger.png', width: 735, height: 455 }),
-  baristaCraft: Object.freeze({ src: '/images/kleiv/barista-craft.png', width: 735, height: 460 }),
-  balancePause: Object.freeze({ src: '/images/kleiv/balance-pause.png', width: 480, height: 778 }),
-  icedCupSlogan: Object.freeze({ src: '/images/kleiv/iced-cup-slogan.png', width: 640, height: 590 }),
-  icedCup: Object.freeze({ src: '/images/kleiv/iced-cup.png', width: 355, height: 435 }),
+  infinity: VECTOR_ASSETS.infinity,
+  meltingIce: VECTOR_ASSETS.iceCubes,
+  slowMoment: VECTOR_ASSETS.girlWithCup,
+  croissantLounger: VECTOR_ASSETS.croissantGuy,
+  baristaCraft: VECTOR_ASSETS.baristaGirl,
+  balancePause: VECTOR_ASSETS.caffeineAddict,
+  icedCupSlogan: VECTOR_ASSETS.cup,
+  icedCup: VECTOR_ASSETS.cup,
   wavyPattern: Object.freeze({ src: '/images/kleiv/wavy-pattern.png', width: 768, height: 1575 }),
 });
 
