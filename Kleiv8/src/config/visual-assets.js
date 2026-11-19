@@ -8,7 +8,7 @@ export const VISUAL_ASSETS = Object.freeze({
   croissantLounger: VECTOR_ASSETS.croissantGuy,
   baristaCraft: VECTOR_ASSETS.baristaGirl,
   balancePause: VECTOR_ASSETS.caffeineAddict,
-  icedCupSlogan: VECTOR_ASSETS.cup,
+  icedCupSlogan: Object.freeze({ src: '/images/kleiv/iced-cup-slogan.png', width: 640, height: 590 }),
   icedCup: VECTOR_ASSETS.cup,
   wavyPattern: Object.freeze({ src: '/images/kleiv/wavy-pattern.png', width: 768, height: 1575 }),
 });
