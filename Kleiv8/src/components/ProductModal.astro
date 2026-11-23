@@ -1,3 +1,7 @@
+---
+import { SITE_CONFIG } from '../config/site.js';
+---
+
 <dialog class="product-modal" id="product-modal" aria-labelledby="product-modal-title">
   <div class="product-modal__panel">
     <button class="product-modal__close" type="button" data-product-close aria-label="Close product details" data-i18n-aria="closeProduct">×</button>
@@ -8,18 +12,24 @@
     <p class="product-modal__description" id="product-modal-description" data-i18n="productDescription">About this item</p>
     <p class="product-modal__ingredients" id="product-modal-ingredients" hidden></p>
     <p class="product-modal__serving" id="product-modal-serving" hidden></p>
-    <fieldset class="product-modal__addons" id="product-modal-addons" hidden>
-      <legend data-i18n="addOns">Add-ons</legend>
-      <div class="product-modal__addon-list" id="product-modal-addon-list"></div>
-    </fieldset>
-    <label class="product-modal__note" for="product-modal-note">
-      <span data-i18n="productNote">A note for this item</span>
-      <textarea id="product-modal-note" rows="2" maxlength="180" data-i18n-placeholder="productNotePlaceholder" placeholder="For example: less ice…"></textarea>
-    </label>
+    {SITE_CONFIG.enableCart && (
+      <>
+        <fieldset class="product-modal__addons" id="product-modal-addons" hidden>
+          <legend data-i18n="addOns">Add-ons</legend>
+          <div class="product-modal__addon-list" id="product-modal-addon-list"></div>
+        </fieldset>
+        <label class="product-modal__note" for="product-modal-note">
+          <span data-i18n="productNote">A note for this item</span>
+          <textarea id="product-modal-note" rows="2" maxlength="180" data-i18n-placeholder="productNotePlaceholder" placeholder="For example: less ice…"></textarea>
+        </label>
+      </>
+    )}
     <p class="product-modal__feedback" id="product-modal-feedback" role="status" aria-live="polite" hidden></p>
     <div class="product-modal__footer">
       <strong id="product-modal-price"></strong>
-      <button class="product-modal__submit" id="product-modal-submit" type="button" data-i18n="productAddToCart">Add to order</button>
+      {SITE_CONFIG.enableCart && (
+        <button class="product-modal__submit" id="product-modal-submit" type="button" data-i18n="productAddToCart">Add to order</button>
+      )}
     </div>
   </div>
 </dialog>
@@ -31,8 +41,6 @@
   import {
     categoryName,
     formatPrice,
-    getLanguage,
-    isTextSafeForLanguage,
     formatNumber,
     itemDescription,
     itemIngredients,
@@ -181,10 +189,6 @@
   submitButton?.addEventListener('click', () => {
     if (!activeItem) return;
     const note = noteInput?.value.trim() ?? '';
-    if (!isTextSafeForLanguage(note, getLanguage())) {
-      showFeedback('productNoteLanguageError');
-      return;
-    }
     const saved = activeLineId
       ? menuStore.updateCartLineAddons(activeLineId, selectedAddonIds(), note)
       : menuStore.addToCart(activeItem, selectedAddonIds(), note);

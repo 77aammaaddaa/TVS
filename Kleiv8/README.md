@@ -6,9 +6,9 @@ A bilingual digital menu for KLEIV in Suez, built with Astro and Tailwind CSS. T
 
 - Arabic and English interface with RTL/LTR layout, localized menu content, and EGP prices.
 - A bundled catalogue of 82 menu items for instant loading and offline fallback.
-- Vibe reel, quick cashier list, category and mood filters, product details, optional add-ons, and a persistent cart.
+- Vibe reel, quick menu list, category and mood filters, and product details. Cart and ordering controls are implemented but hidden by default.
 - Optional browser-generated ASMR ambience and sound effects. Audio starts muted; there are no songs or audio recordings.
-- WhatsApp checkout to `+201023328432`. The message includes item quantities, selected add-ons, notes, any configured discount, and the total. Customers pay at the cashier; the site does not process payments.
+- Optional WhatsApp checkout to `+201023328432`. When enabled, the message includes item quantities, selected add-ons, notes, an optional table number, any configured discount, and the EGP total. Customers pay at the cashier; the site does not process payments.
 - CMS-driven cafe status, announcements, blog posts, category data, coupons, and order counts when those fields are configured in Google Sheets.
 
 ## Illustration assets
@@ -33,6 +33,13 @@ npm run preview
 ```
 
 The static output is written to `dist/`.
+
+## Storefront controls
+
+`src/config/site.js` contains `enableCart`, which is currently `false` for a menu-only storefront. Set it to `true` to restore the cart, item add buttons, customization controls, and WhatsApp checkout.
+The directions button opens a Google Maps route search for the documented address; replace its URL with the cafe's exact pinned place link when available.
+
+The site also ships `robots.txt`, `sitemap.xml`, a web manifest, Open Graph metadata, and `CafeOrCoffeeShop` structured data. A direct Google review URL is not configured.
 
 ## Menu data and synchronization
 

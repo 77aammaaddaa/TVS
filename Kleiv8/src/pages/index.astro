@@ -13,18 +13,18 @@ import { SITE_CONFIG } from '../config/site.js';
 <Layout
   title="KLEIV ∞ | Enjoy Coffee. Enjoy Vibes."
   titleAr="كليف ∞ | استمتع بالقهوة. استمتع بالأجواء."
-  description="Specialty coffee in Suez, Egypt. Pick your cup and pay at the cashier."
-  descriptionAr="قهوة مختصة في السويس، مصر. اختار كوبك وادفع عند الكاشير."
+  description="Specialty coffee in Suez, Egypt. Find your cup and visit us behind Engineers Syndicate."
+  descriptionAr="قهوة مختصة في السويس، مصر. اختار كوبك وتعالى زورنا خلف نقابة المهندسين."
 >
   <main id="main-content">
     <section class="hero" id="top">
       <div class="hero__copy">
         <p class="eyebrow"><span class="status-dot"></span><span data-i18n="heroEyebrow">Specialty Coffee · Suez, Egypt</span></p>
         <h1><span data-i18n="tagline">Enjoy Coffee. Enjoy Vibes.</span></h1>
-        <p class="hero__description" data-i18n="heroDescription">Pick your mood, pick your cup. Order here, pay at the cashier.</p>
+        <p class="hero__description" data-i18n="heroDescription">Pick your mood, pick your cup.</p>
         <div class="hero__actions">
           <a class="button-primary" href="#vibe-engine"><span data-i18n="explore">Explore Reel</span> <span aria-hidden="true">↓</span></a>
-          <span class="payment-note"><span aria-hidden="true">◉</span> <span data-i18n="counterService">Counter Service · EGP</span></span>
+          <span class="menu-note"><span aria-hidden="true">◉</span> <span data-i18n="counterService">Explore the menu · Suez</span></span>
         </div>
       </div>
       <div class="hero-art" aria-hidden="true">
@@ -68,7 +68,7 @@ import { SITE_CONFIG } from '../config/site.js';
       <BlogSection />
     </div>
 
-    <section class="counter-callout" aria-label="How ordering works" data-i18n-aria="counterRegion">
+    <section class="counter-callout" aria-label="Find KLEIV in Suez" data-i18n-aria="counterRegion">
       <div class="counter-callout__illustration" aria-hidden="true">
         <img
           src={VISUAL_ASSETS.slowMoment.src}
@@ -80,12 +80,12 @@ import { SITE_CONFIG } from '../config/site.js';
         />
       </div>
       <div class="counter-callout__copy">
-        <p class="eyebrow" data-i18n="counterEyebrow">Simple Counter Flow</p>
-        <h2 data-i18n="counterTitle">Order here. Pay at the cashier.</h2>
-        <p data-i18n="counterCopy">Add your picks to the bag, send the list to our cashier on WhatsApp, pay at the cashier, and pick up your order at the bar.</p>
+        <p class="eyebrow" data-i18n="counterEyebrow">Visit us in Suez</p>
+        <h2 data-i18n="counterTitle">Find your way to KLEIV.</h2>
+        <p data-i18n="counterCopy">Behind Engineers Syndicate · Suez, Egypt.</p>
       </div>
-      <a href={`https://wa.me/${SITE_CONFIG.whatsappNumber}`} target="_blank" rel="noopener noreferrer">
-        <span data-i18n="chatBarista">Chat with Barista</span> <span aria-hidden="true">↗</span>
+      <a href={SITE_CONFIG.mapsDirectionsUrl} target="_blank" rel="noopener noreferrer">
+        <span data-i18n="chatBarista">Get directions</span> <span aria-hidden="true">↗</span>
       </a>
     </section>
   </main>

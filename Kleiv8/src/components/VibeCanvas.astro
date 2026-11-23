@@ -1,5 +1,6 @@
 ---
 import Menu from '../../public/data/default-menu.json';
+import { SITE_CONFIG } from '../config/site.js';
 import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
 import { badgeName, categoryName, formatPrice } from '../scripts/language.js';
 
@@ -28,7 +29,7 @@ const filmStripItems = [...featuredItems, ...featuredItems];
       <span class="film-badge" data-i18n="vibeBadge">THE ENDLESS REEL ∞</span>
       <h2><span data-i18n="vibeTitle1">Sips & Bites</span> <em data-i18n="vibeTitle2">We Love.</em></h2>
     </div>
-    <p class="swipe-note" data-i18n="pause">Hover or touch to pause</p>
+    <p class="swipe-note" data-i18n="pause">Drag to move · release to cruise</p>
   </div>
 
   <div class="film-controls" aria-label="Menu reel controls" data-i18n-aria="filmControls">
@@ -72,13 +73,15 @@ const filmStripItems = [...featuredItems, ...featuredItems];
               </button>
               <div class="film-card__footer">
                 <strong class="price-val">{formatPrice(item.price, 'en')}</strong>
-                <button
-                  class="add-button"
-                  type="button"
-                  data-add-item={item.id}
-                  tabindex={isDuplicate ? -1 : undefined}
-                  aria-label={`Add ${item.name_en} to order`}
-                >+</button>
+                {SITE_CONFIG.enableCart && (
+                  <button
+                    class="add-button"
+                    type="button"
+                    data-add-item={item.id}
+                    tabindex={isDuplicate ? -1 : undefined}
+                    aria-label={`Add ${item.name_en} to order`}
+                  >+</button>
+                )}
               </div>
             </article>
           );
@@ -91,6 +94,7 @@ const filmStripItems = [...featuredItems, ...featuredItems];
 
 <script>
   import Menu from '../../public/data/default-menu.json';
+  import { SITE_CONFIG } from '../config/site.js';
   import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
   import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
   import { asmr } from '../scripts/asmr-engine.js';
@@ -139,13 +143,20 @@ const filmStripItems = [...featuredItems, ...featuredItems];
   let previousFrame = 0;
   let isVisible = false;
   let isManuallyPaused = false;
-  let isHovered = false;
   let isFocused = false;
   let isDragging = false;
   let suppressClick = false;
+  let pointerId = -1;
   let dragStartX = 0;
   let dragStartScroll = 0;
+  let lastPointerX = 0;
+  let lastPointerTime = 0;
+  let dragVelocity = 0;
+  let inertiaVelocity = 0;
+  let autoDirection: -1 | 1 = 1;
   let resumeTimer = 0;
+  let spotlightObserver: IntersectionObserver | null = null;
+  let spotlightCard: HTMLElement | null = null;
 
   function getFeaturedItems(items: MenuItem[]) {
     return items
@@ -208,14 +219,17 @@ const filmStripItems = [...featuredItems, ...featuredItems];
     const price = document.createElement('strong');
     price.className = 'price-val';
     price.textContent = formatPrice(item.price);
-    const add = document.createElement('button');
-    add.className = 'add-button';
-    add.type = 'button';
-    add.dataset.addItem = item.id;
-    if (duplicate) add.tabIndex = -1;
-    add.textContent = '+';
-    add.setAttribute('aria-label', t('addItemToBag').replace('{item}', itemName(item)));
-    footer.append(price, add);
+    footer.append(price);
+    if (SITE_CONFIG.enableCart) {
+      const add = document.createElement('button');
+      add.className = 'add-button';
+      add.type = 'button';
+      add.dataset.addItem = item.id;
+      if (duplicate) add.tabIndex = -1;
+      add.textContent = '+';
+      add.setAttribute('aria-label', t('addItemToBag').replace('{item}', itemName(item)));
+      footer.append(add);
+    }
     card.append(top, open, footer);
     return card;
   }
@@ -225,12 +239,70 @@ const filmStripItems = [...featuredItems, ...featuredItems];
     loopWidth = track.scrollWidth / 2;
   }
 
+  function moveToScroll(position: number) {
+    if (!viewport || loopWidth <= 0) return;
+    viewport.scrollLeft = ((position % loopWidth) + loopWidth) % loopWidth;
+  }
+
+  function setSpotlightCard(next: HTMLElement | null) {
+    if (spotlightCard === next) return;
+    spotlightCard?.classList.remove('is-spotlight');
+    spotlightCard = next;
+    spotlightCard?.classList.add('is-spotlight');
+    track?.classList.toggle('has-spotlight', Boolean(spotlightCard));
+  }
+
+  function observeSpotlightCards() {
+    spotlightObserver?.disconnect();
+    spotlightObserver = null;
+    setSpotlightCard(null);
+    if (!viewport || !track) return;
+
+    const cards = [...track.querySelectorAll<HTMLElement>('.film-card')];
+    if (!('IntersectionObserver' in window)) {
+      const center = viewport.getBoundingClientRect().left + viewport.clientWidth / 2;
+      const nearest = cards.reduce<HTMLElement | null>((best, card) => {
+        const bounds = card.getBoundingClientRect();
+        const distance = Math.abs(bounds.left + bounds.width / 2 - center);
+        const bestBounds = best?.getBoundingClientRect();
+        const bestDistance = bestBounds
+          ? Math.abs(bestBounds.left + bestBounds.width / 2 - center)
+          : Number.POSITIVE_INFINITY;
+        return distance < bestDistance ? card : best;
+      }, null);
+      setSpotlightCard(nearest);
+      return;
+    }
+
+    spotlightObserver = new IntersectionObserver((entries) => {
+      const center = viewport!.getBoundingClientRect().left + viewport!.clientWidth / 2;
+      const nearest = entries
+        .filter((entry) => entry.isIntersecting)
+        .map((entry) => entry.target as HTMLElement)
+        .reduce<HTMLElement | null>((best, card) => {
+          const bounds = card.getBoundingClientRect();
+          const distance = Math.abs(bounds.left + bounds.width / 2 - center);
+          const bestBounds = best?.getBoundingClientRect();
+          const bestDistance = bestBounds
+            ? Math.abs(bestBounds.left + bestBounds.width / 2 - center)
+            : Number.POSITIVE_INFINITY;
+          return distance < bestDistance ? card : best;
+        }, null);
+      if (nearest) setSpotlightCard(nearest);
+      else if (entries.some((entry) => entry.target === spotlightCard && !entry.isIntersecting)) {
+        setSpotlightCard(null);
+      }
+    }, { root: viewport, rootMargin: '0px -38% 0px -38%', threshold: 0 });
+    cards.forEach((card) => spotlightObserver?.observe(card));
+  }
+
   function renderFilmStrip(items: MenuItem[]) {
     if (!track || !viewport) return;
     const visible = getFeaturedItems(items);
     if (visible.length === 0) {
       track.replaceChildren();
       loopWidth = 0;
+      observeSpotlightCards();
       return;
     }
     const repeated = [...visible, ...visible];
@@ -238,7 +310,8 @@ const filmStripItems = [...featuredItems, ...featuredItems];
       createFilmCard(item, index, visible.length, index >= visible.length)
     ));
     measureLoop();
-    if (viewport.scrollLeft >= loopWidth) viewport.scrollLeft = viewport.scrollLeft % loopWidth;
+    moveToScroll(viewport.scrollLeft);
+    observeSpotlightCards();
     applyMoodHighlight(activeMood);
   }
 
@@ -270,7 +343,6 @@ const filmStripItems = [...featuredItems, ...featuredItems];
   function canAnimate() {
     return isVisible &&
       !isManuallyPaused &&
-      !isHovered &&
       !isFocused &&
       !isDragging &&
       !document.hidden &&
@@ -296,8 +368,14 @@ const filmStripItems = [...featuredItems, ...featuredItems];
     }
     const delta = previousFrame ? Math.min(timestamp - previousFrame, 50) : 0;
     previousFrame = timestamp;
-    viewport.scrollLeft += delta * 0.012;
-    if (viewport.scrollLeft >= loopWidth) viewport.scrollLeft -= loopWidth;
+    if (Math.abs(inertiaVelocity) > 0.015) {
+      const velocity = inertiaVelocity;
+      moveToScroll(viewport.scrollLeft + velocity * delta);
+      inertiaVelocity *= Math.exp(-delta / 420);
+      if (Math.abs(inertiaVelocity) <= 0.015) inertiaVelocity = 0;
+    } else {
+      moveToScroll(viewport.scrollLeft + autoDirection * delta * 0.012);
+    }
     animationFrame = window.requestAnimationFrame(animateReel);
   }
 
@@ -305,7 +383,12 @@ const filmStripItems = [...featuredItems, ...featuredItems];
     const card = track?.querySelector<HTMLElement>('.film-card');
     if (!viewport || !card) return;
     const gap = Number.parseFloat(getComputedStyle(track as HTMLElement).columnGap) || 0;
-    viewport.scrollBy({ left: direction * (card.getBoundingClientRect().width + gap), behavior: 'smooth' });
+    if (direction < 0 && viewport.scrollLeft < 1) viewport.scrollLeft = loopWidth;
+    autoDirection = direction;
+    viewport.scrollBy({
+      left: direction * (card.getBoundingClientRect().width + gap),
+      behavior: reduceMotion.matches ? 'auto' : 'smooth',
+    });
     pauseBriefly();
   }
 
@@ -322,43 +405,65 @@ const filmStripItems = [...featuredItems, ...featuredItems];
   }
 
   viewport?.addEventListener('pointerdown', (event) => {
-    if (event.pointerType !== 'mouse' || event.button !== 0 || !(event.target instanceof Element)) return;
-    if (event.target.closest('button')) return;
+    if ((event.pointerType === 'mouse' && event.button !== 0) || !(event.target instanceof Element)) return;
+    if (event.target.closest('button, a, input, textarea, select') || loopWidth <= 0) return;
+    if (viewport.scrollLeft < 1) viewport.scrollLeft = loopWidth;
     isDragging = true;
+    pointerId = event.pointerId;
     suppressClick = false;
     dragStartX = event.clientX;
     dragStartScroll = viewport.scrollLeft;
+    lastPointerX = event.clientX;
+    lastPointerTime = performance.now();
+    dragVelocity = 0;
+    inertiaVelocity = 0;
     viewport.classList.add('is-dragging');
     viewport.setPointerCapture(event.pointerId);
     syncAnimation();
   });
   viewport?.addEventListener('pointermove', (event) => {
-    if (!isDragging || !viewport) return;
+    if (!isDragging || event.pointerId !== pointerId || !viewport) return;
     const distance = event.clientX - dragStartX;
     if (Math.abs(distance) > 5) suppressClick = true;
-    viewport.scrollLeft = dragStartScroll - distance;
+    if (!suppressClick) return;
+    const now = performance.now();
+    const elapsed = now - lastPointerTime;
+    if (elapsed > 0) dragVelocity = -(event.clientX - lastPointerX) / elapsed;
+    lastPointerX = event.clientX;
+    lastPointerTime = now;
+    moveToScroll(dragStartScroll - distance);
   });
-  const stopDragging = () => {
-    if (!isDragging || !viewport) return;
+  const stopDragging = (event: PointerEvent, allowMomentum: boolean) => {
+    if (!isDragging || event.pointerId !== pointerId || !viewport) return;
     isDragging = false;
+    pointerId = -1;
     viewport.classList.remove('is-dragging');
-    pauseBriefly();
+    const recentMovement = performance.now() - lastPointerTime < 100;
+    if (allowMomentum && suppressClick && recentMovement && Math.abs(dragVelocity) > 0.015) {
+      inertiaVelocity = Math.max(-1.2, Math.min(1.2, dragVelocity));
+      autoDirection = inertiaVelocity < 0 ? -1 : 1;
+    } else {
+      inertiaVelocity = 0;
+    }
+    isManuallyPaused = false;
+    window.clearTimeout(resumeTimer);
+    syncAnimation();
+    if (suppressClick) window.setTimeout(() => { suppressClick = false; }, 0);
   };
-  viewport?.addEventListener('pointerup', stopDragging);
-  viewport?.addEventListener('pointercancel', stopDragging);
-  viewport?.addEventListener('pointerleave', stopDragging);
-  viewport?.addEventListener('wheel', pauseBriefly, { passive: true });
+  viewport?.addEventListener('pointerup', (event) => stopDragging(event, true));
+  viewport?.addEventListener('pointercancel', (event) => stopDragging(event, false));
+  viewport?.addEventListener('wheel', (event) => {
+    if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) autoDirection = event.deltaX < 0 ? -1 : 1;
+    pauseBriefly();
+  }, { passive: true });
   viewport?.addEventListener('scroll', () => {
     if (loopWidth <= 0 || !viewport) return;
-    if (viewport.scrollLeft >= loopWidth) viewport.scrollLeft -= loopWidth;
+    if (viewport.scrollLeft >= loopWidth) moveToScroll(viewport.scrollLeft);
   }, { passive: true });
-  viewport?.addEventListener('pointerenter', () => {
-    isHovered = true;
-    syncAnimation();
-  });
-  viewport?.addEventListener('pointerleave', () => {
-    isHovered = false;
-    syncAnimation();
+  viewport?.addEventListener('keydown', (event) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    scrollByCard(event.key === 'ArrowRight' ? 1 : -1);
   });
   viewport?.addEventListener('focusin', () => {
     isFocused = true;
@@ -383,6 +488,7 @@ const filmStripItems = [...featuredItems, ...featuredItems];
     }
     const button = target.closest<HTMLButtonElement>('[data-add-item]');
     if (button) {
+      if (!SITE_CONFIG.enableCart) return;
       const item = menuStore.getMenu().find((entry) => entry.id === button.dataset.addItem)
         ?? initialMenu.find((entry) => entry.id === button.dataset.addItem);
       if (!item || !menuStore.addToCart(item)) return;

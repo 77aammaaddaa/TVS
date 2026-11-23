@@ -1,0 +1,31 @@
+Task_ID	Module_ID	Task_Description	Assigned_To	Priority	Status	Due_Date	Attachments_Link	اعتماد المؤسس (Founder Approval)
+TSK-001	MOD-001	بناء مكونات القائمة الرقمية لـ 82 صنفاً مع الفئات الـ 12 وتكامل التبديل اللغوي	Frontend Dev	حرجة	مكتمل	2026-09-10	src/components/	معتمد من المؤسس
+TSK-002	MOD-001	تطبيق نظام التخزين المحلي LocalStorage للقائمة والعمل في وضع عدم الاتصال	Core Dev	حرجة	مكتمل	2026-09-12	src/scripts/menu-store.js	معتمد من المؤسس
+TSK-003	MOD-002	تطوير سلة المشتريات CartDrawer وحساب الإجماليات ودعم كوبونات الخصم	Frontend Dev	حرجة	مكتمل	2026-09-15	src/components/CartDrawer.astro	معتمد من المؤسس
+TSK-004	MOD-002	برمجة مولد lineId الفريد لعزل الأصناف بناء على التخصيص والملاحظات	Core Dev	عالية جداً	مكتمل	2026-09-16	src/scripts/order-handler.js	معتمد من المؤسس
+TSK-005	MOD-003	بناء خدمة توجيه رسائل الطلب المباشرة إلى رقم واتساب الكاشير (+201023328432)	Integration Eng	حرجة	مكتمل	2026-09-18	src/scripts/order-handler.js	معتمد من المؤسس
+TSK-006	MOD-004	برمجة نافذة تفاصيل الصنف ProductModal وتطبيق فلترة allowed_addons الصارمة	Frontend Dev	عالية	مكتمل	2026-09-20	src/components/ProductModal.astro	معتمد من المؤسس
+TSK-007	MOD-005	تطوير نمط القائمة المدمجة السريعة QuickList لخدمة الكاشير والطلبات السريعة	UI/UX Dev	عالية	مكتمل	2026-09-22	src/components/QuickList.astro	معتمد من المؤسس
+TSK-008	MOD-006	ربط وعرض شريط الإعلانات الترويجي NewsTicker مع تبويب Google Sheets المباشر	Frontend Dev	متوسطة	مكتمل	2026-09-25	src/components/NewsTicker.astro	معتمد من المؤسس
+TSK-009	MOD-007	تطوير قسم المقالات والمدونة BlogSection لعرض قصص القهوة وهندسة البن	Content Dev	متوسطة	مكتمل	2026-09-27	src/components/BlogSection.astro	معتمد من المؤسس
+TSK-010	MOD-008	برمجة محرك الصوت الحسي ASMR عبر Web Audio API وضبط الكتم التلقائي	Multimedia Eng	متوسطة	مكتمل	2026-09-28	src/scripts/asmr-engine.js	معتمد من المؤسس
+TSK-011	MOD-009	تصميم الهيدر التفاعلي ومقياس الزحام اللحظي وعرض حالة الفرع التشغيلية	Frontend Dev	عالية	مكتمل	2026-09-30	src/components/Header.astro	معتمد من المؤسس
+TSK-012	MOD-010	برمجة دوال doGet وdoPost في code.gs v5.0 لإدارة المحتوى وتسجيل المبيعات	Backend Dev	حرجة	مكتمل	2026-10-05	code.gs	معتمد من المؤسس
+TSK-013	MOD-011	معالجة زمن الحظر TBT البالغ 2280ms وضغط الأصول لرفع تقييم Lighthouse إلى 90%+	Performance Eng	حرجة	قيد التطوير	2026-11-20	AUDIT-PERF	بانتظار الاعتماد
+TSK-014	MOD-011	إصلاح أخطاء الكونسول errors-in-console وإلغاء الاستثناءات غير المعالجة	QA Eng	عالية	قيد الاختبار	2026-11-18	AUDIT-CONSOLE	بانتظار الاعتماد
+TSK-015	MOD-011	تصحيح معايير إمكانية الوصول وتوافق تباين الألوان وعناصر aria-hidden-focus	Frontend Dev	متوسطة	قيد التطوير	2026-11-19	AUDIT-A11Y	بانتظار الاعتماد
+TSK-016	MOD-011	تنظيف المستودع من الملفات المكررة كملف Kleiv-Motion (1).css ومجلد Kleiv/ المزدوج	DevOps Eng	منخفضة	قيد التطوير	2026-11-17	AUDIT-REPO	بانتظار الاعتماد
+TSK-017	MOD-010	أتمتة نشر تحديثات Google Apps Script وتوثيق إجراء المزامنة اليدوية	Backend Dev	متوسطة	قيد التحليل	2026-11-22	SOP-DEPLOY	بانتظار الاعتماد
+TSK-018	MOD-012	بناء النموذج الأولي لكوب الواقع المعزز WebAR وبطاقة الولاء الرقمية Wallet Pass	Creative Dev	متوسطة	مخطط	2026-12-15	ROADMAP-V2	مؤجل
+TSK-019	MOD-010	إصلاح قراءة voucher_discount_percent في code.gs ومزامنة allowed_addons وdoodle_key في default-menu.json وتصحيح رابط خرائط جوجل	Backend Dev	حرجة	قيد التطوير	2026-11-26	Kleiv8/Kleiv/code.gs	بانتظار الاعتماد
+TSK-020	MOD-009	تنظيف شيت التسويق Kleiv من بيانات وزير السعادة وإصلاح أخطاء #REF! وتوحيد شيت التكاليف Cost.sheet.kleiv8 مع الـ 82 صنفاً	Social Media Lead	عالية	مخطط	2026-11-27	https://docs.google.com/spreadsheets/d/1iou7_LO50atsH5yC0tpu3WcgV6_quidpugtYtCHt5GQ/edit	بانتظار الاعتماد
+TSK-021	MOD-003	إزالة قيد اللغة الصارم على ملاحظات الطلب في order-handler.js ودعم معامل رقم الطاولة (?table=X) في رسالة واتساب	Frontend Dev	عالية	مكتمل	2026-11-28	src/scripts/order-handler.js	بانتظار الاعتماد
+TSK-022	MOD-012	بناء تجربة تلعيب 5 رموز ∞ في StoryDoodles وربطها بكوبون تلقائي في CartDrawer مع بطاقة ولاء رقمية	Creative Dev	متوسطة	مقترح	2026-12-05	https://docs.google.com/spreadsheets/d/1tOWo6h9C4aIa-njPJ30a7_6xYcjQ_kXpaEi9TWPbwko/edit	بانتظار الاعتماد
+TSK-023	MOD-002	إضافة أداة (اختارلي على ذوق كليف / Spin Your Vibe) وبطاقة ترشيح إضافي (Upsell Pairing) داخل CartDrawer	Frontend Dev	متوسطة	مقترح	2026-12-07	src/components/CartDrawer.astro	بانتظار الاعتماد
+TSK-024	MOD-004	إضافة شارات مسببات الحساسية (مكسرات، ألبان، جلوتين) وفلاتر غذائية في ProductModal وQuickList	Frontend Dev	متوسطة	مقترح	2026-12-10	src/components/ProductModal.astro	بانتظار الاعتماد
+TSK-025	MOD-009	إضافة ملفات SEO وPWA (robots.txt, sitemap.xml, manifest.webmanifest, og:image, CafeOrCoffeeShop JSON-LD) ورابط تقييم جوجل بعد الطلب	Frontend Dev	عالية	قيد التطوير	2026-11-29	src/layouts/Layout.astro	بانتظار الاعتماد
+TSK-026	MOD-011	تطوير محرك حركة شريط الأفلام (VibeCanvas): سحب فيزيائي بالقصور الذاتي حسب سرعة التاتش والماوس + حركة تلقائية تستكمل آخر اتجاه حرّكه العميل عند الترك + أزرار تنقل إلزامية واضحة	Frontend Dev	حرجة	قيد الاختبار	2026-11-30	src/components/VibeCanvas.astro	معتمد من المؤسس
+TSK-027	MOD-011	تطوير التصميم البصري للكارت وشريط الفيلم 35mm مع تأثير تركيز بؤري (Spotlight) على منتج واحد بالمنتصف وتضبيب (Blur) على باقي البطاقات بسلاسة 60fps	UI/UX Dev	حرجة	قيد الاختبار	2026-12-01	src/components/VibeCanvas.astro, src/styles/global.css	معتمد من المؤسس
+TSK-028	MOD-009	إلغاء زر تبديل الوضع (#mode-toggle) من الهيدر وتطبيق البديل التطويري المعتمد (دمج البحث السريع والقائمة أسفل الشريط أو استبداله بزر بحث/ترشيح سريع)	Frontend Dev	عالية	قيد التحليل	2026-12-01	src/components/Header.astro	بانتظار الاعتماد
+TSK-029	MOD-002	تعطيل وإخفاء السلة (CartDrawer) وزر السلة وأزرار الإضافة مؤقتاً عبر مفتاح تحكم (enableCart: false) في site.js للعمل كمنيو عرض تفاعلي نظيف	Frontend Dev	حرجة	مكتمل	2026-11-28	src/components/CartDrawer.astro, src/config/site.js	معتمد من المؤسس
+TSK-030	MOD-018	استبدال قسم وزر «تحدث مع الباريستا» بزر «اعرف الطريق / Get Directions» مربوطاً برابط Google Maps الحقيقي لفرع السويس (خلف نقابة المهندسين) مع تصحيح BUG-012	Frontend Dev	حرجة	قيد التطوير	2026-11-28	src/pages/index.astro, src/scripts/language.js	معتمد من المؤسس

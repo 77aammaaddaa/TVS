@@ -2,6 +2,7 @@
 import Menu from '../../public/data/default-menu.json';
 import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
 import { categoryName, formatPrice } from '../scripts/language.js';
+import { SITE_CONFIG } from '../config/site.js';
 
 const categories = [...new Map(Menu.map((item) => [
   item.category_en,
@@ -62,7 +63,9 @@ function categoryKey(item: { category_id?: string; category_en?: string; categor
               title={`See latte art for ${item.name_en}`}
             >∞</button>
           )}
-          <button class="quick-add" type="button" data-add-item={item.id} aria-label={`Add ${item.name_en} to order`}>Add</button>
+          {SITE_CONFIG.enableCart && (
+            <button class="quick-add" type="button" data-add-item={item.id} aria-label={`Add ${item.name_en} to order`}>Add</button>
+          )}
         </div>
       </article>
     ))}
@@ -73,6 +76,7 @@ function categoryKey(item: { category_id?: string; category_en?: string; categor
 <script>
   import Menu from '../../public/data/default-menu.json';
   import { doodleForMenuItem, getDoodleMarkup } from '../scripts/doodles.js';
+  import { SITE_CONFIG } from '../config/site.js';
   import { menuStore, MENU_UPDATED_EVENT } from '../scripts/menu-store.js';
   import { asmr } from '../scripts/asmr-engine.js';
   import {
@@ -209,19 +213,21 @@ function categoryKey(item: { category_id?: string; category_en?: string; categor
         latteArt.title = label;
         actions.append(latteArt);
       }
-      const add = document.createElement('button');
-      add.className = 'quick-add';
-      add.type = 'button';
-      add.dataset.addItem = item.id;
-      add.disabled = item.status === 'Sold Out';
-      add.textContent = item.status === 'Sold Out' ? t('soldOut') : t('add');
-      add.setAttribute(
-        'aria-label',
-        item.status === 'Sold Out'
-          ? `${t('soldOut')} ${localizedName}`
-          : t('addItemToOrder').replace('{item}', localizedName),
-      );
-      actions.append(add);
+      if (SITE_CONFIG.enableCart) {
+        const add = document.createElement('button');
+        add.className = 'quick-add';
+        add.type = 'button';
+        add.dataset.addItem = item.id;
+        add.disabled = item.status === 'Sold Out';
+        add.textContent = item.status === 'Sold Out' ? t('soldOut') : t('add');
+        add.setAttribute(
+          'aria-label',
+          item.status === 'Sold Out'
+            ? `${t('soldOut')} ${localizedName}`
+            : t('addItemToOrder').replace('{item}', localizedName),
+        );
+        actions.append(add);
+      }
       row.append(doodle, copy, actions);
       return row;
     }));
@@ -282,7 +288,7 @@ function categoryKey(item: { category_id?: string; category_en?: string; categor
       return;
     }
     const button = target.closest<HTMLButtonElement>('[data-add-item]');
-    if (!button || button.disabled) return;
+    if (!SITE_CONFIG.enableCart || !button || button.disabled) return;
     const item = menuStore.getMenu().find((entry) => entry.id === button.dataset.addItem);
     if (!item || !menuStore.addToCart(item)) return;
     await asmr.playClick('add');

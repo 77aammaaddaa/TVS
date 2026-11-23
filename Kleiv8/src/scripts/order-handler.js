@@ -1,8 +1,8 @@
 import { SITE_CONFIG } from '../config/site.js';
-import { isTextSafeForLanguage, formatNumber, formatPrice, getLanguage, itemName } from './language.js';
+import { formatNumber, formatPrice, getLanguage, itemName, t } from './language.js';
 import { menuStore } from './menu-store.js';
 
-function isValidCartItem(item, lang) {
+function isValidCartItem(item) {
   if (
     !item ||
     !Number.isFinite(item.price) ||
@@ -36,8 +36,15 @@ function isValidCartItem(item, lang) {
   ) {
     return false;
   }
-  if (item.note && !isTextSafeForLanguage(item.note, lang)) return false;
+  if (String(item.note ?? '').length > 180) return false;
   return Array.isArray(item.selectedAddons ?? []);
+}
+
+export function parseTableNumber(search = '') {
+  const rawValue = new URLSearchParams(search).get('table') ?? '';
+  if (/[\u0000-\u001F\u007F]/u.test(rawValue)) return '';
+  const value = rawValue.trim();
+  return /^[\p{L}\p{N}][\p{L}\p{N} -]{0,15}$/u.test(value) ? value : '';
 }
 
 function createOrderId() {
@@ -72,15 +79,14 @@ export function checkoutViaWhatsApp(cart, customerNotes = '', couponCode = '') {
   const lang = getLanguage();
   const arabic = lang === 'ar';
   const note = typeof customerNotes === 'string' ? customerNotes.trim() : '';
-  if (!isTextSafeForLanguage(note, lang)) {
-    return { ok: false, reason: 'note-language-mismatch' };
-  }
+  if (note.length > 180) return { ok: false, reason: 'invalid-note' };
 
-  const validItems = cart.filter((item) => isValidCartItem(item, lang));
+  const validItems = cart.filter(isValidCartItem);
   if (validItems.length !== cart.length || validItems.length === 0) {
     return { ok: false, reason: 'invalid-cart' };
   }
 
+  const tableNumber = parseTableNumber(window.location.search);
   const subtotal = validItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const coupon = couponCode ? menuStore.applyCoupon(couponCode, subtotal) : null;
   if (couponCode && !coupon?.ok) {
@@ -92,6 +98,7 @@ export function checkoutViaWhatsApp(cart, customerNotes = '', couponCode = '') {
   const lines = arabic ? [
     '*طلب جديد من قائمة كليف ٨*',
     '_اطلب وادفع عند الكاشير_',
+    ...(tableNumber ? [`${t('tableLabel', lang)}: ${tableNumber}`] : []),
     '',
     ...validItems.flatMap((item, index) => {
       const addons = item.selectedAddons ?? [];
@@ -110,6 +117,7 @@ export function checkoutViaWhatsApp(cart, customerNotes = '', couponCode = '') {
   ] : [
     `*New ${SITE_CONFIG.name} 8 counter order*`,
     '_Order and pay at the cashier_',
+    ...(tableNumber ? [`${t('tableLabel', lang)}: ${tableNumber}`] : []),
     '',
     ...validItems.flatMap((item, index) => {
       const addons = item.selectedAddons ?? [];
@@ -154,6 +162,7 @@ export function checkoutViaWhatsApp(cart, customerNotes = '', couponCode = '') {
     coupon_code: coupon?.ok ? coupon.code : '',
     discount,
     total,
+    table_number: tableNumber,
     customer_note: note,
   });
 

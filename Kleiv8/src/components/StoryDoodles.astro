@@ -49,6 +49,7 @@ import BrandMark from './BrandMark.astro';
 
 <script>
   import Menu from '../../public/data/default-menu.json';
+  import { SITE_CONFIG } from '../config/site.js';
   import { asmr } from '../scripts/asmr-engine.js';
   import { MENU_UPDATED_EVENT, menuStore } from '../scripts/menu-store.js';
   import {
@@ -119,13 +120,16 @@ import BrandMark from './BrandMark.astro';
       const category = document.createElement('small');
       category.textContent = `${categoryName(item)} · ${formatPrice(item.price)}`;
       details.append(name, category);
-      const add = document.createElement('button');
-      add.type = 'button';
-      add.className = 'story-pick-card__add';
-      add.dataset.addItem = item.id;
-      add.textContent = '+';
-      add.setAttribute('aria-label', t('addItemToBag').replace('{item}', itemName(item)));
-      card.append(details, add);
+      card.append(details);
+      if (SITE_CONFIG.enableCart) {
+        const add = document.createElement('button');
+        add.type = 'button';
+        add.className = 'story-pick-card__add';
+        add.dataset.addItem = item.id;
+        add.textContent = '+';
+        add.setAttribute('aria-label', t('addItemToBag').replace('{item}', itemName(item)));
+        card.append(add);
+      }
       return card;
     }));
   }
@@ -135,6 +139,7 @@ import BrandMark from './BrandMark.astro';
     if (!(target instanceof Element)) return;
     const addButton = target.closest<HTMLButtonElement>('[data-add-item]');
     if (addButton) {
+      if (!SITE_CONFIG.enableCart) return;
       const item = menuStore.getMenu().find((entry) => entry.id === addButton.dataset.addItem);
       if (!item || !menuStore.addToCart(item)) return;
       await asmr.playClick('add');

@@ -1,5 +1,5 @@
 <div class="drawer-backdrop" id="cart-backdrop" hidden></div>
-<aside class="cart-drawer" id="cart-drawer" aria-labelledby="cart-title" aria-hidden="true">
+<aside class="cart-drawer" id="cart-drawer" aria-labelledby="cart-title" aria-hidden="true" inert>
   <div class="cart-drawer__header">
     <div>
       <p class="eyebrow" data-i18n="orderEyebrow">Order and pay at the cashier</p>
@@ -110,8 +110,13 @@
     drawer?.setAttribute('aria-hidden', String(!open));
     if (backdrop) backdrop.hidden = !open;
     document.body.classList.toggle('drawer-open', open);
-    if (open) document.querySelector<HTMLButtonElement>('#close-cart-btn')?.focus();
-    else document.querySelector<HTMLButtonElement>('#open-cart-btn')?.focus();
+    if (open) {
+      drawer?.removeAttribute('inert');
+      document.querySelector<HTMLButtonElement>('#close-cart-btn')?.focus();
+    } else {
+      drawer?.setAttribute('inert', '');
+      document.querySelector<HTMLButtonElement>('#open-cart-btn')?.focus();
+    }
   }
 
   function renderCart(cart: CartItem[]) {
@@ -277,8 +282,8 @@
     if (!result.ok) {
       if (result.reason === 'empty-cart') {
         showFeedback('emptyCheckout');
-      } else if (result.reason === 'note-language-mismatch') {
-        showFeedback('notesLanguageError');
+      } else if (result.reason === 'invalid-note') {
+        showFeedback('noteTooLong');
       } else if (result.reason === 'invalid-coupon') {
         showCouponFeedback('couponInvalid');
       } else {

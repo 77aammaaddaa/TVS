@@ -4,7 +4,10 @@ export const SITE_CONFIG = Object.freeze({
   tagline: 'Enjoy Coffee. Enjoy Vibes.',
   subtagline: 'Specialty Coffee & Good Moments · Suez, Egypt',
   location: 'Suez, Egypt',
+  siteUrl: 'https://kleiv8.pages.dev/',
+  mapsDirectionsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Behind+Engineers+Syndicate%2C+Suez%2C+Egypt',
   currency: 'EGP',
+  enableCart: false,
   whatsappNumber: '201023328432',
   menuEndpoint: 'https://script.google.com/macros/s/AKfycbwzfZyiX-3-tlTLIE8HvUPI6CYh00Yoxj22zl1engCFdfBiQPzzSUVXdamOpngPy7J0/exec',
   socialLinks: [

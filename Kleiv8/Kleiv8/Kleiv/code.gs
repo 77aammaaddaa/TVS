@@ -146,6 +146,7 @@ function calculateOrderDiscount_(code, subtotal, settings) {
       code: activeCode,
       active: settings.active_voucher_enabled,
       discount_percent: settings.active_voucher_discount_percent ||
+        settings.voucher_discount_percent ||
         settings.active_voucher_percent ||
         settings.discount_percent ||
         fallbackPercent[activeCode] ||
@@ -168,7 +169,11 @@ function calculateOrderDiscount_(code, subtotal, settings) {
   const minimumOrder = Math.max(0, Number(coupon.minimum_order || coupon.min_order || 0) || 0);
   if (subtotal < minimumOrder) return { ok: false, error: 'The minimum order was not met.' };
   const percent = Math.max(0, Math.min(100, Number(
-    coupon.discount_percent || coupon.discountPercentage || coupon.percent || 0
+    coupon.discount_percent ||
+    coupon.voucher_discount_percent ||
+    coupon.discountPercentage ||
+    coupon.percent ||
+    0
   ) || 0));
   const fixedAmount = Math.max(0, Number(coupon.discount_amount || coupon.amount || 0) || 0);
   if (!percent && !fixedAmount) return { ok: false, error: 'The coupon has no valid discount.' };

@@ -10,7 +10,7 @@ export const STORY_DOODLES = Object.freeze([
     title_ar: 'خد لحظة على مهلك.',
     copy_en: 'A croissant, a cup, and a small pause in your day.',
     copy_ar: 'كرواسون وكوب، واستراحة صغيرة في نص يومك.',
-    recommendationIds: Object.freeze(['KL-BKR-01', 'KL-HCF-12', 'KL-ICF-02']),
+    recommendationIds: Object.freeze(['KL-HCF-12', 'KL-BKR-01']),
   }),
   Object.freeze({
     id: 'ice',
@@ -23,7 +23,7 @@ export const STORY_DOODLES = Object.freeze([
     title_ar: 'اتبرد على طريقتك.',
     copy_en: 'Something cold for a Suez afternoon.',
     copy_ar: 'حاجة باردة لعصرية في السويس.',
-    recommendationIds: Object.freeze(['KL-ICF-02', 'KL-ICF-01', 'KL-MTC-04']),
+    recommendationIds: Object.freeze(['KL-ICF-02', 'KL-DST-04']),
   }),
   Object.freeze({
     id: 'barista',
@@ -36,7 +36,7 @@ export const STORY_DOODLES = Object.freeze([
     title_ar: 'خليها بسيطة.',
     copy_en: 'Espresso, latte or V60. Pick your cup.',
     copy_ar: 'إسبريسو أو لاتيه أو V60، اختار كوبك.',
-    recommendationIds: Object.freeze(['KL-HCF-01', 'KL-HCF-02', 'KL-HCF-12']),
+    recommendationIds: Object.freeze(['KL-HCF-01', 'KL-BKR-06']),
   }),
   Object.freeze({
     id: 'balance',
@@ -49,7 +49,7 @@ export const STORY_DOODLES = Object.freeze([
     title_ar: 'هدّي إيقاعك.',
     copy_en: 'Matcha, iced, hot or white. Take it easy.',
     copy_ar: 'ماتشا آيس أو هوت أو وايت.',
-    recommendationIds: Object.freeze(['KL-MTC-04', 'KL-MTC-01', 'KL-MTC-02']),
+    recommendationIds: Object.freeze(['KL-MTC-04', 'KL-BKR-05']),
   }),
   Object.freeze({
     id: 'infinity',
@@ -62,6 +62,6 @@ export const STORY_DOODLES = Object.freeze([
     title_ar: 'خلّي اللحظات الحلوة تكمّل.',
     copy_en: 'Come back to a favorite, or try something new.',
     copy_ar: 'ارجع لمشروبك المفضل أو جرّب حاجة جديدة.',
-    recommendationIds: Object.freeze(['KL-ICF-02', 'KL-HCF-12', 'KL-BKR-01']),
+    recommendationIds: Object.freeze(['KL-HCF-02', 'KL-DST-05']),
   }),
 ]);

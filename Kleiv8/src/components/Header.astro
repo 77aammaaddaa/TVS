@@ -1,5 +1,6 @@
 ---
 import BrandMark from './BrandMark.astro';
+import { SITE_CONFIG } from '../config/site.js';
 ---
 
 <header class="site-header">
@@ -35,10 +36,12 @@ import BrandMark from './BrandMark.astro';
       <span class="mode-toggle__dot" aria-hidden="true"></span>
       <span id="mode-label" data-i18n="modeVibe">Vibe Reel</span>
     </button>
-    <button class="cart-trigger" id="open-cart-btn" type="button" aria-label="Open cart" data-i18n-aria="openCart">
-      <span aria-hidden="true" data-i18n="cart">Bag</span>
-      <span class="cart-trigger__count hidden" id="cart-badge">0</span>
-    </button>
+    {SITE_CONFIG.enableCart && (
+      <button class="cart-trigger" id="open-cart-btn" type="button" aria-label="Open cart" data-i18n-aria="openCart">
+        <span aria-hidden="true" data-i18n="cart">Bag</span>
+        <span class="cart-trigger__count hidden" id="cart-badge">0</span>
+      </button>
+    )}
   </nav>
 </header>
 

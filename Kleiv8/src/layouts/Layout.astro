@@ -8,13 +8,32 @@ import LatteArtModal from '../components/LatteArtModal.astro';
 import ProductModal from '../components/ProductModal.astro';
 import CartDrawer from '../components/CartDrawer.astro';
 import { VISUAL_ASSETS } from '../config/visual-assets.js';
+import { SITE_CONFIG } from '../config/site.js';
 
 const {
   title = 'KLEIV ∞ | Enjoy Coffee. Enjoy Vibes.',
   titleAr = 'كليف ∞ | استمتع بالقهوة. استمتع بالأجواء.',
-  description = 'Specialty coffee in Suez, Egypt. Pick your cup and pay at the cashier.',
-  descriptionAr = 'قهوة مختصة في السويس، مصر. اختار كوبك وادفع عند الكاشير.',
+  description = 'Specialty coffee in Suez, Egypt. Find your cup and visit us behind Engineers Syndicate.',
+  descriptionAr = 'قهوة مختصة في السويس، مصر. اختار كوبك وتعالى زورنا خلف نقابة المهندسين.',
 } = Astro.props;
+const pageUrl = new URL(Astro.url.pathname, SITE_CONFIG.siteUrl).href;
+const socialUrls = SITE_CONFIG.socialLinks.map(({ url }) => url);
+const heroImageUrl = new URL(VISUAL_ASSETS.icedCupSlogan.src, SITE_CONFIG.siteUrl).href;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'CafeOrCoffeeShop',
+  name: SITE_CONFIG.name,
+  url: SITE_CONFIG.siteUrl,
+  image: heroImageUrl,
+  servesCuisine: 'Coffee',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Behind Engineers Syndicate',
+    addressLocality: 'Suez',
+    addressCountry: 'EG',
+  },
+  sameAs: socialUrls,
+};
 ---
 
 <!doctype html>
@@ -35,6 +54,8 @@ const {
     <link href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,400;0,600;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#213a23" />
+    <link rel="canonical" href={pageUrl} />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href={VISUAL_ASSETS.infinity.src} />
     <link rel="shortcut icon" href={VISUAL_ASSETS.infinity.src} />
     <meta
@@ -56,6 +77,10 @@ const {
       data-i18n-content-ar={descriptionAr}
     />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:image" content={heroImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
     <title data-i18n-title-en={title} data-i18n-title-ar={titleAr}>{title}</title>
     <script is:inline>
       (() => {
@@ -69,7 +94,7 @@ const {
       })();
     </script>
   </head>
-  <body data-mode="vibe">
+  <body data-mode="vibe" data-cart-enabled={String(SITE_CONFIG.enableCart)}>
     <a class="skip-link" href="#main-content" data-i18n="skipToMenu">Skip to menu</a>
     <Splash />
     <NewsTicker />
@@ -78,7 +103,7 @@ const {
     <ProductModal />
     <LatteArtModal />
     <AsmrPrompt />
-    <CartDrawer />
+    {SITE_CONFIG.enableCart && <CartDrawer />}
     <script>
       import { applyLanguage, getLanguage } from '../scripts/language.js';
       applyLanguage(getLanguage());

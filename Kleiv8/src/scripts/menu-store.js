@@ -1,5 +1,4 @@
 import { SITE_CONFIG } from '../config/site.js';
-import { getLanguage, isTextSafeForLanguage } from './language.js';
 
 const CMS_STORAGE_KEY = 'kleiv8:cms:v2';
 const LEGACY_MENU_STORAGE_KEY = 'kleiv8:menu:v1';
@@ -445,6 +444,7 @@ class MenuStore extends EventTarget {
       coupon = {
         code: activeCode,
         discount_percent: this.#settings.active_voucher_discount_percent ??
+          this.#settings.voucher_discount_percent ??
           this.#settings.active_voucher_percent ??
           this.#settings.discount_percent ??
           parseDiscountPercent(activeCode),
@@ -470,7 +470,11 @@ class MenuStore extends EventTarget {
     if (safeSubtotal < minimumOrder) return { ok: false, reason: 'minimum-order' };
 
     const percent = Math.max(0, Math.min(100, Number(
-      coupon.discount_percent ?? coupon.discountPercentage ?? coupon.percent ?? 0,
+      coupon.discount_percent ??
+      coupon.voucher_discount_percent ??
+      coupon.discountPercentage ??
+      coupon.percent ??
+      0,
     ) || 0));
     const fixedAmount = Math.max(0, Number(coupon.discount_amount ?? coupon.amount ?? 0) || 0);
     if (!percent && !fixedAmount) return { ok: false, reason: 'invalid-coupon' };
@@ -519,7 +523,7 @@ class MenuStore extends EventTarget {
     if (item.status === 'Sold Out' || item.status === 'Hidden') return false;
 
     const normalizedNote = String(note ?? '').trim();
-    if (normalizedNote.length > 180 || !isTextSafeForLanguage(normalizedNote, getLanguage())) return false;
+    if (normalizedNote.length > 180) return false;
     const addons = this.#resolveSelectedAddons(item, selectedAddons);
     if (!addons) return false;
     const lineId = makeLineId(item.id, addons, normalizedNote);
@@ -561,7 +565,7 @@ class MenuStore extends EventTarget {
     if (!current || !Array.isArray(selectedAddons)) return false;
     const item = this.#menu.find((entry) => entry.id === current.id) ?? current;
     const normalizedNote = String(note ?? '').trim();
-    if (normalizedNote.length > 180 || !isTextSafeForLanguage(normalizedNote, getLanguage())) return false;
+    if (normalizedNote.length > 180) return false;
     const addons = this.#resolveSelectedAddons(item, selectedAddons);
     if (!addons) return false;
 
