@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 590" role="img" aria-label="استمتع بالقهوة. استمتع بالأجواء.">
+  <defs>
+    <path id="arabic-slogan-arc" d="M 84 145 C 154 58 486 58 556 145"/>
+  </defs>
+  <text
+    fill="#f8f1df"
+    font-family="Cairo, Tahoma, sans-serif"
+    font-size="34"
+    font-weight="700"
+    direction="rtl"
+    unicode-bidi="bidi-override"
+  >
+    <textPath href="#arabic-slogan-arc" startOffset="50%" text-anchor="middle">استمتع بالقهوة. استمتع بالأجواء.</textPath>
+  </text>
+  <g fill="none" stroke="#213a23" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M178 164h284l-18 294c-2 34-28 58-62 58h-124c-34 0-60-24-62-58l-18-294Z"/>
+    <path d="M188 164c38-24 226-24 264 0-34 31-230 31-264 0Z"/>
+    <ellipse cx="320" cy="164" rx="132" ry="31"/>
+    <ellipse cx="320" cy="164" rx="112" ry="21"/>
+  </g>
+  <g fill="#213a23" stroke="#213a23" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M198 196h244l-15 254c-2 28-22 46-52 46H265c-30 0-50-18-52-46l-15-254Z"/>
+    <path d="M220 472c39 18 161 18 200 0l-5 26c-4 19-24 31-54 31h-82c-30 0-50-12-54-31l-5-26Z"/>
+  </g>
+  <g fill="#d4af75" opacity=".95">
+    <path d="M238 238l44-36 18 54-62-18Z"/>
+    <path d="M394 268l-38-42-20 58 58-16Z"/>
+    <path d="M276 354l54-44 16 62-70-18Z"/>
+    <path d="M354 406l-62-28 16 64 46-36Z"/>
+  </g>
+  <g fill="none" stroke="#f8f1df" stroke-width="7" stroke-linecap="round" opacity=".88">
+    <path d="M218 238l46 48"/>
+    <path d="M410 230l-42 54"/>
+    <path d="M234 336l40 42"/>
+    <path d="M386 344l-44 48"/>
+  </g>
+  <g fill="#213a23" stroke="#213a23" stroke-width="5">
+    <ellipse cx="320" cy="206" rx="132" ry="17"/>
+  </g>
+  <g fill="#f8f1df" opacity=".9">
+    <ellipse cx="320" cy="164" rx="92" ry="12"/>
+  </g>
+  <path d="M274 554c26 9 66 9 92 0" fill="none" stroke="#213a23" stroke-width="7" stroke-linecap="round"/>
+</svg>
