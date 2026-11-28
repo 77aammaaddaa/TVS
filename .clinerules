@@ -1,0 +1,13 @@
+# TVS
+When using tools, always use the XML format required by Cline. Never output raw JSON tool calls.
+
+<tool_use_format>
+When you want to use a tool, you MUST use the XML format exactly as shown below. Do NOT output raw JSON. Do NOT output markdown code blocks. Only output the XML block.
+
+<tool_name>
+<parameter_name>value</parameter_name>
+</tool_name>
+</tool_use_format>
+
+
+
